@@ -1,0 +1,12 @@
+{
+  "Wake Up Early": {
+    "name": "Wake Up Early",
+    "description": "Get up by 6 AM",
+    "history": ["2025-06-20", "2025-06-21"]
+  },
+  "Exercise": {
+    "name": "Exercise",
+    "description": "20 min walk or workout",
+    "history": ["2025-06-19"]
+  }
+}
