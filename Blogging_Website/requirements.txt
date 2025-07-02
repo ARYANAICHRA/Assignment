@@ -1,0 +1,6 @@
+flask_sqlalchemy
+Flask
+Flask-Migrate
+dotenv
+werkzeug
+flask-mailman

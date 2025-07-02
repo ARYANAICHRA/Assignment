@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    {% include 'navbar.html' %}
+    <h1>Admin Dashboard</h1>
+    <h2>All Users</h2>
+    <table class="admin-simple">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <td>{{ user.id }}</td>
+          <td>{{ user.username }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            {% if user.username != 'admin' %}
+            <form
+              method="post"
+              action="{{ url_for('post_bp.admin_delete_user', user_id=user.id) }}"
+              style="display: inline"
+            >
+              <button
+                type="submit"
+                class="admin-simple-btn"
+                onclick="return confirm('Delete this user and all their posts?');"
+              >
+                Delete
+              </button>
+            </form>
+            {% else %} Admin {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <h2>All Posts</h2>
+    <table class="admin-simple">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for post in posts %}
+        <tr>
+          <td>{{ post.id }}</td>
+          <td>{{ post.title }}</td>
+          <td>{{ post.author.username }}</td>
+          <td>{{ post.date_posted.strftime('%Y-%m-%d') }}</td>
+          <td>
+            <form
+              method="post"
+              action="{{ url_for('post_bp.admin_delete_post', post_id=post.id) }}"
+              style="display: inline"
+            >
+              <button
+                type="submit"
+                class="admin-simple-btn"
+                onclick="return confirm('Delete this post?');"
+              >
+                Delete
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% include 'footer.html' %}
+  </body>
+</html>

@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Blog</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    {% include 'navbar.html' %}
+
+    <div class="page-container">
+      <div class="page-header">
+        <div class="page-title">
+          <h1>
+            <i class="fas fa-tachometer-alt"></i> Welcome, {{ username }}!
+          </h1>
+          <p id="subhead">Manage your posts and track your blogging journey</p>
+        </div>
+        <div class="page-actions">
+          <a
+            href="{{ url_for('post_bp.create_post') }}"
+            class="btn btn-primary"
+          >
+            <i class="fas fa-plus"></i> New Post
+          </a>
+        </div>
+      </div>
+
+      <div class="dashboard-stats">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-file-alt"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">{{ posts|length }}</div>
+            <div class="stat-label">Total Posts</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-heart"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">
+              {{ posts|sum(attribute='like_count') }}
+            </div>
+            <div class="stat-label">Total Likes</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fas fa-comments"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-number">
+              {% set total_comments = 0 %} {% for post in posts %} {% set
+              total_comments = total_comments + post.comments|length %} {%
+              endfor %} {{ total_comments }}
+            </div>
+            <div class="stat-label">Total Comments</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-container">
+        {% if posts %}
+        <div class="posts-grid">
+          {% for post in posts %}
+          <div class="dashboard-post-card">
+            <div class="post-header">
+              <h3>{{ post.title }}</h3>
+              <div class="post-meta">
+                <span class="post-date">
+                  <i class="fas fa-calendar"></i>
+                  {{ post.date_posted.strftime('%B %d, %Y') }}
+                </span>
+                <div class="post-stats">
+                  <span class="stat">
+                    <i class="fas fa-heart"></i>
+                    {{ post.like_count }}
+                  </span>
+                  <span class="stat">
+                    <i class="fas fa-comment"></i>
+                    {{ post.comments|length }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="post-content">
+              <p>
+                {{ post.content[:200] }}{% if post.content|length > 200 %}...{%
+                endif %}
+              </p>
+            </div>
+
+            <div class="post-actions">
+              <a
+                href="{{ url_for('post_bp.edit_post', post_id=post.id) }}"
+                class="btn btn-small btn-secondary"
+              >
+                <i class="fas fa-edit"></i> Edit
+              </a>
+              <a
+                href="{{ url_for('post_bp.delete_post', post_id=post.id) }}"
+                onclick="return confirm('Are you sure you want to delete this post? This action cannot be undone.');"
+                class="btn btn-small btn-danger"
+              >
+                <i class="fas fa-trash"></i> Delete
+              </a>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if pagination.pages > 1 %}
+        <div class="pagination-container">
+          <div class="pagination-info">
+            <span
+              >Showing {{ pagination.items|length }} of {{ pagination.total }}
+              posts</span
+            >
+            <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
+          </div>
+
+          <div class="pagination-controls">
+            {% if pagination.has_prev %}
+            <a
+              href="{{ url_for('post_bp.dashboard', page=pagination.prev_num) }}"
+              class="pagination-btn"
+            >
+              <i class="fas fa-chevron-left"></i> Previous
+            </a>
+            {% endif %}
+
+            <div class="pagination-numbers">
+              {% for page_num in pagination.iter_pages(left_edge=2,
+              left_current=2, right_current=3, right_edge=2) %} {% if page_num
+              %} {% if page_num != pagination.page %}
+              <a
+                href="{{ url_for('post_bp.dashboard', page=page_num) }}"
+                class="pagination-number"
+                >{{ page_num }}</a
+              >
+              {% else %}
+              <span class="pagination-number active">{{ page_num }}</span>
+              {% endif %} {% else %}
+              <span class="pagination-ellipsis">...</span>
+              {% endif %} {% endfor %}
+            </div>
+
+            {% if pagination.has_next %}
+            <a
+              href="{{ url_for('post_bp.dashboard', page=pagination.next_num) }}"
+              class="pagination-btn"
+            >
+              Next <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %} {% else %}
+        <div class="empty-state">
+          <div class="empty-icon">
+            <i class="fas fa-pen-fancy"></i>
+          </div>
+          <h3>No Posts Yet</h3>
+          <p>Start your blogging journey by creating your first post!</p>
+          <a
+            href="{{ url_for('post_bp.create_post') }}"
+            class="btn btn-primary"
+          >
+            <i class="fas fa-plus"></i> Write Your First Post
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    {% include 'footer.html' %}
+  </body>
+</html>

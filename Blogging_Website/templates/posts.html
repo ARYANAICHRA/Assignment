@@ -1,0 +1,656 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>All Posts - Blog</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    {% include 'navbar.html' %}
+
+    <div class="page-container">
+      <div class="page-header">
+        <div class="page-title">
+          <h1><i class="fas fa-book-open"></i> Explore Stories</h1>
+          <p id="subhead">
+            Discover amazing stories from our community of writers
+          </p>
+        </div>
+        {% if username %}
+        <div class="page-actions">
+          <a
+            href="{{ url_for('post_bp.create_post') }}"
+            class="btn btn-primary"
+          >
+            <i class="fas fa-plus"></i> Write Your Story
+          </a>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="content-container">
+        <div class="posts-main">
+          <!-- Filter Section -->
+          <div class="filter-section">
+            <div class="filter-header">
+              <h3><i class="fas fa-filter"></i> Filter Posts</h3>
+              <button class="clear-filters-btn" onclick="clearAllFilters()">
+                <i class="fas fa-times"></i> Clear All
+              </button>
+            </div>
+
+            <div class="filter-controls">
+              <div class="filter-group">
+                <label for="search-input">
+                  <i class="fas fa-search"></i> Search Posts
+                </label>
+                <input
+                  type="text"
+                  id="search-input"
+                  placeholder="Search by title or content..."
+                  onkeyup="filterPosts()"
+                />
+              </div>
+
+              <div class="filter-group">
+                <label for="date-filter">
+                  <i class="fas fa-calendar"></i> Filter by Date
+                </label>
+                <select id="date-filter" onchange="filterPosts()">
+                  <option value="">All Time</option>
+                  <option value="today">Today</option>
+                  <option value="week">This Week</option>
+                  <option value="month">This Month</option>
+                  <option value="year">This Year</option>
+                </select>
+              </div>
+
+              <div class="filter-group">
+                <label for="sort-by">
+                  <i class="fas fa-sort"></i> Sort By
+                </label>
+                <select id="sort-by" onchange="filterPosts()">
+                  <option value="newest">Newest First</option>
+                  <option value="oldest">Oldest First</option>
+                  <option value="most-liked">Most Liked</option>
+                  <option value="most-commented">Most Commented</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="filter-stats">
+              <span id="filter-results">Showing all posts</span>
+              <span id="total-posts">Total: {{ posts|length }} posts</span>
+            </div>
+          </div>
+
+          {% if posts %}
+          <div class="posts-grid" id="posts-container">
+            {% for post in posts %}
+            <article
+              class="post-card-modern"
+              data-post-id="{{ post.id }}"
+              data-title="{{ post.title|lower }}"
+              data-content="{{ post.content|lower }}"
+              data-author="{{ post.author.username }}"
+              data-date="{{ post.date_posted.strftime('%Y-%m-%d') }}"
+              data-likes="{{ post.like_count }}"
+              data-comments="{{ post.comments|length }}"
+            >
+              <div class="post-header-modern">
+                <div class="post-author">
+                  <div class="author-avatar">
+                    <i class="fas fa-user"></i>
+                  </div>
+                  <div class="author-info">
+                    <h3 class="post-title">{{ post.title }}</h3>
+                    <div class="post-meta">
+                      <span class="author-name">
+                        <i class="fas fa-user-circle"></i>
+                        {{ post.author.username }}
+                      </span>
+                      <span class="post-date">
+                        <i class="fas fa-calendar-alt"></i>
+                        {{ post.date_posted.strftime('%B %d, %Y') }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="post-content-modern">
+                <p>
+                  {{ post.content[:300] }}{% if post.content|length > 300
+                  %}...{% endif %}
+                </p>
+                {% if post.content|length > 300 %}
+                <button
+                  class="read-more-btn"
+                  onclick="toggleFullContent(this, '{{ post.id }}')"
+                >
+                  <i class="fas fa-chevron-down"></i> Read More
+                </button>
+                <div
+                  class="full-content"
+                  id="full-content-{{ post.id }}"
+                  style="display: none"
+                >
+                  <p>{{ post.content }}</p>
+                </div>
+                {% endif %} {% if post.image_filename %}
+                <img
+                  src="{{ url_for('static', filename='uploads/' ~ post.image_filename) }}"
+                  alt="Post Image"
+                  class="post-media-image"
+                  style="max-width: 100%; margin-top: 15px; border-radius: 10px"
+                />
+                {% endif %} {% if post.video_filename %}
+                <video
+                  controls
+                  class="post-media-video"
+                  style="width: 100%; margin-top: 15px; border-radius: 10px"
+                >
+                  <source
+                    src="{{ url_for('static', filename='uploads/' ~ post.video_filename) }}"
+                  />
+                  Your browser does not support the video tag.
+                </video>
+                {% endif %}
+              </div>
+
+              <div class="post-stats-modern">
+                <div class="stat-item">
+                  <i class="fas fa-heart"></i>
+                  <span>{{ post.like_count }} likes</span>
+                </div>
+                <div class="stat-item">
+                  <i class="fas fa-comment"></i>
+                  <span>{{ post.comments|length }} comments</span>
+                </div>
+              </div>
+
+              <div class="post-actions-modern">
+                {% if username %}
+                <div class="action-buttons">
+                  <button
+                    class="action-btn like-btn-modern"
+                    data-post-id="{{ post.id }}"
+                    data-liked="{{ 'true' if post.is_liked_by(session['user_id']) else 'false' }}"
+                  >
+                    <i
+                      class="fas fa-heart {% if post.is_liked_by(session['user_id']) %}liked{% endif %}"
+                    ></i>
+                    <span class="like-count">{{ post.like_count }}</span>
+                  </button>
+
+                  <button
+                    class="action-btn comment-btn-modern"
+                    data-post-id="{{ post.id }}"
+                  >
+                    <i class="fas fa-comment"></i>
+                    <span class="comment-count"
+                      >{{ post.comments|length }}</span
+                    >
+                  </button>
+                </div>
+                {% endif %} {% if username and post.author.id ==
+                session['user_id'] %}
+                <div class="post-edit-actions-modern">
+                  <a
+                    href="{{ url_for('post_bp.edit_post', post_id=post.id) }}"
+                    class="btn btn-small btn-secondary"
+                  >
+                    <i class="fas fa-edit"></i> Edit
+                  </a>
+                  <a
+                    href="{{ url_for('post_bp.delete_post', post_id=post.id) }}"
+                    class="btn btn-small btn-danger"
+                    onclick="return confirm('Are you sure you want to delete this post? This action cannot be undone.');"
+                  >
+                    <i class="fas fa-trash"></i> Delete
+                  </a>
+                </div>
+                {% endif %}
+              </div>
+
+              {% if username %}
+              <div
+                class="comments-section-modern"
+                id="comments-{{ post.id }}"
+                style="display: none"
+              >
+                <div class="add-comment-modern">
+                  <form
+                    class="comment-form-modern"
+                    data-post-id="{{ post.id }}"
+                  >
+                    <div class="comment-input-group">
+                      <textarea
+                        name="content"
+                        placeholder="Share your thoughts..."
+                        required
+                      ></textarea>
+                      <button type="submit" class="comment-submit-btn-modern">
+                        <i class="fas fa-paper-plane"></i>
+                      </button>
+                    </div>
+                  </form>
+                </div>
+                <div
+                  class="comments-list-modern"
+                  id="comments-list-{{ post.id }}"
+                >
+                  <!-- Comments will be loaded here -->
+                </div>
+              </div>
+              {% endif %}
+            </article>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="empty-state">
+            <div class="empty-icon">
+              <i class="fas fa-newspaper"></i>
+            </div>
+            <h3>No Stories Yet</h3>
+            <p>Be the first to share a story with the community!</p>
+            {% if username %}
+            <a
+              href="{{ url_for('post_bp.create_post') }}"
+              class="btn btn-primary"
+            >
+              <i class="fas fa-plus"></i> Write the First Story
+            </a>
+            {% else %}
+            <a href="{{ url_for('post_bp.register') }}" class="btn btn-primary">
+              <i class="fas fa-user-plus"></i> Join to Write
+            </a>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="posts-sidebar">
+          <div class="sidebar-card">
+            <h3><i class="fas fa-lightbulb"></i> Writing Tips</h3>
+            <div class="tips-list">
+              <div class="tip-item-sidebar">
+                <i class="fas fa-check-circle"></i>
+                <span>Engage with other writers' posts</span>
+              </div>
+              <div class="tip-item-sidebar">
+                <i class="fas fa-check-circle"></i>
+                <span>Share your unique perspective</span>
+              </div>
+              <div class="tip-item-sidebar">
+                <i class="fas fa-check-circle"></i>
+                <span>Be authentic in your writing</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination at the end of the page -->
+      {% if pagination.pages > 1 %}
+      <div class="pagination-container">
+        <div class="pagination-info">
+          <span
+            >Showing {{ pagination.items|length }} of {{ pagination.total }}
+            posts</span
+          >
+          <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
+        </div>
+        <div class="pagination-controls">
+          {% if pagination.has_prev %}
+          <a
+            href="{{ url_for('post_bp.show_posts', page=pagination.prev_num) }}"
+            class="pagination-btn"
+          >
+            <i class="fas fa-chevron-left"></i> Previous
+          </a>
+          {% endif %}
+          <div class="pagination-numbers">
+            {% for page_num in pagination.iter_pages(left_edge=2,
+            left_current=2, right_current=3, right_edge=2) %} {% if page_num %}
+            {% if page_num != pagination.page %}
+            <a
+              href="{{ url_for('post_bp.show_posts', page=page_num) }}"
+              class="pagination-number"
+              >{{ page_num }}</a
+            >
+            {% else %}
+            <span class="pagination-number active">{{ page_num }}</span>
+            {% endif %} {% else %}
+            <span class="pagination-ellipsis">...</span>
+            {% endif %} {% endfor %}
+          </div>
+          {% if pagination.has_next %}
+          <a
+            href="{{ url_for('post_bp.show_posts', page=pagination.next_num) }}"
+            class="pagination-btn"
+          >
+            Next <i class="fas fa-chevron-right"></i>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    {% include 'footer.html' %}
+
+    <script>
+      // Initialize authors list for filtering
+      let authorsList = [];
+      {% for post in posts %}
+        if (!authorsList.includes('{{ post.author.username }}')) {
+          authorsList.push('{{ post.author.username }}');
+        }
+      {% endfor %}
+
+              // Filter functionality
+        function filterPosts() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const authorFilter = document.getElementById('author-filter').value;
+            const dateFilter = document.getElementById('date-filter').value;
+            const sortBy = document.getElementById('sort-by').value;
+
+            const posts = document.querySelectorAll('.post-card-modern');
+            let visibleCount = 0;
+
+            posts.forEach(post => {
+                const title = post.dataset.title;
+                const content = post.dataset.content;
+                const author = post.dataset.author;
+                const date = post.dataset.date;
+                const likes = parseInt(post.dataset.likes);
+                const comments = parseInt(post.dataset.comments);
+
+                let showPost = true;
+
+                // Search filter
+                if (searchTerm && !title.includes(searchTerm) && !content.includes(searchTerm)) {
+                    showPost = false;
+                }
+
+                // Author filter
+                if (authorFilter && author !== authorFilter) {
+                    showPost = false;
+                }
+
+                // Date filter
+                if (dateFilter) {
+                    const postDate = new Date(date);
+                    const today = new Date();
+                    const diffTime = Math.abs(today - postDate);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    switch(dateFilter) {
+                        case 'today':
+                            if (diffDays > 1) showPost = false;
+                            break;
+                        case 'week':
+                            if (diffDays > 7) showPost = false;
+                            break;
+                        case 'month':
+                            if (diffDays > 30) showPost = false;
+                            break;
+                        case 'year':
+                            if (diffDays > 365) showPost = false;
+                            break;
+                    }
+                }
+
+                // Show/hide post
+                if (showPost) {
+                    post.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    post.style.display = 'none';
+                }
+            });
+
+            // Sort posts
+            sortPosts(sortBy);
+
+            // Update filter stats
+            updateFilterStats(visibleCount, posts.length);
+
+            // Show/hide pagination based on filtering
+            const paginationContainer = document.querySelector('.pagination-container');
+            if (paginationContainer) {
+                if (searchTerm || authorFilter || dateFilter) {
+                    paginationContainer.style.display = 'none';
+                } else {
+                    paginationContainer.style.display = 'block';
+                }
+            }
+        }
+
+      // Sort posts
+      function sortPosts(sortBy) {
+        const container = document.getElementById('posts-container');
+        const posts = Array.from(container.children);
+
+        posts.sort((a, b) => {
+          switch(sortBy) {
+            case 'newest':
+              return new Date(b.dataset.date) - new Date(a.dataset.date);
+            case 'oldest':
+              return new Date(a.dataset.date) - new Date(b.dataset.date);
+            case 'most-liked':
+              return parseInt(b.dataset.likes) - parseInt(a.dataset.likes);
+            case 'most-commented':
+              return parseInt(b.dataset.comments) - parseInt(a.dataset.comments);
+            default:
+              return 0;
+          }
+        });
+
+        // Re-append sorted posts
+        posts.forEach(post => container.appendChild(post));
+      }
+
+      // Update filter statistics
+      function updateFilterStats(visible, total) {
+        const filterResults = document.getElementById('filter-results');
+        const totalPosts = document.getElementById('total-posts');
+
+        if (visible === total) {
+          filterResults.textContent = 'Showing all posts';
+        } else {
+          filterResults.textContent = `Showing ${visible} of ${total} posts`;
+        }
+
+        totalPosts.textContent = `Total: ${total} posts`;
+      }
+
+              // Clear all filters
+        function clearAllFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('author-filter').value = '';
+            document.getElementById('date-filter').value = '';
+            document.getElementById('sort-by').value = 'newest';
+
+            // Show all posts
+            const posts = document.querySelectorAll('.post-card-modern');
+            posts.forEach(post => post.style.display = 'block');
+
+            // Reset to default sort
+            sortPosts('newest');
+            updateFilterStats(posts.length, posts.length);
+
+            // Show pagination
+            const paginationContainer = document.querySelector('.pagination-container');
+            if (paginationContainer) {
+                paginationContainer.style.display = 'block';
+            }
+        }
+
+      // Like functionality
+      document.querySelectorAll('.like-btn-modern').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const postId = this.dataset.postId;
+          const likeIcon = this.querySelector('i');
+          const likeCount = this.querySelector('.like-count');
+
+          fetch(`/like/${postId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            }
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.error) {
+              alert(data.error);
+              return;
+            }
+
+            likeCount.textContent = data.like_count;
+
+            if (data.action === 'liked') {
+              likeIcon.classList.add('liked');
+            } else {
+              likeIcon.classList.remove('liked');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while liking the post.');
+          });
+        });
+      });
+
+      // Comment toggle functionality
+      document.querySelectorAll('.comment-btn-modern').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const postId = this.dataset.postId;
+          const commentsContainer = document.getElementById(`comments-${postId}`);
+          const commentsList = document.getElementById(`comments-list-${postId}`);
+
+          if (commentsContainer.style.display === 'none') {
+            commentsContainer.style.display = 'block';
+            loadComments(postId, commentsList);
+          } else {
+            commentsContainer.style.display = 'none';
+          }
+        });
+      });
+
+      // Load comments
+      function loadComments(postId, commentsList) {
+        fetch(`/comments/${postId}`)
+          .then(response => response.json())
+          .then(comments => {
+            commentsList.innerHTML = '';
+            if (comments.length === 0) {
+              commentsList.innerHTML = '<p class="no-comments">No comments yet. Be the first to comment!</p>';
+              return;
+            }
+
+            comments.forEach(comment => {
+              const commentElement = document.createElement('div');
+              commentElement.className = 'comment-modern';
+              commentElement.innerHTML = `
+                <div class="comment-header-modern">
+                  <div class="comment-author">
+                    <i class="fas fa-user-circle"></i>
+                    <strong>${comment.username}</strong>
+                  </div>
+                  <span class="comment-date">${comment.created_at}</span>
+                </div>
+                <div class="comment-content-modern">${comment.content}</div>
+              `;
+              commentsList.appendChild(commentElement);
+            });
+          })
+          .catch(error => {
+            console.error('Error loading comments:', error);
+            commentsList.innerHTML = '<p class="error">Error loading comments.</p>';
+          });
+      }
+
+      // Add comment functionality
+      document.querySelectorAll('.comment-form-modern').forEach(form => {
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          const postId = this.dataset.postId;
+          const content = this.querySelector('textarea').value;
+          const commentsList = document.getElementById(`comments-list-${postId}`);
+          const commentCount = document.querySelector(`[data-post-id="${postId}"] .comment-count`);
+
+          const formData = new FormData();
+          formData.append('content', content);
+
+          fetch(`/comment/${postId}`, {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.error) {
+              alert(data.error);
+              return;
+            }
+
+            // Clear the form
+            this.querySelector('textarea').value = '';
+
+            // Add the new comment to the list
+            const commentElement = document.createElement('div');
+            commentElement.className = 'comment-modern';
+            commentElement.innerHTML = `
+              <div class="comment-header-modern">
+                <div class="comment-author">
+                  <i class="fas fa-user-circle"></i>
+                  <strong>${data.comment.username}</strong>
+                </div>
+                <span class="comment-date">${data.comment.created_at}</span>
+              </div>
+              <div class="comment-content-modern">${data.comment.content}</div>
+            `;
+            commentsList.insertBefore(commentElement, commentsList.firstChild);
+
+            // Update comment count
+            const currentCount = parseInt(commentCount.textContent);
+            commentCount.textContent = currentCount + 1;
+
+            // Remove "no comments" message if it exists
+            const noComments = commentsList.querySelector('.no-comments');
+            if (noComments) {
+              noComments.remove();
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while adding the comment.');
+          });
+        });
+      });
+
+      // Toggle full content
+      function toggleFullContent(btn, postId) {
+        const fullContent = document.getElementById(`full-content-${postId}`);
+        const icon = btn.querySelector('i');
+
+        if (fullContent.style.display === 'none') {
+          fullContent.style.display = 'block';
+          btn.innerHTML = '<i class="fas fa-chevron-up"></i> Show Less';
+        } else {
+          fullContent.style.display = 'none';
+          btn.innerHTML = '<i class="fas fa-chevron-down"></i> Read More';
+        }
+      }
+    </script>
+  </body>
+</html>

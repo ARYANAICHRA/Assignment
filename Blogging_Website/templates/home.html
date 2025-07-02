@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog - Share Your Stories</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    {% include 'navbar.html' %}
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-content">
+        <div class="hero-text">
+          <h1 class="hero-title">
+            <span class="gradient-text">Share Your Voice</span><br />
+            Connect with the World
+          </h1>
+          <p class="hero-subtitle">
+            Join thousands of writers, thinkers, and creators sharing their
+            stories, ideas, and experiences on Blog. Your next great story
+            starts here.
+          </p>
+          <div class="hero-buttons">
+            {% if not session.get('user_id') %}
+            <a href="{{ url_for('post_bp.register') }}" class="btn btn-primary">
+              <i class="fas fa-user-plus"></i> Get Started Free
+            </a>
+            <a href="{{ url_for('post_bp.login') }}" class="btn btn-secondary">
+              <i class="fas fa-sign-in-alt"></i> Sign In
+            </a>
+            {% else %}
+            <a
+              href="{{ url_for('post_bp.create_post') }}"
+              class="btn btn-primary"
+            >
+              <i class="fas fa-pen"></i> Write Your Story
+            </a>
+            <a
+              href="{{ url_for('post_bp.show_posts') }}"
+              class="btn btn-secondary"
+            >
+              <i class="fas fa-book-open"></i> Explore Posts
+            </a>
+            {% endif %}
+          </div>
+        </div>
+        <div class="hero-image">
+          <div class="floating-card">
+            <i class="fas fa-heart"></i>
+            <span>Share & Connect</span>
+          </div>
+          <div class="floating-card">
+            <i class="fas fa-comments"></i>
+            <span>Engage & Discuss</span>
+          </div>
+          <div class="floating-card">
+            <i class="fas fa-users"></i>
+            <span>Build Community</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+      <div class="container">
+        <div class="cta-content">
+          <h2>Ready to Share Your Story?</h2>
+          <p>
+            Join our growing community of writers and start your blogging
+            journey today.
+          </p>
+          {% if not session.get('user_id') %}
+          <a href="{{ url_for('post_bp.register') }}" class="btn btn-large">
+            <i class="fas fa-rocket"></i> Start Writing Now
+          </a>
+          {% else %}
+          <a href="{{ url_for('post_bp.create_post') }}" class="btn btn-large">
+            <i class="fas fa-pen"></i> Create New Post
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    {% include 'footer.html' %}
+
+    <script>
+      // Add some interactive animations
+      document.addEventListener("DOMContentLoaded", function () {
+        // Animate stats on scroll
+        const stats = document.querySelectorAll(".stat-number");
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.style.opacity = "1";
+              entry.target.style.transform = "translateY(0)";
+            }
+          });
+        });
+
+        stats.forEach((stat) => {
+          stat.style.opacity = "0";
+          stat.style.transform = "translateY(20px)";
+          stat.style.transition = "all 0.6s ease";
+          observer.observe(stat);
+        });
+
+        // Floating cards animation
+        const cards = document.querySelectorAll(".floating-card");
+        cards.forEach((card, index) => {
+          card.style.animationDelay = `${index * 0.2}s`;
+        });
+      });
+    </script>
+  </body>
+</html>

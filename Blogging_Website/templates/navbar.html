@@ -1,0 +1,50 @@
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="nav-brand">
+      <a href="{{ url_for('post_bp.home') }}">
+        <i class="fas fa-blog"></i>
+        <span>Blog</span>
+      </a>
+    </div>
+
+    <div class="nav-menu">
+      <a href="{{ url_for('post_bp.home') }}" class="nav-link">
+        <i class="fas fa-home"></i> Home
+      </a>
+      <a href="{{ url_for('post_bp.show_posts') }}" class="nav-link">
+        <i class="fas fa-book-open"></i> Posts
+      </a>
+      {% if session.get('user_id') %}
+      <a href="{{ url_for('post_bp.dashboard') }}" class="nav-link">
+        <i class="fas fa-tachometer-alt"></i> Dashboard
+      </a>
+      {% endif %} {% if session.get('is_admin') %}
+      <a
+        href="{{ url_for('post_bp.admin_dashboard') }}"
+        class="nav-link nav-link-admin"
+      >
+        <i class="fas fa-user-shield"></i> Admin Portal
+      </a>
+      {% endif %}
+    </div>
+
+    <div class="nav-auth">
+      {% if session.get('user_id') %}
+      <span class="welcome-text">Welcome, {{ session.get('username') }}!</span>
+      <a href="{{ url_for('post_bp.logout') }}" class="nav-btn nav-btn-outline">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
+      {% else %}
+      <a href="{{ url_for('post_bp.login') }}" class="nav-btn nav-btn-outline">
+        <i class="fas fa-sign-in-alt"></i> Login
+      </a>
+      <a
+        href="{{ url_for('post_bp.register') }}"
+        class="nav-btn nav-btn-primary"
+      >
+        <i class="fas fa-user-plus"></i> Register
+      </a>
+      {% endif %}
+    </div>
+  </div>
+</nav>

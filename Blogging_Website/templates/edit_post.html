@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Post - Blog</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    {% include 'navbar.html' %}
+
+    <div class="page-container">
+      <div class="page-header">
+        <div class="page-title">
+          <h1><i class="fas fa-edit"></i> Edit Your Story</h1>
+          <p id="subhead">
+            Refine and improve your post to make it even better
+          </p>
+        </div>
+      </div>
+
+      <div class="content-container">
+        <div class="post-form-card">
+          <form method="POST" class="post-form">
+            <div class="form-group">
+              <label for="title">
+                <i class="fas fa-heading"></i> Post Title
+              </label>
+              <input
+                type="text"
+                id="title"
+                name="title"
+                value="{{ post.title }}"
+                placeholder="Enter an engaging title for your post..."
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="content">
+                <i class="fas fa-edit"></i> Your Story
+              </label>
+              <textarea
+                id="content"
+                name="content"
+                rows="12"
+                placeholder="Start writing your amazing story here... Share your thoughts, experiences, or insights with the community."
+                required
+              >
+{{ post.content }}</textarea
+              >
+              <div class="char-counter">
+                <span id="char-count">{{ post.content|length }}</span>
+                characters
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <a
+                href="{{ url_for('post_bp.dashboard') }}"
+                class="btn btn-secondary"
+              >
+                <i class="fas fa-arrow-left"></i> Cancel
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Update Post
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="editing-tips">
+          <h3><i class="fas fa-lightbulb"></i> Editing Tips</h3>
+          <div class="tip-item">
+            <i class="fas fa-check-circle"></i>
+            <span>Read your post aloud to catch any awkward phrasing</span>
+          </div>
+          <div class="tip-item">
+            <i class="fas fa-check-circle"></i>
+            <span>Check for grammar and spelling errors</span>
+          </div>
+          <div class="tip-item">
+            <i class="fas fa-check-circle"></i>
+            <span>Make sure your message is clear and engaging</span>
+          </div>
+          <div class="tip-item">
+            <i class="fas fa-check-circle"></i>
+            <span>Consider your audience and their interests</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% include 'footer.html' %}
+
+    <script>
+      // Character counter for textarea
+      const textarea = document.getElementById("content");
+      const charCount = document.getElementById("char-count");
+
+      textarea.addEventListener("input", function () {
+        charCount.textContent = this.value.length;
+      });
+    </script>
+  </body>
+</html>
