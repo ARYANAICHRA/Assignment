@@ -7,15 +7,33 @@ function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Add register logic
+    setError('');
+    setSuccess('');
     if (password !== confirmPassword) {
-      alert('Passwords do not match!');
+      setError('Passwords do not match!');
       return;
     }
-    alert('Registration submitted!');
+    try {
+      const res = await fetch('http://localhost:5000/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, email, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSuccess('Registration successful! You can now log in.');
+        setUsername(''); setEmail(''); setPassword(''); setConfirmPassword('');
+      } else {
+        setError(data.error || 'Registration failed');
+      }
+    } catch (err) {
+      setError('Network error');
+    }
   };
 
   return (
@@ -40,7 +58,9 @@ function Register() {
             <label htmlFor="confirmPassword" className="block text-gray-700 mb-2">Confirm Password</label>
             <input type="password" className="w-full border border-gray-300 rounded px-3 py-2" id="confirmPassword" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
           </div>
-          <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 font-semibold">Register</button>
+          {error && <div className="mb-4 text-red-500 text-center">{error}</div>}
+          {success && <div className="mb-4 text-green-600 text-center">{success}</div>}
+          <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-400 font-semibold transition">Register</button>
         </form>
       </div>
       <Footer />

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const navSections = [
   {
@@ -20,6 +20,13 @@ const navSections = [
 
 function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+  };
+
   return (
     <aside className="h-screen w-56 bg-gray-800 text-white flex flex-col py-8 px-4 fixed">
       <div className="mb-8 text-2xl font-bold text-center">Jira Clone</div>
@@ -30,12 +37,21 @@ function Sidebar() {
             <ul className="space-y-1">
               {section.items.map(item => (
                 <li key={item.path}>
-                  <Link
-                    to={item.path}
-                    className={`block px-4 py-2 rounded hover:bg-gray-700 transition ${location.pathname === item.path ? 'bg-gray-700' : ''}`}
-                  >
-                    {item.name}
-                  </Link>
+                  {item.name === 'Logout' ? (
+                    <button
+                      onClick={handleLogout}
+                      className={`block w-full text-left px-4 py-2 rounded hover:bg-gray-700 transition`}
+                    >
+                      Logout
+                    </button>
+                  ) : (
+                    <Link
+                      to={item.path}
+                      className={`block px-4 py-2 rounded hover:bg-gray-700 transition ${location.pathname === item.path ? 'bg-gray-700' : ''}`}
+                    >
+                      {item.name}
+                    </Link>
+                  )}
                 </li>
               ))}
             </ul>
