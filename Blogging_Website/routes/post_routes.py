@@ -177,7 +177,7 @@ def dashboard(page=1):
     from models.post import Post
     
     # Pagination settings
-    per_page = 6  # Number of posts per page
+    per_page = 5  # Number of posts per page
     
     # Get paginated posts
     pagination = Post.query.filter_by(user_id=user_id).order_by(Post.date_posted.desc()).paginate(
@@ -197,6 +197,8 @@ ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'webm', 'ogg'}
 
 def allowed_file(filename, allowed_extensions):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
+
 
 @post_bp.route('/create-post', methods=['GET', 'POST'])
 def create_post():
@@ -262,6 +264,8 @@ def show_posts(page=1):
     
     posts = pagination.items
     username = session.get('username')
+    print('DEBUG: session =', dict(session))  # Debug print
+    print('DEBUG: username =', username)      # Debug print
     
     # Get unique authors for filter dropdown (from all posts, not just current page)
     all_posts = Post.query.all()
