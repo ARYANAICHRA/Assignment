@@ -3,6 +3,10 @@ from flask_migrate import Migrate
 from models.db import db
 import models
 from routes.auth import auth_bp
+from routes.projects import projects_bp
+from routes.project_member import project_member_bp
+from routes.item import item_bp
+from routes.board_column import column_bp
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -13,6 +17,10 @@ app.config['SECRET_KEY'] = 'your-very-secret-key'
 
 # Register blueprints
 app.register_blueprint(auth_bp)
+app.register_blueprint(projects_bp)
+app.register_blueprint(project_member_bp)
+app.register_blueprint(item_bp)
+app.register_blueprint(column_bp)
 
 db.init_app(app)
 migrate = Migrate(app, db)

@@ -6,6 +6,7 @@ const navSections = [
     title: 'Main',
     items: [
       { name: 'Dashboard', path: '/dashboard' },
+      { name: 'Projects', path: '/projects' },
       { name: 'Board', path: '/board' },
     ],
   },
