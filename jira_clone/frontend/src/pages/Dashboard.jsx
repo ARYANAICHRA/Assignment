@@ -4,6 +4,8 @@ import Footer from '../components/Footer';
 import Sidebar from '../components/Sidebar';
 import CreateProjectForm from '../components/CreateProjectForm';
 import ProjectMembers from '../components/ProjectMembers';
+import ProjectTasks from '../components/ProjectTasks';
+import ProjectsReview from '../components/ProjectsReview';
 
 function Dashboard({ projectCount = 0, taskCount = 0, teamCount = 0, recentProjects = [] }) {
   return (
@@ -12,8 +14,10 @@ function Dashboard({ projectCount = 0, taskCount = 0, teamCount = 0, recentProje
       <div className="flex-1 ml-56">
         <Header />
         <div className="max-w-5xl mx-auto mt-8">
+          <ProjectsReview />
           <CreateProjectForm />
           <ProjectMembers />
+          <ProjectTasks />
           <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-blue-600 text-white rounded-lg shadow p-6">
