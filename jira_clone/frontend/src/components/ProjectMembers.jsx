@@ -12,6 +12,7 @@ function ProjectMembers() {
 
   useEffect(() => {
     if (selectedProject) {
+      console.log('Selected project:', selectedProject);
       fetchMembers();
       fetchOwner();
     }
@@ -19,20 +20,28 @@ function ProjectMembers() {
   }, [selectedProject]);
 
   const fetchOwner = async () => {
-    if (!selectedProject?.owner_id) return;
+    if (!selectedProject?.owner_id) {
+      console.log('No owner_id in selectedProject:', selectedProject);
+      return;
+    }
     try {
       const token = localStorage.getItem('token');
+      console.log('Fetching owner:', selectedProject.owner_id);
       const res = await fetch(`http://localhost:5000/users/${selectedProject.owner_id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      console.log('Owner fetch response status:', res.status);
       if (res.ok) {
         const data = await res.json();
+        console.log('Owner data:', data);
         setOwner(data.user);
       } else {
         setOwner(null);
+        console.log('Failed to fetch owner');
       }
-    } catch {
+    } catch (err) {
       setOwner(null);
+      console.log('Error fetching owner:', err);
     }
   };
 
@@ -41,14 +50,18 @@ function ProjectMembers() {
     setSuccess('');
     try {
       const token = localStorage.getItem('token');
+      console.log('Fetching members for project:', selectedProject.id);
       const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/members`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
+      console.log('Members fetch response status:', res.status);
       const data = await res.json();
+      console.log('Members data:', data);
       if (res.ok) setMembers(data.members);
       else setError(data.error || 'Failed to fetch members');
-    } catch {
+    } catch (err) {
       setError('Network error');
+      console.log('Error fetching members:', err);
     }
   };
 

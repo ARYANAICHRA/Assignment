@@ -29,5 +29,5 @@ def get_projects():
     member_projects = Project.query.filter(Project.id.in_(member_project_ids))
     # Union of both
     projects = owned_projects.union(member_projects).all()
-    result = [{'id': p.id, 'name': p.name, 'description': p.description} for p in projects]
+    result = [{'id': p.id, 'name': p.name, 'description': p.description, 'owner_id': p.owner_id} for p in projects]
     return jsonify({'projects': result})

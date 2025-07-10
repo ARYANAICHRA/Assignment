@@ -7,6 +7,7 @@ from routes.projects import projects_bp
 from routes.project_member import project_member_bp
 from routes.item import item_bp
 from routes.board_column import column_bp
+from routes.user import user_bp
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -21,6 +22,7 @@ app.register_blueprint(projects_bp)
 app.register_blueprint(project_member_bp)
 app.register_blueprint(item_bp)
 app.register_blueprint(column_bp)
+app.register_blueprint(user_bp)
 
 db.init_app(app)
 migrate = Migrate(app, db)
