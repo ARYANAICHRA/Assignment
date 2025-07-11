@@ -520,4 +520,3 @@ def change_password():
         return redirect(url_for('post_bp.login'))
 
     return render_template('change_password.html')
-

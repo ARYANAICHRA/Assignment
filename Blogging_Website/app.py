@@ -44,7 +44,6 @@ def create_app():
         MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),
         MAIL_DEFAULT_SENDER=os.getenv("MAIL_USERNAME")
     )
-    
     db.init_app(app)
     mail.init_app(app)
 

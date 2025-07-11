@@ -61,6 +61,18 @@
               </div>
 
               <div class="filter-group">
+                <label for="author-filter">
+                  <i class="fas fa-user"></i> Filter by Author
+                </label>
+                <select id="author-filter" onchange="filterPosts()">
+                  <option value="">All Authors</option>
+                  {% for author in authors_list %}
+                  <option value="{{ author }}">{{ author }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="filter-group">
                 <label for="date-filter">
                   <i class="fas fa-calendar"></i> Filter by Date
                 </label>
@@ -349,20 +361,18 @@
     {% include 'footer.html' %}
 
     <script>
-      // Initialize authors list for filtering
-      let authorsList = [];
-      {% for post in posts %}
-        if (!authorsList.includes('{{ post.author.username }}')) {
-          authorsList.push('{{ post.author.username }}');
-        }
-      {% endfor %}
-
               // Filter functionality
         function filterPosts() {
-            const searchTerm = document.getElementById('search-input').value.toLowerCase();
-            const authorFilter = document.getElementById('author-filter').value;
-            const dateFilter = document.getElementById('date-filter').value;
-            const sortBy = document.getElementById('sort-by').value;
+            const searchInput = document.getElementById('search-input');
+            const authorFilter = document.getElementById('author-filter');
+            const dateFilter = document.getElementById('date-filter');
+            const sortBy = document.getElementById('sort-by');
+            
+            // Check if elements exist before accessing their values
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            const authorFilterValue = authorFilter ? authorFilter.value : '';
+            const dateFilterValue = dateFilter ? dateFilter.value : '';
+            const sortByValue = sortBy ? sortBy.value : 'newest';
 
             const posts = document.querySelectorAll('.post-card-modern');
             let visibleCount = 0;
@@ -383,18 +393,18 @@
                 }
 
                 // Author filter
-                if (authorFilter && author !== authorFilter) {
+                if (authorFilterValue && author !== authorFilterValue) {
                     showPost = false;
                 }
 
                 // Date filter
-                if (dateFilter) {
+                if (dateFilterValue) {
                     const postDate = new Date(date);
                     const today = new Date();
                     const diffTime = Math.abs(today - postDate);
                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                    switch(dateFilter) {
+                    switch(dateFilterValue) {
                         case 'today':
                             if (diffDays > 1) showPost = false;
                             break;
@@ -420,7 +430,7 @@
             });
 
             // Sort posts
-            sortPosts(sortBy);
+            sortPosts(sortByValue);
 
             // Update filter stats
             updateFilterStats(visibleCount, posts.length);
@@ -428,7 +438,7 @@
             // Show/hide pagination based on filtering
             const paginationContainer = document.querySelector('.pagination-container');
             if (paginationContainer) {
-                if (searchTerm || authorFilter || dateFilter) {
+                if (searchTerm || authorFilterValue || dateFilterValue) {
                     paginationContainer.style.display = 'none';
                 } else {
                     paginationContainer.style.display = 'block';
@@ -439,6 +449,8 @@
       // Sort posts
       function sortPosts(sortBy) {
         const container = document.getElementById('posts-container');
+        if (!container) return;
+        
         const posts = Array.from(container.children);
 
         posts.sort((a, b) => {
@@ -465,21 +477,30 @@
         const filterResults = document.getElementById('filter-results');
         const totalPosts = document.getElementById('total-posts');
 
-        if (visible === total) {
-          filterResults.textContent = 'Showing all posts';
-        } else {
-          filterResults.textContent = `Showing ${visible} of ${total} posts`;
+        if (filterResults) {
+          if (visible === total) {
+            filterResults.textContent = 'Showing all posts';
+          } else {
+            filterResults.textContent = `Showing ${visible} of ${total} posts`;
+          }
         }
 
-        totalPosts.textContent = `Total: ${total} posts`;
+        if (totalPosts) {
+          totalPosts.textContent = `Total: ${total} posts`;
+        }
       }
 
               // Clear all filters
         function clearAllFilters() {
-            document.getElementById('search-input').value = '';
-            document.getElementById('author-filter').value = '';
-            document.getElementById('date-filter').value = '';
-            document.getElementById('sort-by').value = 'newest';
+            const searchInput = document.getElementById('search-input');
+            const authorFilter = document.getElementById('author-filter');
+            const dateFilter = document.getElementById('date-filter');
+            const sortBy = document.getElementById('sort-by');
+            
+            if (searchInput) searchInput.value = '';
+            if (authorFilter) authorFilter.value = '';
+            if (dateFilter) dateFilter.value = '';
+            if (sortBy) sortBy.value = 'newest';
 
             // Show all posts
             const posts = document.querySelectorAll('.post-card-modern');

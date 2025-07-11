@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Filter Test</title>
+</head>
+<body>
+    <h1>Filter Test</h1>
+    
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <div class="filter-header">
+            <h3>Filter Posts</h3>
+            <button class="clear-filters-btn" onclick="clearAllFilters()">
+                Clear All
+            </button>
+        </div>
+
+        <div class="filter-controls">
+            <div class="filter-group">
+                <label for="search-input">Search Posts</label>
+                <input
+                    type="text"
+                    id="search-input"
+                    placeholder="Search by title or content..."
+                    onkeyup="filterPosts()"
+                />
+            </div>
+
+            <div class="filter-group">
+                <label for="author-filter">Filter by Author</label>
+                <select id="author-filter" onchange="filterPosts()">
+                    <option value="">All Authors</option>
+                    <option value="user1">user1</option>
+                    <option value="user2">user2</option>
+                    <option value="user3">user3</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="date-filter">Filter by Date</label>
+                <select id="date-filter" onchange="filterPosts()">
+                    <option value="">All Time</option>
+                    <option value="today">Today</option>
+                    <option value="week">This Week</option>
+                    <option value="month">This Month</option>
+                    <option value="year">This Year</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="sort-by">Sort By</label>
+                <select id="sort-by" onchange="filterPosts()">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="most-liked">Most Liked</option>
+                    <option value="most-commented">Most Commented</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="filter-stats">
+            <span id="filter-results">Showing all posts</span>
+            <span id="total-posts">Total: 3 posts</span>
+        </div>
+    </div>
+
+    <!-- Test Posts -->
+    <div class="posts-grid" id="posts-container">
+        <article
+            class="post-card-modern"
+            data-post-id="1"
+            data-title="first post"
+            data-content="this is the first post content"
+            data-author="user1"
+            data-date="2024-01-15"
+            data-likes="5"
+            data-comments="2"
+        >
+            <h3>First Post</h3>
+            <p>This is the first post content</p>
+            <p>Author: user1</p>
+        </article>
+
+        <article
+            class="post-card-modern"
+            data-post-id="2"
+            data-title="second post"
+            data-content="this is the second post content"
+            data-author="user2"
+            data-date="2024-01-10"
+            data-likes="10"
+            data-comments="5"
+        >
+            <h3>Second Post</h3>
+            <p>This is the second post content</p>
+            <p>Author: user2</p>
+        </article>
+
+        <article
+            class="post-card-modern"
+            data-post-id="3"
+            data-title="third post"
+            data-content="this is the third post content"
+            data-author="user3"
+            data-date="2024-01-05"
+            data-likes="3"
+            data-comments="1"
+        >
+            <h3>Third Post</h3>
+            <p>This is the third post content</p>
+            <p>Author: user3</p>
+        </article>
+    </div>
+
+    <script>
+        // Filter functionality
+        function filterPosts() {
+            const searchInput = document.getElementById('search-input');
+            const authorFilter = document.getElementById('author-filter');
+            const dateFilter = document.getElementById('date-filter');
+            const sortBy = document.getElementById('sort-by');
+            
+            // Check if elements exist before accessing their values
+            const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+            const authorFilterValue = authorFilter ? authorFilter.value : '';
+            const dateFilterValue = dateFilter ? dateFilter.value : '';
+            const sortByValue = sortBy ? sortBy.value : 'newest';
+
+            const posts = document.querySelectorAll('.post-card-modern');
+            let visibleCount = 0;
+
+            posts.forEach(post => {
+                const title = post.dataset.title;
+                const content = post.dataset.content;
+                const author = post.dataset.author;
+                const date = post.dataset.date;
+                const likes = parseInt(post.dataset.likes);
+                const comments = parseInt(post.dataset.comments);
+
+                let showPost = true;
+
+                // Search filter
+                if (searchTerm && !title.includes(searchTerm) && !content.includes(searchTerm)) {
+                    showPost = false;
+                }
+
+                // Author filter
+                if (authorFilterValue && author !== authorFilterValue) {
+                    showPost = false;
+                }
+
+                // Date filter
+                if (dateFilterValue) {
+                    const postDate = new Date(date);
+                    const today = new Date();
+                    const diffTime = Math.abs(today - postDate);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    switch(dateFilterValue) {
+                        case 'today':
+                            if (diffDays > 1) showPost = false;
+                            break;
+                        case 'week':
+                            if (diffDays > 7) showPost = false;
+                            break;
+                        case 'month':
+                            if (diffDays > 30) showPost = false;
+                            break;
+                        case 'year':
+                            if (diffDays > 365) showPost = false;
+                            break;
+                    }
+                }
+
+                // Show/hide post
+                if (showPost) {
+                    post.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    post.style.display = 'none';
+                }
+            });
+
+            // Sort posts
+            sortPosts(sortByValue);
+
+            // Update filter stats
+            updateFilterStats(visibleCount, posts.length);
+        }
+
+        // Sort posts
+        function sortPosts(sortBy) {
+            const container = document.getElementById('posts-container');
+            if (!container) return;
+            
+            const posts = Array.from(container.children);
+
+            posts.sort((a, b) => {
+                switch(sortBy) {
+                    case 'newest':
+                        return new Date(b.dataset.date) - new Date(a.dataset.date);
+                    case 'oldest':
+                        return new Date(a.dataset.date) - new Date(b.dataset.date);
+                    case 'most-liked':
+                        return parseInt(b.dataset.likes) - parseInt(a.dataset.likes);
+                    case 'most-commented':
+                        return parseInt(b.dataset.comments) - parseInt(a.dataset.comments);
+                    default:
+                        return 0;
+                }
+            });
+
+            // Re-append sorted posts
+            posts.forEach(post => container.appendChild(post));
+        }
+
+        // Update filter statistics
+        function updateFilterStats(visible, total) {
+            const filterResults = document.getElementById('filter-results');
+            const totalPosts = document.getElementById('total-posts');
+
+            if (filterResults) {
+                if (visible === total) {
+                    filterResults.textContent = 'Showing all posts';
+                } else {
+                    filterResults.textContent = `Showing ${visible} of ${total} posts`;
+                }
+            }
+
+            if (totalPosts) {
+                totalPosts.textContent = `Total: ${total} posts`;
+            }
+        }
+
+        // Clear all filters
+        function clearAllFilters() {
+            const searchInput = document.getElementById('search-input');
+            const authorFilter = document.getElementById('author-filter');
+            const dateFilter = document.getElementById('date-filter');
+            const sortBy = document.getElementById('sort-by');
+            
+            if (searchInput) searchInput.value = '';
+            if (authorFilter) authorFilter.value = '';
+            if (dateFilter) dateFilter.value = '';
+            if (sortBy) sortBy.value = 'newest';
+
+            // Show all posts
+            const posts = document.querySelectorAll('.post-card-modern');
+            posts.forEach(post => post.style.display = 'block');
+
+            // Reset to default sort
+            sortPosts('newest');
+            updateFilterStats(posts.length, posts.length);
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Filter test page loaded successfully');
+            console.log('All filter elements found:', {
+                searchInput: !!document.getElementById('search-input'),
+                authorFilter: !!document.getElementById('author-filter'),
+                dateFilter: !!document.getElementById('date-filter'),
+                sortBy: !!document.getElementById('sort-by')
+            });
+        });
+    </script>
+</body>
+</html> 
