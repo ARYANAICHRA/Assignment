@@ -6,6 +6,8 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime
 from flask_mailman import Mail
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
 
 load_dotenv()
 
@@ -20,6 +22,17 @@ logging.basicConfig(
         logging.StreamHandler()
     ]
 )
+
+# Enable SQLite foreign key support
+def _fk_pragma_on_connect(dbapi_con, con_record):
+    dbapi_con.execute('PRAGMA foreign_keys=ON')
+
+# Listen for new connections to enable foreign keys
+@event.listens_for(Engine, 'connect')
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute('PRAGMA foreign_keys=ON')
+    cursor.close()
 
 def create_app():
     app = Flask(__name__)

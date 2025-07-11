@@ -762,3 +762,495 @@ RuntimeError: The session is unavailable because no secret key was set.  Set the
 2025-07-11 10:11:16,773 INFO werkzeug Thread-74 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 10:11:16] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
 2025-07-11 10:11:21,252 INFO werkzeug Thread-75 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 10:11:21] "GET /register HTTP/1.1" 200 -
 2025-07-11 10:11:21,293 INFO werkzeug Thread-76 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 10:11:21] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 04:47:27,754 INFO werkzeug MainThread : [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-07-11 04:47:27,754 INFO werkzeug MainThread : [33mPress CTRL+C to quit[0m
+2025-07-11 04:47:27,755 INFO werkzeug MainThread :  * Restarting with stat
+2025-07-11 04:47:28,091 WARNING werkzeug MainThread :  * Debugger is active!
+2025-07-11 04:47:28,099 INFO werkzeug MainThread :  * Debugger PIN: 238-496-831
+2025-07-11 04:47:31,871 INFO werkzeug Thread-2 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:47:31] "GET / HTTP/1.1" 200 -
+2025-07-11 04:47:31,963 INFO werkzeug Thread-3 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:47:31] "GET /static/style.css HTTP/1.1" 200 -
+2025-07-11 04:47:34,262 INFO werkzeug Thread-4 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:47:34] "GET /login HTTP/1.1" 200 -
+2025-07-11 04:47:34,359 INFO werkzeug Thread-5 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:47:34] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 04:47:36,426 INFO werkzeug Thread-6 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:47:36] "GET /register HTTP/1.1" 200 -
+2025-07-11 04:47:36,519 INFO werkzeug Thread-7 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:47:36] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 04:47:50,539 INFO werkzeug Thread-8 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:47:50] "[35m[1mPOST /register HTTP/1.1[0m" 500 -
+2025-07-11 04:47:50,656 INFO werkzeug Thread-9 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:47:50] "[36mGET /register?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2025-07-11 04:47:50,656 INFO werkzeug Thread-10 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:47:50] "[36mGET /register?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2025-07-11 04:47:50,739 INFO werkzeug Thread-11 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:47:50] "GET /register?__debugger__=yes&cmd=resource&f=console.png&s=NG8igQO6oijWOzJbPgEI HTTP/1.1" 200 -
+2025-07-11 04:48:20,404 INFO werkzeug MainThread : [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-07-11 04:48:20,404 INFO werkzeug MainThread : [33mPress CTRL+C to quit[0m
+2025-07-11 04:48:20,405 INFO werkzeug MainThread :  * Restarting with stat
+2025-07-11 04:48:20,699 WARNING werkzeug MainThread :  * Debugger is active!
+2025-07-11 04:48:20,701 INFO werkzeug MainThread :  * Debugger PIN: 238-496-831
+2025-07-11 04:48:37,935 INFO werkzeug Thread-2 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:48:37] "GET / HTTP/1.1" 200 -
+2025-07-11 04:48:38,050 INFO werkzeug Thread-3 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:48:38] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 04:48:40,155 INFO werkzeug Thread-4 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:48:40] "GET /login HTTP/1.1" 200 -
+2025-07-11 04:48:40,259 INFO werkzeug Thread-5 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:48:40] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 04:48:42,674 INFO werkzeug Thread-6 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:48:42] "GET /register HTTP/1.1" 200 -
+2025-07-11 04:48:42,763 INFO werkzeug Thread-7 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:48:42] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 04:49:11,303 INFO werkzeug Thread-8 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:49:11] "[35m[1mPOST /register HTTP/1.1[0m" 500 -
+2025-07-11 04:49:11,407 INFO werkzeug Thread-9 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:49:11] "[36mGET /register?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1[0m" 304 -
+2025-07-11 04:49:11,411 INFO werkzeug Thread-10 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:49:11] "[36mGET /register?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1[0m" 304 -
+2025-07-11 04:49:11,499 INFO werkzeug Thread-11 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:49:11] "GET /register?__debugger__=yes&cmd=resource&f=console.png&s=uxLPgD6vOyGEiTuI8AJD HTTP/1.1" 200 -
+2025-07-11 04:53:21,608 INFO werkzeug MainThread : [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-07-11 04:53:21,608 INFO werkzeug MainThread : [33mPress CTRL+C to quit[0m
+2025-07-11 04:53:21,609 INFO werkzeug MainThread :  * Restarting with stat
+2025-07-11 04:53:21,912 WARNING werkzeug MainThread :  * Debugger is active!
+2025-07-11 04:53:21,915 INFO werkzeug MainThread :  * Debugger PIN: 238-496-831
+2025-07-11 04:53:25,098 INFO werkzeug Thread-2 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:53:25] "GET / HTTP/1.1" 200 -
+2025-07-11 04:53:25,217 INFO werkzeug Thread-3 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:53:25] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 04:54:44,684 INFO werkzeug Thread-4 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:54:44] "GET /register HTTP/1.1" 200 -
+2025-07-11 04:54:44,809 INFO werkzeug Thread-5 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:54:44] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 04:58:12,486 INFO werkzeug MainThread : [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-07-11 04:58:12,486 INFO werkzeug MainThread : [33mPress CTRL+C to quit[0m
+2025-07-11 04:58:12,487 INFO werkzeug MainThread :  * Restarting with stat
+2025-07-11 04:58:12,809 WARNING werkzeug MainThread :  * Debugger is active!
+2025-07-11 04:58:12,819 INFO werkzeug MainThread :  * Debugger PIN: 238-496-831
+2025-07-11 04:58:15,110 INFO werkzeug Thread-2 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:58:15] "GET / HTTP/1.1" 200 -
+2025-07-11 04:58:15,207 INFO werkzeug Thread-3 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:58:15] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 04:58:17,883 INFO werkzeug Thread-4 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:58:17] "GET /login HTTP/1.1" 200 -
+2025-07-11 04:58:17,984 INFO werkzeug Thread-5 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:58:17] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 04:58:30,629 INFO werkzeug Thread-6 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:58:30] "POST /login HTTP/1.1" 200 -
+2025-07-11 04:58:30,732 INFO werkzeug Thread-7 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:58:30] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 04:58:35,694 INFO werkzeug Thread-8 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:58:35] "GET /register HTTP/1.1" 200 -
+2025-07-11 04:58:35,796 INFO werkzeug Thread-9 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 04:58:35] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:01:50,159 INFO werkzeug Thread-10 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:01:50] "[32mPOST /register HTTP/1.1[0m" 302 -
+2025-07-11 05:01:50,221 INFO werkzeug Thread-11 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:01:50] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:01:50,312 INFO werkzeug Thread-12 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:01:50] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:03:33,327 INFO werkzeug MainThread :  * Detected change in '/home/apshvs/projects/Assignment/Blogging_Website/routes/post_routes.py', reloading
+2025-07-11 05:03:33,420 INFO werkzeug MainThread :  * Restarting with stat
+2025-07-11 05:03:33,866 WARNING werkzeug MainThread :  * Debugger is active!
+2025-07-11 05:03:33,873 INFO werkzeug MainThread :  * Debugger PIN: 238-496-831
+2025-07-11 05:04:40,150 INFO werkzeug MainThread :  * Detected change in '/home/apshvs/projects/Assignment/Blogging_Website/routes/post_routes.py', reloading
+2025-07-11 05:04:40,241 INFO werkzeug MainThread :  * Restarting with stat
+2025-07-11 05:04:40,572 WARNING werkzeug MainThread :  * Debugger is active!
+2025-07-11 05:04:40,575 INFO werkzeug MainThread :  * Debugger PIN: 238-496-831
+2025-07-11 05:04:43,642 INFO werkzeug MainThread : [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-07-11 05:04:43,642 INFO werkzeug MainThread : [33mPress CTRL+C to quit[0m
+2025-07-11 05:04:43,643 INFO werkzeug MainThread :  * Restarting with stat
+2025-07-11 05:04:43,935 WARNING werkzeug MainThread :  * Debugger is active!
+2025-07-11 05:04:43,938 INFO werkzeug MainThread :  * Debugger PIN: 238-496-831
+2025-07-11 05:05:30,773 INFO werkzeug MainThread : [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-07-11 05:05:30,774 INFO werkzeug MainThread : [33mPress CTRL+C to quit[0m
+2025-07-11 05:05:30,774 INFO werkzeug MainThread :  * Restarting with stat
+2025-07-11 05:05:31,099 WARNING werkzeug MainThread :  * Debugger is active!
+2025-07-11 05:05:31,108 INFO werkzeug MainThread :  * Debugger PIN: 238-496-831
+2025-07-11 05:05:35,433 INFO werkzeug Thread-2 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:05:35] "GET / HTTP/1.1" 200 -
+2025-07-11 05:05:35,528 INFO werkzeug Thread-3 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:05:35] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:05:43,485 INFO werkzeug Thread-4 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:05:43] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:05:43,592 INFO werkzeug Thread-5 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:05:43] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:05:51,225 INFO werkzeug Thread-6 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:05:51] "GET /register HTTP/1.1" 200 -
+2025-07-11 05:05:51,324 INFO werkzeug Thread-7 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:05:51] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:06:15,742 INFO werkzeug Thread-8 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:06:15] "[32mPOST /register HTTP/1.1[0m" 302 -
+2025-07-11 05:06:15,808 INFO werkzeug Thread-9 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:06:15] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:06:15,920 INFO werkzeug Thread-10 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:06:15] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:06:29,496 INFO werkzeug Thread-11 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:06:29] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-07-11 05:06:29,586 INFO werkzeug Thread-12 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:06:29] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:06:29,696 INFO werkzeug Thread-13 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:06:29] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:06:33,504 INFO werkzeug Thread-14 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:06:33] "GET /create-post HTTP/1.1" 200 -
+2025-07-11 05:06:33,600 INFO werkzeug Thread-15 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:06:33] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:10:16,189 INFO werkzeug Thread-16 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:10:16] "[32mPOST /create-post HTTP/1.1[0m" 302 -
+2025-07-11 05:10:16,259 INFO werkzeug Thread-17 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:10:16] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:10:16,360 INFO werkzeug Thread-18 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:10:16] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:10:16,424 INFO werkzeug Thread-19 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:10:16] "GET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1" 200 -
+2025-07-11 05:10:29,915 INFO werkzeug Thread-20 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:10:29] "GET /dashboard HTTP/1.1" 200 -
+2025-07-11 05:10:30,013 INFO werkzeug Thread-21 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:10:30] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:10:34,763 INFO werkzeug Thread-22 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:10:34] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:10:34,852 INFO werkzeug Thread-23 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:10:34] "GET /static/style.css HTTP/1.1" 200 -
+2025-07-11 05:10:34,916 INFO werkzeug Thread-24 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:10:34] "[36mGET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:10:38,308 INFO werkzeug Thread-26 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:10:38] "GET /create-post HTTP/1.1" 200 -
+2025-07-11 05:10:38,404 INFO werkzeug Thread-27 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:10:38] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:11:10,800 INFO werkzeug Thread-28 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:11:10] "[32mPOST /create-post HTTP/1.1[0m" 302 -
+2025-07-11 05:11:10,859 INFO werkzeug Thread-29 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:11:10] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:11:10,952 INFO werkzeug Thread-30 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:11:10] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:11:11,009 INFO werkzeug Thread-31 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:11:11] "GET /static/uploads/pexels-ugur-gurtekin-2150013387-32867566.jpg HTTP/1.1" 200 -
+2025-07-11 05:11:11,009 INFO werkzeug Thread-32 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:11:11] "[36mGET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:11:11,119 INFO werkzeug Thread-33 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:11:11] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-11 05:11:59,089 INFO werkzeug Thread-34 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:11:59] "POST /like/2 HTTP/1.1" 200 -
+2025-07-11 05:12:14,517 INFO werkzeug Thread-35 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:12:14] "GET /comments/1 HTTP/1.1" 200 -
+2025-07-11 05:12:18,555 INFO werkzeug Thread-36 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:12:18] "POST /comment/1 HTTP/1.1" 200 -
+2025-07-11 05:12:30,831 INFO werkzeug Thread-37 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:12:30] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:12:30,924 INFO werkzeug Thread-38 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:12:30] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:12:30,980 INFO werkzeug Thread-39 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:12:30] "[36mGET /static/uploads/pexels-ugur-gurtekin-2150013387-32867566.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:12:30,981 INFO werkzeug Thread-40 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:12:30] "[36mGET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:12:50,856 INFO werkzeug Thread-41 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:12:50] "GET /create-post HTTP/1.1" 200 -
+2025-07-11 05:12:50,948 INFO werkzeug Thread-42 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:12:50] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:13:17,331 INFO werkzeug Thread-43 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:13:17] "[32mPOST /create-post HTTP/1.1[0m" 302 -
+2025-07-11 05:13:17,400 INFO werkzeug Thread-44 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:13:17] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:13:17,504 INFO werkzeug Thread-45 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:13:17] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:13:17,561 INFO werkzeug Thread-47 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:13:17] "[36mGET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:13:17,561 INFO werkzeug Thread-46 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:13:17] "GET /static/uploads/pexels-gokhan-gunes-174849796-31051853.jpg HTTP/1.1" 200 -
+2025-07-11 05:13:17,586 INFO werkzeug Thread-48 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:13:17] "[36mGET /static/uploads/pexels-ugur-gurtekin-2150013387-32867566.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:17:03,478 INFO werkzeug Thread-50 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:17:03] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-07-11 05:17:03,554 INFO werkzeug Thread-51 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:17:03] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:17:03,646 INFO werkzeug Thread-52 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:17:03] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:17:17,237 INFO werkzeug Thread-53 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:17:17] "POST /login HTTP/1.1" 200 -
+2025-07-11 05:17:17,326 INFO werkzeug Thread-54 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:17:17] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:17:51,233 INFO werkzeug Thread-55 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:17:51] "POST /login HTTP/1.1" 200 -
+2025-07-11 05:17:51,354 INFO werkzeug Thread-56 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:17:51] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:18:33,210 INFO werkzeug Thread-57 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:18:33] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-07-11 05:18:33,283 INFO werkzeug Thread-58 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:18:33] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:18:33,398 INFO werkzeug Thread-59 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:18:33] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:18:33,458 INFO werkzeug Thread-60 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:18:33] "[36mGET /static/uploads/pexels-gokhan-gunes-174849796-31051853.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:18:33,458 INFO werkzeug Thread-61 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:18:33] "[36mGET /static/uploads/pexels-ugur-gurtekin-2150013387-32867566.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:18:33,461 INFO werkzeug Thread-62 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:18:33] "[36mGET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:18:38,112 INFO werkzeug Thread-63 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:18:38] "GET /admin-dashboard HTTP/1.1" 200 -
+2025-07-11 05:18:38,202 INFO werkzeug Thread-64 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:18:38] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:18:48,491 INFO werkzeug Thread-65 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:18:48] "GET /dashboard HTTP/1.1" 200 -
+2025-07-11 05:18:48,586 INFO werkzeug Thread-66 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:18:48] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:18:52,238 INFO werkzeug Thread-67 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:18:52] "GET / HTTP/1.1" 200 -
+2025-07-11 05:18:52,334 INFO werkzeug Thread-68 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:18:52] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:18:53,076 INFO werkzeug Thread-69 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:18:53] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:18:53,166 INFO werkzeug Thread-70 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:18:53] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:18:53,222 INFO werkzeug Thread-71 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:18:53] "[36mGET /static/uploads/pexels-gokhan-gunes-174849796-31051853.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:18:53,226 INFO werkzeug Thread-72 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:18:53] "[36mGET /static/uploads/pexels-ugur-gurtekin-2150013387-32867566.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:18:53,226 INFO werkzeug Thread-73 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:18:53] "[36mGET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:19:01,003 INFO werkzeug Thread-74 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:19:01] "GET /dashboard HTTP/1.1" 200 -
+2025-07-11 05:19:01,098 INFO werkzeug Thread-75 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:19:01] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:19:03,938 INFO werkzeug Thread-76 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:19:03] "GET /create-post HTTP/1.1" 200 -
+2025-07-11 05:19:04,030 INFO werkzeug Thread-77 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:19:04] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:23:24,707 INFO werkzeug Thread-78 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:23:24] "[32mPOST /create-post HTTP/1.1[0m" 302 -
+2025-07-11 05:23:24,770 INFO werkzeug Thread-79 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:23:24] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:23:24,861 INFO werkzeug Thread-80 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:23:24] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:23:24,918 INFO werkzeug Thread-82 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:23:24] "[36mGET /static/uploads/pexels-ugur-gurtekin-2150013387-32867566.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:23:24,918 INFO werkzeug Thread-81 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:23:24] "[36mGET /static/uploads/pexels-gokhan-gunes-174849796-31051853.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:23:24,926 INFO werkzeug Thread-83 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:23:24] "[36mGET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:23:31,669 INFO werkzeug Thread-84 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:23:31] "GET /edit-post/4 HTTP/1.1" 200 -
+2025-07-11 05:23:31,762 INFO werkzeug Thread-85 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:23:31] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:23:36,524 INFO werkzeug Thread-86 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:23:36] "GET /dashboard HTTP/1.1" 200 -
+2025-07-11 05:23:36,614 INFO werkzeug Thread-87 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:23:36] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:23:40,072 INFO werkzeug Thread-88 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:23:40] "[32mGET /delete-post/4 HTTP/1.1[0m" 302 -
+2025-07-11 05:23:40,134 INFO werkzeug Thread-89 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:23:40] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:23:40,226 INFO werkzeug Thread-90 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:23:40] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:23:40,282 INFO werkzeug Thread-91 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:23:40] "[36mGET /static/uploads/pexels-gokhan-gunes-174849796-31051853.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:23:40,286 INFO werkzeug Thread-92 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:23:40] "[36mGET /static/uploads/pexels-ugur-gurtekin-2150013387-32867566.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:23:40,286 INFO werkzeug Thread-93 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:23:40] "[36mGET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:26:01,490 INFO werkzeug Thread-94 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:01] "GET /create-post HTTP/1.1" 200 -
+2025-07-11 05:26:01,586 INFO werkzeug Thread-95 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:01] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:26:07,209 INFO werkzeug Thread-96 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:07] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:26:07,298 INFO werkzeug Thread-97 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:07] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:26:07,353 INFO werkzeug Thread-98 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:07] "[36mGET /static/uploads/pexels-gokhan-gunes-174849796-31051853.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:26:07,358 INFO werkzeug Thread-99 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:07] "[36mGET /static/uploads/pexels-ugur-gurtekin-2150013387-32867566.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:26:07,359 INFO werkzeug Thread-100 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:07] "[36mGET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:26:13,610 INFO werkzeug Thread-101 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:13] "GET /create-post HTTP/1.1" 200 -
+2025-07-11 05:26:13,694 INFO werkzeug Thread-102 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:13] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:26:39,544 INFO werkzeug Thread-103 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:39] "[32mPOST /create-post HTTP/1.1[0m" 302 -
+2025-07-11 05:26:39,618 INFO werkzeug Thread-104 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:39] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:26:39,706 INFO werkzeug Thread-105 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:39] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:26:39,771 INFO werkzeug Thread-107 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:39] "[36mGET /static/uploads/pexels-gokhan-gunes-174849796-31051853.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:26:39,771 INFO werkzeug Thread-106 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:39] "GET /static/uploads/pexels-thomasronveaux-15673548.jpg HTTP/1.1" 200 -
+2025-07-11 05:26:39,771 INFO werkzeug Thread-108 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:39] "[36mGET /static/uploads/pexels-ugur-gurtekin-2150013387-32867566.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:26:39,790 INFO werkzeug Thread-109 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:39] "[36mGET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:26:46,786 INFO werkzeug Thread-111 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:46] "GET /create-post HTTP/1.1" 200 -
+2025-07-11 05:26:46,882 INFO werkzeug Thread-112 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:46] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:26:51,654 INFO werkzeug Thread-113 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:51] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:26:51,742 INFO werkzeug Thread-114 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:51] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:26:51,802 INFO werkzeug Thread-116 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:51] "[36mGET /static/uploads/pexels-gokhan-gunes-174849796-31051853.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:26:51,802 INFO werkzeug Thread-115 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:51] "[36mGET /static/uploads/pexels-thomasronveaux-15673548.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:26:51,805 INFO werkzeug Thread-118 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:51] "[36mGET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:26:51,810 INFO werkzeug Thread-117 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:51] "[36mGET /static/uploads/pexels-ugur-gurtekin-2150013387-32867566.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:26:58,550 INFO werkzeug Thread-119 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:58] "GET /create-post HTTP/1.1" 200 -
+2025-07-11 05:26:58,643 INFO werkzeug Thread-120 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:26:58] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:27:14,053 INFO werkzeug Thread-121 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:27:14] "[32mPOST /create-post HTTP/1.1[0m" 302 -
+2025-07-11 05:27:14,114 INFO werkzeug Thread-122 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:27:14] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:27:14,209 INFO werkzeug Thread-123 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:27:14] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:27:14,274 INFO werkzeug Thread-125 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:27:14] "[36mGET /static/uploads/pexels-thomasronveaux-15673548.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:27:14,274 INFO werkzeug Thread-124 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:27:14] "GET /static/uploads/pexels-kitsun-yuen-49565104-7614349.jpg HTTP/1.1" 200 -
+2025-07-11 05:27:14,278 INFO werkzeug Thread-126 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:27:14] "[36mGET /static/uploads/pexels-gokhan-gunes-174849796-31051853.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:27:14,282 INFO werkzeug Thread-128 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:27:14] "[36mGET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:27:14,283 INFO werkzeug Thread-127 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:27:14] "[36mGET /static/uploads/pexels-ugur-gurtekin-2150013387-32867566.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:27:29,533 INFO werkzeug Thread-130 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:27:29] "POST /like/5 HTTP/1.1" 200 -
+2025-07-11 05:27:32,848 INFO werkzeug Thread-131 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:27:32] "POST /like/4 HTTP/1.1" 200 -
+2025-07-11 05:27:35,971 INFO werkzeug Thread-132 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:27:35] "POST /like/3 HTTP/1.1" 200 -
+2025-07-11 05:27:40,375 INFO werkzeug Thread-133 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:27:40] "POST /like/2 HTTP/1.1" 200 -
+2025-07-11 05:27:42,764 INFO werkzeug Thread-134 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:27:42] "POST /like/1 HTTP/1.1" 200 -
+2025-07-11 05:28:12,430 INFO werkzeug Thread-135 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:28:12] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-07-11 05:28:12,502 INFO werkzeug Thread-136 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:28:12] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:28:12,602 INFO werkzeug Thread-137 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:28:12] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:28:15,970 INFO werkzeug Thread-138 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:28:15] "GET /register HTTP/1.1" 200 -
+2025-07-11 05:28:16,066 INFO werkzeug Thread-139 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:28:16] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:28:53,928 INFO werkzeug Thread-140 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:28:53] "[32mPOST /register HTTP/1.1[0m" 302 -
+2025-07-11 05:28:54,018 INFO werkzeug Thread-141 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:28:54] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:28:54,110 INFO werkzeug Thread-142 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:28:54] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:29:08,617 INFO werkzeug Thread-143 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:08] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-07-11 05:29:08,691 INFO werkzeug Thread-144 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:08] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:29:08,830 INFO werkzeug Thread-145 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:08] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:29:08,893 INFO werkzeug Thread-146 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:08] "[36mGET /static/uploads/pexels-kitsun-yuen-49565104-7614349.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:29:08,903 INFO werkzeug Thread-147 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:08] "[36mGET /static/uploads/pexels-thomasronveaux-15673548.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:29:08,903 INFO werkzeug Thread-149 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:08] "[36mGET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:29:08,904 INFO werkzeug Thread-148 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:08] "[36mGET /static/uploads/pexels-gokhan-gunes-174849796-31051853.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:29:08,908 INFO werkzeug Thread-150 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:08] "[36mGET /static/uploads/pexels-ugur-gurtekin-2150013387-32867566.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:29:15,126 INFO werkzeug Thread-151 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:15] "GET /create-post HTTP/1.1" 200 -
+2025-07-11 05:29:15,214 INFO werkzeug Thread-152 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:15] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:29:40,700 INFO werkzeug Thread-153 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:40] "[32mPOST /create-post HTTP/1.1[0m" 302 -
+2025-07-11 05:29:40,764 INFO werkzeug Thread-154 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:40] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:29:40,874 INFO werkzeug Thread-155 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:40] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:29:40,938 INFO werkzeug Thread-156 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:40] "GET /static/uploads/pexels-erdallcavus-14803310.jpg HTTP/1.1" 200 -
+2025-07-11 05:29:40,942 INFO werkzeug Thread-159 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:40] "[36mGET /static/uploads/pexels-gokhan-gunes-174849796-31051853.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:29:40,945 INFO werkzeug Thread-158 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:40] "[36mGET /static/uploads/pexels-thomasronveaux-15673548.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:29:40,946 INFO werkzeug Thread-157 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:40] "[36mGET /static/uploads/pexels-kitsun-yuen-49565104-7614349.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:29:40,947 INFO werkzeug Thread-161 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:40] "[36mGET /static/uploads/pexels-ugur-gurtekin-2150013387-32867566.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:29:40,948 INFO werkzeug Thread-160 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:40] "[36mGET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:29:51,086 INFO werkzeug Thread-162 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:51] "GET /create-post HTTP/1.1" 200 -
+2025-07-11 05:29:51,178 INFO werkzeug Thread-163 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:29:51] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:30:15,200 INFO werkzeug Thread-164 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:30:15] "[32mPOST /create-post HTTP/1.1[0m" 302 -
+2025-07-11 05:30:15,264 INFO werkzeug Thread-165 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:30:15] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:30:15,362 INFO werkzeug Thread-166 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:30:15] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:30:15,426 INFO werkzeug Thread-167 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:30:15] "GET /static/uploads/pexels-giovanni-6693857-7049314.jpg HTTP/1.1" 200 -
+2025-07-11 05:30:15,430 INFO werkzeug Thread-169 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:30:15] "[36mGET /static/uploads/pexels-kitsun-yuen-49565104-7614349.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:30:15,430 INFO werkzeug Thread-170 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:30:15] "[36mGET /static/uploads/pexels-ugur-gurtekin-2150013387-32867566.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:30:15,435 INFO werkzeug Thread-172 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:30:15] "[36mGET /static/uploads/pexels-gokhan-gunes-174849796-31051853.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:30:15,436 INFO werkzeug Thread-171 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:30:15] "[36mGET /static/uploads/pexels-thomasronveaux-15673548.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:30:15,437 INFO werkzeug Thread-168 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:30:15] "[36mGET /static/uploads/pexels-erdallcavus-14803310.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:30:15,488 INFO werkzeug Thread-173 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:30:15] "[36mGET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:32:19,606 INFO werkzeug Thread-174 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:32:19] "GET /create-post HTTP/1.1" 200 -
+2025-07-11 05:32:19,698 INFO werkzeug Thread-175 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:32:19] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:32:59,946 INFO werkzeug Thread-176 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:32:59] "[32mPOST /create-post HTTP/1.1[0m" 302 -
+2025-07-11 05:33:00,025 INFO werkzeug Thread-177 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:00] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:33:00,118 INFO werkzeug Thread-178 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:00] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:33:00,178 INFO werkzeug Thread-179 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:00] "[35m[1mGET /static/uploads/2098989-hd_1280_720_30fps.mp4 HTTP/1.1[0m" 206 -
+2025-07-11 05:33:00,193 INFO werkzeug Thread-181 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:00] "[36mGET /static/uploads/pexels-erdallcavus-14803310.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:33:00,193 INFO werkzeug Thread-180 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:00] "[36mGET /static/uploads/pexels-giovanni-6693857-7049314.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:33:00,195 INFO werkzeug Thread-182 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:00] "[36mGET /static/uploads/pexels-kitsun-yuen-49565104-7614349.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:33:00,196 INFO werkzeug Thread-183 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:00] "[36mGET /static/uploads/pexels-thomasronveaux-15673548.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:33:00,197 INFO werkzeug Thread-184 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:00] "[36mGET /static/uploads/pexels-gokhan-gunes-174849796-31051853.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:33:00,274 INFO werkzeug Thread-185 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:00] "[36mGET /static/uploads/pexels-ugur-gurtekin-2150013387-32867566.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:33:00,303 INFO werkzeug Thread-186 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:00] "[36mGET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:33:10,300 INFO werkzeug Thread-188 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:10] "POST /like/8 HTTP/1.1" 200 -
+2025-07-11 05:33:30,476 INFO werkzeug Thread-189 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:30] "POST /like/6 HTTP/1.1" 200 -
+2025-07-11 05:33:32,603 INFO werkzeug Thread-190 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:32] "GET /comments/5 HTTP/1.1" 200 -
+2025-07-11 05:33:39,371 INFO werkzeug Thread-191 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:39] "POST /comment/5 HTTP/1.1" 200 -
+2025-07-11 05:33:42,087 INFO werkzeug Thread-192 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:42] "POST /like/4 HTTP/1.1" 200 -
+2025-07-11 05:33:44,180 INFO werkzeug Thread-193 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:44] "POST /like/5 HTTP/1.1" 200 -
+2025-07-11 05:33:45,924 INFO werkzeug Thread-194 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:45] "POST /like/6 HTTP/1.1" 200 -
+2025-07-11 05:33:46,995 INFO werkzeug Thread-195 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:46] "POST /like/6 HTTP/1.1" 200 -
+2025-07-11 05:33:49,440 INFO werkzeug Thread-196 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:33:49] "POST /like/7 HTTP/1.1" 200 -
+2025-07-11 05:34:04,394 INFO werkzeug Thread-197 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:34:04] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-07-11 05:34:04,454 INFO werkzeug Thread-198 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:34:04] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:34:04,546 INFO werkzeug Thread-199 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:34:04] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:36:59,511 INFO werkzeug Thread-200 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:36:59] "GET / HTTP/1.1" 200 -
+2025-07-11 05:36:59,602 INFO werkzeug Thread-201 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:36:59] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:37:53,154 INFO werkzeug Thread-202 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:37:53] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:37:53,254 INFO werkzeug Thread-203 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:37:53] "GET /static/style.css HTTP/1.1" 200 -
+2025-07-11 05:37:53,296 INFO werkzeug Thread-204 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:37:53] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-11 05:38:09,814 INFO werkzeug Thread-205 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:38:09] "GET / HTTP/1.1" 200 -
+2025-07-11 05:38:09,922 INFO werkzeug Thread-206 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:38:09] "GET /static/style.css HTTP/1.1" 200 -
+2025-07-11 05:38:10,138 INFO werkzeug Thread-207 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:38:10] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-11 05:38:14,603 INFO werkzeug Thread-208 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:38:14] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:38:14,683 INFO werkzeug Thread-209 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:38:14] "GET /static/style.css HTTP/1.1" 200 -
+2025-07-11 05:38:14,747 INFO werkzeug Thread-210 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:38:14] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-11 05:38:16,107 INFO werkzeug Thread-211 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:38:16] "GET /register HTTP/1.1" 200 -
+2025-07-11 05:38:16,194 INFO werkzeug Thread-212 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:38:16] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:38:17,162 INFO werkzeug Thread-213 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:38:17] "GET / HTTP/1.1" 200 -
+2025-07-11 05:38:17,239 INFO werkzeug Thread-214 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:38:17] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:38:51,031 INFO werkzeug Thread-215 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:38:51] "GET /register HTTP/1.1" 200 -
+2025-07-11 05:38:51,127 INFO werkzeug Thread-216 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:38:51] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:39:09,699 INFO werkzeug Thread-217 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:39:09] "[32mPOST /register HTTP/1.1[0m" 302 -
+2025-07-11 05:39:09,754 INFO werkzeug Thread-218 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:39:09] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:39:09,842 INFO werkzeug Thread-219 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:39:09] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:40:51,555 INFO werkzeug Thread-220 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:40:51] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-07-11 05:40:51,626 INFO werkzeug Thread-221 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:40:51] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:40:51,731 INFO werkzeug Thread-222 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:40:51] "GET /static/style.css HTTP/1.1" 200 -
+2025-07-11 05:40:51,806 INFO werkzeug Thread-223 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:40:51] "[35m[1mGET /static/uploads/2098989-hd_1280_720_30fps.mp4 HTTP/1.1[0m" 206 -
+2025-07-11 05:40:51,816 INFO werkzeug Thread-226 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:40:51] "GET /static/uploads/pexels-kitsun-yuen-49565104-7614349.jpg HTTP/1.1" 200 -
+2025-07-11 05:40:51,817 INFO werkzeug Thread-227 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:40:51] "GET /static/uploads/pexels-thomasronveaux-15673548.jpg HTTP/1.1" 200 -
+2025-07-11 05:40:51,817 INFO werkzeug Thread-225 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:40:51] "GET /static/uploads/pexels-gokhan-gunes-174849796-31051853.jpg HTTP/1.1" 200 -
+2025-07-11 05:40:51,819 INFO werkzeug Thread-224 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:40:51] "GET /static/uploads/pexels-giovanni-6693857-7049314.jpg HTTP/1.1" 200 -
+2025-07-11 05:40:51,822 INFO werkzeug Thread-228 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:40:51] "GET /static/uploads/pexels-erdallcavus-14803310.jpg HTTP/1.1" 200 -
+2025-07-11 05:40:52,042 INFO werkzeug Thread-229 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:40:52] "GET /static/uploads/pexels-ugur-gurtekin-2150013387-32867566.jpg HTTP/1.1" 200 -
+2025-07-11 05:40:52,046 INFO werkzeug Thread-230 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:40:52] "GET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1" 200 -
+2025-07-11 05:40:52,154 INFO werkzeug Thread-231 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:40:52] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-11 05:41:13,559 INFO werkzeug Thread-232 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:41:13] "POST /like/3 HTTP/1.1" 200 -
+2025-07-11 05:41:16,397 INFO werkzeug Thread-233 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:41:16] "POST /like/2 HTTP/1.1" 200 -
+2025-07-11 05:41:18,674 INFO werkzeug Thread-234 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:41:18] "GET /comments/1 HTTP/1.1" 200 -
+2025-07-11 05:41:24,244 INFO werkzeug Thread-235 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:41:24] "POST /comment/1 HTTP/1.1" 200 -
+2025-07-11 05:41:29,454 INFO werkzeug Thread-236 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:41:29] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:41:29,541 INFO werkzeug Thread-237 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:41:29] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:41:29,620 INFO werkzeug Thread-238 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:41:29] "[35m[1mGET /static/uploads/2098989-hd_1280_720_30fps.mp4 HTTP/1.1[0m" 206 -
+2025-07-11 05:41:29,626 INFO werkzeug Thread-241 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:41:29] "[36mGET /static/uploads/pexels-kitsun-yuen-49565104-7614349.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:41:29,629 INFO werkzeug Thread-243 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:41:29] "[36mGET /static/uploads/pexels-thomasronveaux-15673548.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:41:29,630 INFO werkzeug Thread-240 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:41:29] "[36mGET /static/uploads/pexels-erdallcavus-14803310.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:41:29,631 INFO werkzeug Thread-239 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:41:29] "[36mGET /static/uploads/pexels-giovanni-6693857-7049314.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:41:29,634 INFO werkzeug Thread-242 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:41:29] "[36mGET /static/uploads/pexels-gokhan-gunes-174849796-31051853.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:41:29,724 INFO werkzeug Thread-244 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:41:29] "GET /static/uploads/pexels-ugur-gurtekin-2150013387-32867566.jpg HTTP/1.1" 200 -
+2025-07-11 05:41:29,750 INFO werkzeug Thread-245 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:41:29] "[36mGET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1[0m" 304 -
+2025-07-11 05:41:34,366 INFO werkzeug Thread-246 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:41:34] "GET /dashboard HTTP/1.1" 200 -
+2025-07-11 05:41:34,445 INFO werkzeug Thread-247 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:41:34] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:41:36,681 INFO werkzeug Thread-248 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:41:36] "GET /create-post HTTP/1.1" 200 -
+2025-07-11 05:41:36,757 INFO werkzeug Thread-249 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:41:36] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:42:51,778 INFO werkzeug Thread-250 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:42:51] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-07-11 05:42:51,834 INFO werkzeug Thread-251 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:42:51] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:42:51,914 INFO werkzeug Thread-252 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:42:51] "GET /static/style.css HTTP/1.1" 200 -
+2025-07-11 05:42:51,979 INFO werkzeug Thread-253 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:42:51] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-11 05:43:29,226 INFO werkzeug Thread-254 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:43:29] "GET / HTTP/1.1" 200 -
+2025-07-11 05:43:29,322 INFO werkzeug Thread-255 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:43:29] "GET /static/style.css HTTP/1.1" 200 -
+2025-07-11 05:43:29,498 INFO werkzeug Thread-256 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:43:29] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-11 05:43:31,506 INFO werkzeug Thread-257 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:43:31] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:43:31,586 INFO werkzeug Thread-258 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:43:31] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:44:07,539 INFO werkzeug Thread-259 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:07] "GET / HTTP/1.1" 200 -
+2025-07-11 05:44:07,626 INFO werkzeug Thread-260 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:07] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:44:09,498 INFO werkzeug Thread-261 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:09] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:44:09,599 INFO werkzeug Thread-262 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:09] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:44:22,058 INFO werkzeug Thread-263 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:22] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-07-11 05:44:22,130 INFO werkzeug Thread-264 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:22] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:44:22,226 INFO werkzeug Thread-265 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:22] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:44:22,291 INFO werkzeug Thread-266 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:22] "[35m[1mGET /static/uploads/2098989-hd_1280_720_30fps.mp4 HTTP/1.1[0m" 206 -
+2025-07-11 05:44:22,291 INFO werkzeug Thread-267 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:22] "GET /static/uploads/pexels-giovanni-6693857-7049314.jpg HTTP/1.1" 200 -
+2025-07-11 05:44:22,297 INFO werkzeug Thread-269 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:22] "GET /static/uploads/pexels-kitsun-yuen-49565104-7614349.jpg HTTP/1.1" 200 -
+2025-07-11 05:44:22,299 INFO werkzeug Thread-270 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:22] "GET /static/uploads/pexels-thomasronveaux-15673548.jpg HTTP/1.1" 200 -
+2025-07-11 05:44:22,300 INFO werkzeug Thread-268 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:22] "GET /static/uploads/pexels-erdallcavus-14803310.jpg HTTP/1.1" 200 -
+2025-07-11 05:44:22,300 INFO werkzeug Thread-271 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:22] "GET /static/uploads/pexels-gokhan-gunes-174849796-31051853.jpg HTTP/1.1" 200 -
+2025-07-11 05:44:22,369 INFO werkzeug Thread-272 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:22] "GET /static/uploads/pexels-ugur-gurtekin-2150013387-32867566.jpg HTTP/1.1" 200 -
+2025-07-11 05:44:22,458 INFO werkzeug Thread-273 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:22] "GET /static/uploads/pexels-serkanatayphoto-19088283.jpg HTTP/1.1" 200 -
+2025-07-11 05:44:23,888 INFO werkzeug Thread-274 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:23] "GET /dashboard HTTP/1.1" 200 -
+2025-07-11 05:44:23,970 INFO werkzeug Thread-275 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:23] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:44:25,288 INFO werkzeug Thread-276 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:25] "GET /admin-dashboard HTTP/1.1" 200 -
+2025-07-11 05:44:25,370 INFO werkzeug Thread-277 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:25] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:44:29,399 INFO werkzeug Thread-278 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:29] "[35m[1mPOST /admin/delete-user/4 HTTP/1.1[0m" 500 -
+2025-07-11 05:44:29,475 INFO werkzeug Thread-279 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:29] "GET /admin/delete-user/4?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+2025-07-11 05:44:29,478 INFO werkzeug Thread-280 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:29] "GET /admin/delete-user/4?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+2025-07-11 05:44:29,542 INFO werkzeug Thread-281 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:29] "GET /admin/delete-user/4?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+2025-07-11 05:44:29,545 INFO werkzeug Thread-282 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:44:29] "GET /admin/delete-user/4?__debugger__=yes&cmd=resource&f=console.png&s=KQHUGCeaxpMemQEsnA7S HTTP/1.1" 200 -
+2025-07-11 05:46:19,511 INFO werkzeug MainThread :  * Detected change in '/home/apshvs/projects/Assignment/Blogging_Website/models/user.py', reloading
+2025-07-11 05:46:19,690 INFO werkzeug MainThread :  * Restarting with stat
+2025-07-11 05:46:20,114 WARNING werkzeug MainThread :  * Debugger is active!
+2025-07-11 05:46:20,119 INFO werkzeug MainThread :  * Debugger PIN: 238-496-831
+2025-07-11 05:46:24,172 INFO werkzeug MainThread :  * Detected change in '/home/apshvs/projects/Assignment/Blogging_Website/models/comment.py', reloading
+2025-07-11 05:46:24,258 INFO werkzeug MainThread :  * Restarting with stat
+2025-07-11 05:46:24,568 WARNING werkzeug MainThread :  * Debugger is active!
+2025-07-11 05:46:24,570 INFO werkzeug MainThread :  * Debugger PIN: 238-496-831
+2025-07-11 05:46:30,643 INFO werkzeug MainThread :  * Detected change in '/home/apshvs/projects/Assignment/Blogging_Website/app.py', reloading
+2025-07-11 05:46:30,739 INFO werkzeug MainThread :  * Restarting with stat
+2025-07-11 05:46:31,092 WARNING werkzeug MainThread :  * Debugger is active!
+2025-07-11 05:46:31,094 INFO werkzeug MainThread :  * Debugger PIN: 238-496-831
+2025-07-11 05:47:03,153 INFO werkzeug MainThread : [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-07-11 05:47:03,153 INFO werkzeug MainThread : [33mPress CTRL+C to quit[0m
+2025-07-11 05:47:03,154 INFO werkzeug MainThread :  * Restarting with stat
+2025-07-11 05:47:03,470 WARNING werkzeug MainThread :  * Debugger is active!
+2025-07-11 05:47:03,472 INFO werkzeug MainThread :  * Debugger PIN: 238-496-831
+2025-07-11 05:47:11,045 INFO werkzeug Thread-2 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:47:11] "GET / HTTP/1.1" 200 -
+2025-07-11 05:47:11,132 INFO werkzeug Thread-3 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:47:11] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:47:14,433 INFO werkzeug Thread-4 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:47:14] "[35m[1mGET /admin-dashboard HTTP/1.1[0m" 500 -
+2025-07-11 05:47:14,510 INFO werkzeug Thread-5 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:47:14] "GET /admin-dashboard?__debugger__=yes&cmd=resource&f=style.css HTTP/1.1" 200 -
+2025-07-11 05:47:14,511 INFO werkzeug Thread-6 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:47:14] "GET /admin-dashboard?__debugger__=yes&cmd=resource&f=debugger.js HTTP/1.1" 200 -
+2025-07-11 05:47:14,593 INFO werkzeug Thread-7 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:47:14] "GET /admin-dashboard?__debugger__=yes&cmd=resource&f=console.png HTTP/1.1" 200 -
+2025-07-11 05:47:14,597 INFO werkzeug Thread-8 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:47:14] "GET /admin-dashboard?__debugger__=yes&cmd=resource&f=console.png&s=ERQdETxpDveYmo3bc1pR HTTP/1.1" 200 -
+2025-07-11 05:49:16,627 INFO werkzeug MainThread : [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-07-11 05:49:16,627 INFO werkzeug MainThread : [33mPress CTRL+C to quit[0m
+2025-07-11 05:49:16,628 INFO werkzeug MainThread :  * Restarting with stat
+2025-07-11 05:49:16,943 WARNING werkzeug MainThread :  * Debugger is active!
+2025-07-11 05:49:16,952 INFO werkzeug MainThread :  * Debugger PIN: 238-496-831
+2025-07-11 05:49:21,704 INFO werkzeug Thread-2 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:49:21] "GET / HTTP/1.1" 200 -
+2025-07-11 05:49:21,774 INFO werkzeug Thread-3 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:49:21] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:49:24,574 INFO werkzeug Thread-4 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:49:24] "GET /admin-dashboard HTTP/1.1" 200 -
+2025-07-11 05:49:24,651 INFO werkzeug Thread-5 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:49:24] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:49:27,036 INFO werkzeug Thread-6 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:49:27] "GET /dashboard HTTP/1.1" 200 -
+2025-07-11 05:49:27,119 INFO werkzeug Thread-7 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:49:27] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:49:28,199 INFO werkzeug Thread-8 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:49:28] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-07-11 05:49:28,262 INFO werkzeug Thread-9 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:49:28] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:49:28,339 INFO werkzeug Thread-10 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:49:28] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:49:31,087 INFO werkzeug Thread-11 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:49:31] "GET /register HTTP/1.1" 200 -
+2025-07-11 05:49:31,167 INFO werkzeug Thread-12 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:49:31] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:49:52,645 INFO werkzeug Thread-13 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:49:52] "[32mPOST /register HTTP/1.1[0m" 302 -
+2025-07-11 05:49:52,716 INFO werkzeug Thread-14 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:49:52] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:49:52,792 INFO werkzeug Thread-15 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:49:52] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:50:04,001 INFO werkzeug Thread-16 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:04] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-07-11 05:50:04,082 INFO werkzeug Thread-17 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:04] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:50:04,155 INFO werkzeug Thread-18 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:04] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:50:07,699 INFO werkzeug Thread-19 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:07] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-07-11 05:50:07,759 INFO werkzeug Thread-20 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:07] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:50:07,835 INFO werkzeug Thread-21 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:07] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:50:22,299 INFO werkzeug Thread-22 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:22] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-07-11 05:50:22,365 INFO werkzeug Thread-23 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:22] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:50:22,444 INFO werkzeug Thread-24 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:22] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:50:24,140 INFO werkzeug Thread-25 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:24] "GET /admin-dashboard HTTP/1.1" 200 -
+2025-07-11 05:50:24,219 INFO werkzeug Thread-26 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:24] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:50:26,853 INFO werkzeug Thread-27 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:26] "GET / HTTP/1.1" 200 -
+2025-07-11 05:50:26,932 INFO werkzeug Thread-28 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:26] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:50:28,822 INFO werkzeug Thread-29 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:28] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:50:28,900 INFO werkzeug Thread-30 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:28] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:50:30,260 INFO werkzeug Thread-31 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:30] "GET / HTTP/1.1" 200 -
+2025-07-11 05:50:30,323 INFO werkzeug Thread-32 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:30] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:50:31,449 INFO werkzeug Thread-33 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:31] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:50:31,527 INFO werkzeug Thread-34 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:31] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:50:33,191 INFO werkzeug Thread-35 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:33] "GET /create-post HTTP/1.1" 200 -
+2025-07-11 05:50:33,267 INFO werkzeug Thread-36 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:33] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:50:53,838 INFO werkzeug Thread-37 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:53] "[32mPOST /create-post HTTP/1.1[0m" 302 -
+2025-07-11 05:50:53,897 INFO werkzeug Thread-38 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:53] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:50:53,972 INFO werkzeug Thread-39 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:53] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:50:57,789 INFO werkzeug Thread-40 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:57] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-07-11 05:50:57,852 INFO werkzeug Thread-41 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:57] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:50:57,936 INFO werkzeug Thread-42 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:50:57] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:51:12,068 INFO werkzeug Thread-43 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:12] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-07-11 05:51:12,126 INFO werkzeug Thread-44 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:12] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:51:12,199 INFO werkzeug Thread-45 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:12] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:51:15,117 INFO werkzeug Thread-46 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:15] "GET /comments/1 HTTP/1.1" 200 -
+2025-07-11 05:51:18,691 INFO werkzeug Thread-47 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:18] "POST /comment/1 HTTP/1.1" 200 -
+2025-07-11 05:51:19,975 INFO werkzeug Thread-48 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:19] "POST /like/1 HTTP/1.1" 200 -
+2025-07-11 05:51:22,756 INFO werkzeug Thread-49 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:22] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-07-11 05:51:22,812 INFO werkzeug Thread-50 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:22] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:51:22,892 INFO werkzeug Thread-51 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:22] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:51:38,954 INFO werkzeug Thread-52 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:38] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-07-11 05:51:39,023 INFO werkzeug Thread-53 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:39] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:51:39,105 INFO werkzeug Thread-54 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:39] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:51:44,376 INFO werkzeug Thread-55 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:44] "GET /admin-dashboard HTTP/1.1" 200 -
+2025-07-11 05:51:44,447 INFO werkzeug Thread-56 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:44] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:51:47,586 INFO werkzeug Thread-57 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:47] "[32mPOST /admin/delete-user/2 HTTP/1.1[0m" 302 -
+2025-07-11 05:51:47,652 INFO werkzeug Thread-58 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:47] "GET /admin-dashboard HTTP/1.1" 200 -
+2025-07-11 05:51:47,731 INFO werkzeug Thread-59 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:47] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:51:50,206 INFO werkzeug Thread-60 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:50] "GET /dashboard HTTP/1.1" 200 -
+2025-07-11 05:51:50,276 INFO werkzeug Thread-61 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:50] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:51:52,093 INFO werkzeug Thread-62 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:52] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:51:52,167 INFO werkzeug Thread-63 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:51:52] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:54:16,440 INFO werkzeug MainThread : [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-07-11 05:54:16,440 INFO werkzeug MainThread : [33mPress CTRL+C to quit[0m
+2025-07-11 05:54:16,441 INFO werkzeug MainThread :  * Restarting with stat
+2025-07-11 05:54:16,766 WARNING werkzeug MainThread :  * Debugger is active!
+2025-07-11 05:54:16,769 INFO werkzeug MainThread :  * Debugger PIN: 238-496-831
+2025-07-11 05:54:21,202 INFO werkzeug Thread-2 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:54:21] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:54:21,274 INFO werkzeug Thread-3 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:54:21] "GET /static/style.css HTTP/1.1" 200 -
+2025-07-11 05:54:21,335 INFO werkzeug Thread-4 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:54:21] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-11 05:54:23,252 INFO werkzeug Thread-5 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:54:23] "GET /admin-dashboard HTTP/1.1" 200 -
+2025-07-11 05:54:23,327 INFO werkzeug Thread-6 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:54:23] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:55:10,486 INFO werkzeug Thread-7 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:55:10] "GET /dashboard HTTP/1.1" 200 -
+2025-07-11 05:55:10,554 INFO werkzeug Thread-8 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:55:10] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:55:13,447 INFO werkzeug Thread-9 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:55:13] "GET /admin-dashboard HTTP/1.1" 200 -
+2025-07-11 05:55:13,526 INFO werkzeug Thread-10 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:55:13] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:55:20,152 INFO werkzeug Thread-11 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:55:20] "GET /dashboard HTTP/1.1" 200 -
+2025-07-11 05:55:20,230 INFO werkzeug Thread-12 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:55:20] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:55:23,711 INFO werkzeug Thread-13 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:55:23] "GET /admin-dashboard HTTP/1.1" 200 -
+2025-07-11 05:55:23,790 INFO werkzeug Thread-14 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:55:23] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:55:28,518 INFO werkzeug Thread-15 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:55:28] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-07-11 05:55:28,584 INFO werkzeug Thread-16 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:55:28] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:55:28,657 INFO werkzeug Thread-17 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:55:28] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:55:31,136 INFO werkzeug Thread-18 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:55:31] "GET /register HTTP/1.1" 200 -
+2025-07-11 05:55:31,209 INFO werkzeug Thread-19 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:55:31] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:55:46,989 INFO werkzeug Thread-20 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:55:46] "[32mPOST /register HTTP/1.1[0m" 302 -
+2025-07-11 05:55:47,058 INFO werkzeug Thread-21 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:55:47] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:55:47,129 INFO werkzeug Thread-22 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:55:47] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:56:02,849 INFO werkzeug Thread-23 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:56:02] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-07-11 05:56:02,909 INFO werkzeug Thread-24 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:56:02] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:56:02,977 INFO werkzeug Thread-25 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:56:02] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:56:05,646 INFO werkzeug Thread-26 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:56:05] "GET /dashboard HTTP/1.1" 200 -
+2025-07-11 05:56:05,717 INFO werkzeug Thread-27 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:56:05] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:56:08,148 INFO werkzeug Thread-28 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:56:08] "GET / HTTP/1.1" 200 -
+2025-07-11 05:56:08,225 INFO werkzeug Thread-29 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:56:08] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:56:09,591 INFO werkzeug Thread-30 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:56:09] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:56:09,669 INFO werkzeug Thread-31 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:56:09] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:56:31,366 INFO werkzeug Thread-32 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:56:31] "GET /posts/ HTTP/1.1" 200 -
+2025-07-11 05:56:31,434 INFO werkzeug Thread-33 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:56:31] "GET /static/style.css HTTP/1.1" 200 -
+2025-07-11 05:56:31,497 INFO werkzeug Thread-34 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:56:31] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-07-11 05:56:32,111 INFO werkzeug Thread-35 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:56:32] "GET /dashboard HTTP/1.1" 200 -
+2025-07-11 05:56:32,174 INFO werkzeug Thread-36 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:56:32] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
+2025-07-11 05:56:34,749 INFO werkzeug Thread-37 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:56:34] "[32mGET /logout HTTP/1.1[0m" 302 -
+2025-07-11 05:56:34,810 INFO werkzeug Thread-38 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:56:34] "GET /login HTTP/1.1" 200 -
+2025-07-11 05:56:34,889 INFO werkzeug Thread-39 (process_request_thread) : 127.0.0.1 - - [11/Jul/2025 05:56:34] "[36mGET /static/style.css HTTP/1.1[0m" 304 -
