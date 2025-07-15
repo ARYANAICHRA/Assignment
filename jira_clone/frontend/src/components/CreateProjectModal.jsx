@@ -1,10 +1,10 @@
 import React, { useState, useContext } from 'react';
+import { Modal, Form, Input, Button, Alert, Typography } from 'antd';
 import { ProjectContext } from '../context/ProjectContext';
-import { Form, Input, Button, Alert, Typography } from 'antd';
 
 const { Title } = Typography;
 
-function CreateProjectForm({ onProjectCreated, open, onCancel }) {
+function CreateProjectModal({ visible, onProjectCreated, onCancel }) {
   const [form] = Form.useForm();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -39,8 +39,15 @@ function CreateProjectForm({ onProjectCreated, open, onCancel }) {
   };
 
   return (
-    <div style={{ maxWidth: 400, margin: '0 auto' }}>
-      <Title level={4} style={{ marginBottom: 16 }}>Create New Project</Title>
+    <Modal
+      open={visible}
+      title={<Title level={4} style={{ marginBottom: 0 }}>Create New Project</Title>}
+      onCancel={onCancel}
+      onOk={() => form.submit()}
+      okText="Create"
+      confirmLoading={loading}
+      destroyOnClose
+    >
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <Form.Item label="Project Name" name="name" rules={[{ required: true, message: 'Please enter a project name' }]}> 
           <Input placeholder="Project name" />
@@ -49,14 +56,9 @@ function CreateProjectForm({ onProjectCreated, open, onCancel }) {
           <Input.TextArea placeholder="Description (optional)" autoSize={{ minRows: 2, maxRows: 4 }} />
         </Form.Item>
         {error && <Alert message={error} type="error" showIcon style={{ marginBottom: 12 }} />}
-        <Form.Item>
-          <Button type="primary" htmlType="submit" loading={loading} block>
-            Create Project
-          </Button>
-        </Form.Item>
       </Form>
-    </div>
+    </Modal>
   );
 }
 
-export default CreateProjectForm;
+export default CreateProjectModal; 

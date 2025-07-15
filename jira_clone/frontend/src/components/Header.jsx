@@ -1,6 +1,5 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { ProjectContext } from '../context/ProjectContext';
 import { Breadcrumb, Avatar, Dropdown, Menu, Button, Typography } from 'antd';
 import { UserOutlined, DownOutlined } from '@ant-design/icons';
 
@@ -18,48 +17,21 @@ function getBreadcrumbs(location, selectedProject) {
       crumbs.push({ label: selectedProject.name, to: '#' });
     }
   }
-  if (path[0] === 'board') {
-    crumbs.push({ label: 'Board', to: '/board' });
-  }
   if (path[0] === 'profile') {
     crumbs.push({ label: 'Profile', to: '/profile' });
   }
   return crumbs;
 }
 
-function Header() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
+function Header({ setIsAuthenticated, isAuthenticated, selectedProject }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const { selectedProject } = useContext(ProjectContext);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setIsAuthenticated(false);
-      setUser(null);
-      return;
-    }
-    fetch('http://localhost:5000/me', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(res => res.ok ? res.json() : Promise.reject())
-      .then(data => {
-        setIsAuthenticated(true);
-        setUser(data);
-      })
-      .catch(() => {
-        setIsAuthenticated(false);
-        setUser(null);
-        localStorage.removeItem('token');
-      });
-  }, []);
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setIsAuthenticated(false);
-    setUser(null);
     navigate('/login');
   };
 
@@ -81,25 +53,27 @@ function Header() {
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64, padding: '0 24px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         <Text strong style={{ fontSize: 22, color: '#1677ff', letterSpacing: 1 }}>Jira Clone</Text>
-        {selectedProject && (
+        {isAuthenticated && selectedProject && (
           <span style={{ marginLeft: 8, padding: '2px 8px', background: '#e6f4ff', color: '#1677ff', borderRadius: 4, fontWeight: 500, fontSize: 14 }}>{selectedProject.name}</span>
         )}
-        <Breadcrumb style={{ marginLeft: 24 }}>
-          {crumbs.map((crumb, idx) => (
-            <Breadcrumb.Item key={idx}>
-              {crumb.to !== '#' ? <Link to={crumb.to}>{crumb.label}</Link> : crumb.label}
-            </Breadcrumb.Item>
-          ))}
-        </Breadcrumb>
+        {isAuthenticated && (
+          <Breadcrumb style={{ marginLeft: 24 }}>
+            {crumbs.map((crumb, idx) => (
+              <Breadcrumb.Item key={idx}>
+                {crumb.to !== '#' ? <Link to={crumb.to}>{crumb.label}</Link> : crumb.label}
+              </Breadcrumb.Item>
+            ))}
+          </Breadcrumb>
+        )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        {isAuthenticated && user && (
+        {isAuthenticated && user && user.username && (
           <Dropdown overlay={menu} placement="bottomRight" trigger={["click"]}>
             <Button type="text" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Avatar style={{ backgroundColor: '#1677ff' }} icon={<UserOutlined />}>
                 {user.username ? user.username[0].toUpperCase() : '?'}
               </Avatar>
-              <span style={{ fontWeight: 500, color: '#333' }}>{user.username}</span>
+              <span style={{ fontWeight: 500, color: '#333' }}>{user.username || 'User'}</span>
               <DownOutlined style={{ fontSize: 12, color: '#888' }} />
             </Button>
           </Dropdown>

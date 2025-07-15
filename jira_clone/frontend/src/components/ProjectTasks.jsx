@@ -34,11 +34,13 @@ function ProjectTasks() {
   const [sortField, setSortField] = useState('');
   const [sortDir, setSortDir] = useState('asc');
   const [alert, setAlert] = useState('');
+  const [columns, setColumns] = useState([]);
 
   useEffect(() => {
     if (selectedProject) {
       fetchTasks();
       fetchUsers();
+      fetchColumns();
     }
     // eslint-disable-next-line
   }, [selectedProject, typeFilter]);
@@ -63,6 +65,17 @@ function ProjectTasks() {
     });
     const data = await res.json();
     if (res.ok) setUsers(data.members);
+  };
+
+  const fetchColumns = async () => {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/columns`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setColumns(data.columns);
+    }
   };
 
   const handleEdit = (task) => {
@@ -110,13 +123,29 @@ function ProjectTasks() {
     });
   };
 
+  // Fix due_date and deprecations in handleBugSubmit
   const handleBugSubmit = async (values) => {
     setBugError('');
     const token = localStorage.getItem('token');
+    // Find the 'todo' column or fallback to the first column
+    let columnId = undefined;
+    if (columns && columns.length > 0) {
+      const todoCol = columns.find(col => (col.status || col.name.toLowerCase().replace(/\s/g, '')) === 'todo');
+      columnId = todoCol ? todoCol.id : columns[0].id;
+    }
+    if (!columnId) {
+      setBugError('No columns found for this project.');
+      return;
+    }
+    // Fix due_date: send only YYYY-MM-DD
+    const payload = { ...values, type: 'bug', column_id: columnId };
+    if (payload.due_date && typeof payload.due_date === 'object' && payload.due_date.format) {
+      payload.due_date = payload.due_date.format('YYYY-MM-DD');
+    }
     const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/items`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ ...values, type: 'bug' })
+      body: JSON.stringify(payload)
     });
     if (res.ok) {
       setShowBugModal(false);
@@ -150,7 +179,7 @@ function ProjectTasks() {
     return sortDir === 'asc' ? String(aVal).localeCompare(String(bVal)) : String(bVal).localeCompare(String(aVal));
   });
 
-  const columns = [
+  const taskTableColumns = [
     {
       title: 'Type',
       dataIndex: 'type',
@@ -250,7 +279,7 @@ function ProjectTasks() {
       {alert && <Alert message={alert} type="success" showIcon style={{ marginBottom: 12 }} />}
       <Table
         dataSource={sortedTasks}
-        columns={columns}
+        columns={taskTableColumns}
         rowKey="id"
         loading={loading}
         pagination={false}
@@ -262,8 +291,7 @@ function ProjectTasks() {
         title="Report Bug"
         onCancel={() => setShowBugModal(false)}
         onOk={() => bugForm.submit()}
-        okText="Report"
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={bugForm} layout="vertical" onFinish={handleBugSubmit}>
           <Form.Item label="Title" name="title" rules={[{ required: true, message: 'Title is required' }]}> 

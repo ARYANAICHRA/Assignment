@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ProjectProvider } from './context/ProjectContext';
+import { ProjectProvider, ProjectContext } from './context/ProjectContext';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
-import Profile from './pages/profile';
-import Board from './pages/Board';
-import Projects from './pages/Projects';
+import Profile from './pages/Profile';
+import ProjectBoard from './pages/ProjectBoard';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -16,6 +15,34 @@ import 'antd/dist/reset.css';
 import './index.css';
 
 const { Sider, Content, Header: AntHeader, Footer: AntFooter } = Layout;
+
+function AppLayout({ isAuthenticated, setIsAuthenticated }) {
+  const { selectedProject } = useContext(ProjectContext);
+  return (
+    <Layout style={{ minHeight: '100vh' }}>
+      <Sider width={220} style={{ background: '#001529', position: 'fixed', left: 0, top: 0, bottom: 0, height: '100vh', zIndex: 100 }}>
+        <Sidebar setIsAuthenticated={setIsAuthenticated} />
+      </Sider>
+      <Layout style={{ marginLeft: 220 }}>
+        <AntHeader style={{ background: '#fff', padding: 0, boxShadow: '0 2px 8px #f0f1f2', position: 'sticky', top: 0, zIndex: 101 }}>
+          <Header setIsAuthenticated={setIsAuthenticated} isAuthenticated={isAuthenticated} selectedProject={selectedProject} />
+        </AntHeader>
+        <Content style={{ margin: '24px 16px 0', overflow: 'initial', minHeight: 'calc(100vh - 64px - 70px)' }}>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/projects/:id" element={<ProjectBoard />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </Content>
+        <AntFooter style={{ textAlign: 'center', background: '#fff', position: 'sticky', bottom: 0, zIndex: 99 }}>
+          <Footer />
+        </AntFooter>
+      </Layout>
+    </Layout>
+  );
+}
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -55,28 +82,7 @@ function App() {
     <ProjectProvider>
       <Router>
         {isAuthenticated ? (
-          <Layout style={{ minHeight: '100vh' }}>
-            <Sider width={220} style={{ background: '#001529' }}>
-              <Sidebar />
-            </Sider>
-            <Layout>
-              <AntHeader style={{ background: '#fff', padding: 0, boxShadow: '0 2px 8px #f0f1f2' }}>
-                <Header />
-              </AntHeader>
-              <Content style={{ margin: '24px 16px 0', overflow: 'initial' }}>
-                <Routes>
-                  <Route path="/" element={<Dashboard />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/board" element={<Board />} />
-                  <Route path="/projects" element={<Projects />} />
-                </Routes>
-              </Content>
-              <AntFooter style={{ textAlign: 'center' }}>
-                <Footer />
-              </AntFooter>
-            </Layout>
-          </Layout>
+          <AppLayout isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
         ) : (
           <Routes>
             <Route path="/" element={<Home isAuthenticated={isAuthenticated} />} />

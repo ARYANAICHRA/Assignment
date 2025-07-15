@@ -1,26 +1,22 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ProjectContext } from '../context/ProjectContext';
-import CreateProjectForm from './CreateProjectForm';
-import { Menu, Button, Modal, Select, Divider, Typography } from 'antd';
+import { Menu, Button, Select, Divider, Typography, message } from 'antd';
 import {
   DashboardOutlined,
-  ProjectOutlined,
   AppstoreOutlined,
   UserOutlined,
-  LogoutOutlined,
-  PlusOutlined
+  LogoutOutlined
 } from '@ant-design/icons';
 
 const { Option } = Select;
 const { Title } = Typography;
 
-function Sidebar() {
+function Sidebar({ setIsAuthenticated }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { selectedProject, setSelectedProject } = useContext(ProjectContext);
   const [projects, setProjects] = useState([]);
-  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     fetchProjects();
@@ -39,24 +35,27 @@ function Sidebar() {
   const handleProjectChange = (value) => {
     const project = projects.find(p => p.id === Number(value));
     setSelectedProject(project || null);
+    // Do NOT navigate on project select
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    window.location.href = '/login';
+    setIsAuthenticated(false);
+    navigate('/login');
   };
 
-  const handleProjectCreated = (project) => {
-    setShowCreateModal(false);
-    fetchProjects();
-    setSelectedProject(project);
+  const handleBoardsClick = () => {
+    if (selectedProject) {
+      navigate(`/projects/${selectedProject.id}`);
+    } else {
+      message.info('Please select a project first.');
+    }
   };
 
   return (
     <div style={{ height: '100vh', background: '#001529', color: '#fff', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '24px 16px 8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ padding: '24px 16px 8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Title level={4} style={{ color: '#fff', margin: 0, fontWeight: 700, letterSpacing: 1 }}>Jira Clone</Title>
-        <Button type="primary" icon={<PlusOutlined />} shape="circle" onClick={() => setShowCreateModal(true)} />
       </div>
       <div style={{ padding: '0 16px 16px 16px' }}>
         <div style={{ color: '#bfbfbf', fontSize: 12, marginBottom: 4 }}>Project</div>
@@ -66,7 +65,6 @@ function Sidebar() {
           value={selectedProject ? selectedProject.id : undefined}
           onChange={handleProjectChange}
           optionLabelProp="label"
-          dropdownStyle={{ zIndex: 1300 }}
         >
           {projects.map(project => (
             <Option key={project.id} value={project.id} label={project.name}>{project.name}</Option>
@@ -77,7 +75,7 @@ function Sidebar() {
       <Menu
         theme="dark"
         mode="inline"
-        selectedKeys={[location.pathname]}
+        selectedKeys={[location.pathname.startsWith('/projects/') ? '/boards' : location.pathname]}
         style={{ borderRight: 0, background: 'transparent', flex: 1 }}
         items={[
           {
@@ -86,14 +84,16 @@ function Sidebar() {
             label: <Link to="/dashboard">Dashboard</Link>,
           },
           {
-            key: '/projects',
-            icon: <ProjectOutlined />,
-            label: <Link to="/projects">Projects</Link>,
-          },
-          {
-            key: '/board',
+            key: '/boards',
             icon: <AppstoreOutlined />,
-            label: <Link to="/board">Board</Link>,
+            label: (
+              <span
+                style={{ color: selectedProject ? undefined : '#888', cursor: selectedProject ? 'pointer' : 'not-allowed' }}
+                onClick={e => { e.preventDefault(); handleBoardsClick(); }}
+              >
+                Boards
+              </span>
+            ),
           },
           {
             key: '/profile',
@@ -115,15 +115,6 @@ function Sidebar() {
           Logout
         </Button>
       </div>
-      <Modal
-        open={showCreateModal}
-        onCancel={() => setShowCreateModal(false)}
-        title={<span style={{ fontWeight: 600 }}>Create New Project</span>}
-        footer={null}
-        destroyOnClose
-      >
-        <CreateProjectForm onProjectCreated={handleProjectCreated} />
-      </Modal>
     </div>
   );
 }

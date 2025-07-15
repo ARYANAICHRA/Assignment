@@ -1,10 +1,9 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { ProjectContext } from '../context/ProjectContext';
-import CreateProjectForm from '../components/CreateProjectForm';
 import ProjectMembers from '../components/ProjectMembers';
 import ProjectTasks from '../components/ProjectTasks';
-import { Row, Col, Card, Statistic, Progress, List, Button, Spin, message } from 'antd';
-import { PlusOutlined, UsergroupAddOutlined, CheckCircleOutlined, ProjectOutlined, TeamOutlined } from '@ant-design/icons';
+import { Row, Col, Card, Statistic, Progress, List, Spin, message } from 'antd';
+import { CheckCircleOutlined, ProjectOutlined, TeamOutlined } from '@ant-design/icons';
 
 function Dashboard() {
   const { selectedProject } = useContext(ProjectContext);
@@ -13,8 +12,6 @@ function Dashboard() {
   const [myTasks, setMyTasks] = useState([]);
   const [projectProgress, setProjectProgress] = useState({ completed: 0, in_progress: 0, todo: 0, total: 0 });
   const [loading, setLoading] = useState(true);
-  const [showProjectModal, setShowProjectModal] = useState(false);
-  const [showTaskModal, setShowTaskModal] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -93,33 +90,6 @@ function Dashboard() {
       </Row>
       <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
         <Col xs={24} sm={12}>
-          <Card title="Project Progress" bordered={false}>
-            <Progress
-              percent={projectProgress.total ? Math.round((projectProgress.completed / projectProgress.total) * 100) : 0}
-              status="active"
-              strokeColor="#1677ff"
-              showInfo
-            />
-            <div style={{ marginTop: 8, color: '#888' }}>{projectProgress.completed} of {projectProgress.total} tasks done</div>
-            <div style={{ marginTop: 8, color: '#888' }}>In Progress: {projectProgress.in_progress} | Todo: {projectProgress.todo}</div>
-          </Card>
-        </Col>
-        <Col xs={24} sm={12}>
-          <Card title="Quick Actions" bordered={false}>
-            <Button type="primary" icon={<PlusOutlined />} block style={{ marginBottom: 12 }} onClick={() => setShowProjectModal(true)}>
-              New Project
-            </Button>
-            <Button type="default" icon={<PlusOutlined />} block style={{ marginBottom: 12 }} onClick={() => setShowTaskModal(true)}>
-              New Task
-            </Button>
-            <Button type="dashed" icon={<UsergroupAddOutlined />} block>
-              Invite Member
-            </Button>
-          </Card>
-        </Col>
-      </Row>
-      <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
-        <Col xs={24} sm={12}>
           <Card title="My Tasks" bordered={false}>
             <List
               dataSource={myTasks.slice(0, 6)}
@@ -147,20 +117,36 @@ function Dashboard() {
           </Card>
         </Col>
       </Row>
-      <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
-        <Col xs={24} sm={12}>
-          <Card title="Project Members" bordered={false}>
-            <ProjectMembers />
-          </Card>
-        </Col>
-        <Col xs={24} sm={12}>
-          <Card title="Project Tasks" bordered={false}>
-            <ProjectTasks />
-          </Card>
-        </Col>
-      </Row>
-      <CreateProjectForm open={showProjectModal} onProjectCreated={() => setShowProjectModal(false)} onCancel={() => setShowProjectModal(false)} />
-      {/* TODO: Add New Task Modal here */}
+      {selectedProject && (
+        <>
+          <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+            <Col xs={24} sm={12}>
+              <Card title="Project Progress" bordered={false}>
+                <Progress
+                  percent={projectProgress.total ? Math.round((projectProgress.completed / projectProgress.total) * 100) : 0}
+                  status="active"
+                  strokeColor="#1677ff"
+                  showInfo
+                />
+                <div style={{ marginTop: 8, color: '#888' }}>{projectProgress.completed} of {projectProgress.total} tasks done</div>
+                <div style={{ marginTop: 8, color: '#888' }}>In Progress: {projectProgress.in_progress} | Todo: {projectProgress.todo}</div>
+              </Card>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Card title="Project Members" bordered={false}>
+                <ProjectMembers />
+              </Card>
+            </Col>
+          </Row>
+          <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+            <Col xs={24} sm={24}>
+              <Card title="Project Tasks" bordered={false}>
+                <ProjectTasks />
+              </Card>
+            </Col>
+          </Row>
+        </>
+      )}
     </div>
   );
 }
