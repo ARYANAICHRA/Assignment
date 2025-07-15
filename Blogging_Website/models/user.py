@@ -10,6 +10,7 @@ class User(db.Model):
 
     posts = db.relationship('Post', backref='author', lazy=True)
     likes = db.relationship('Like', backref='user', lazy=True, cascade='all, delete-orphan')
+    comments = db.relationship('Comment', backref='user', lazy=True, cascade='all, delete-orphan')
 
     def set_password(self, password_plain):
         self.password = generate_password_hash(password_plain)

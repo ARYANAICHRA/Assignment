@@ -42,24 +42,24 @@ def send_welcome_email(username, email):
         
         # Email body
         body = f"""
-        Hi {username},
+Hi {username},
         
-         Welcome to our Blogging Platform!
+Welcome to our Blogging Platform!
         
-        Thank you for registering with us. You can now:
-        • Create and share your blog posts
-        • Like and comment on other posts
-        • Connect with other bloggers
+Thank you for registering with us. You can now:
+• Create and share your blog posts
+• Like and comment on other posts
+• Connect with other bloggers
         
-        Get started by logging in and creating your first post!
+Get started by logging in and creating your first post!
         
-        Best regards,
-        The Blog Team
+Best regards,
+The Blog Team
         """
         
         # Create and send email
         email_message = EmailMessage(
-            subject=f"👋 Welcome to the Blog, {username}!",
+            subject=f"Welcome to the Blog, {username}!",
             body=body,
             to=[email]
         )
