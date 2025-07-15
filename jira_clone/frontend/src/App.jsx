@@ -8,6 +8,9 @@ import Home from './pages/Home';
 import Profile from './pages/profile';
 import Board from './pages/Board';
 import Projects from './pages/Projects';
+import Sidebar from './components/Sidebar';
+import Header from './components/Header';
+import Footer from './components/Footer';
 import './index.css';
 
 function App() {
@@ -47,15 +50,31 @@ function App() {
   return (
     <ProjectProvider>
       <Router>
-        <Routes>
-          <Route path="/" element={<Home isAuthenticated={isAuthenticated} />} />
-          <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
-          <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
-          <Route path="/board" element={isAuthenticated ? <Board /> : <Navigate to="/login" />} />
-          <Route path="/projects" element={isAuthenticated ? <Projects /> : <Navigate to="/login" />} />
-        </Routes>
+        {isAuthenticated ? (
+          <div className="flex min-h-screen bg-gray-100">
+            <Sidebar />
+            <div className="flex flex-col flex-1 min-h-screen ml-56">
+              <Header />
+              <main className="flex-1 p-6 overflow-y-auto">
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/board" element={<Board />} />
+                  <Route path="/projects" element={<Projects />} />
+                </Routes>
+              </main>
+              <Footer />
+            </div>
+          </div>
+        ) : (
+          <Routes>
+            <Route path="/" element={<Home isAuthenticated={isAuthenticated} />} />
+            <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="*" element={<Navigate to="/login" />} />
+          </Routes>
+        )}
       </Router>
     </ProjectProvider>
   );

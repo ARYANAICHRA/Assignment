@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useContext } from 'react';
-import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { ProjectContext } from '../context/ProjectContext';
@@ -253,60 +252,53 @@ function Board() {
   const showLoading = loading && !optimisticTasks && !prevTasks && Object.values(tasks).every(arr => arr.length === 0);
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
-      <div className="flex-1 ml-56">
-        <Header />
-        <div className="p-8">
-          <h1 className="text-3xl font-bold mb-8">Kanban Board</h1>
-          {selectedProject && (
-            <form onSubmit={handleAddTask} className="mb-6 flex gap-2">
-              <input
-                className="border rounded px-3 py-2 flex-1"
-                placeholder="Add new task..."
-                value={newTask}
-                onChange={e => setNewTask(e.target.value)}
-              />
-              <button className="bg-blue-600 text-white px-4 py-2 rounded" type="submit">Add</button>
-            </form>
-          )}
-          {showLoading ? <div>Loading...</div> : null}
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              {columns.map((col) => (
-                <DroppableColumn key={col.key} col={col}>
-                  <SortableContext items={displayTasks[col.key]?.map(i => i.id) || []} strategy={verticalListSortingStrategy}>
-                    {displayTasks[col.key]?.map((task) => (
-                      <div key={task.id} className={`relative group ${activeId === task.id ? 'opacity-50' : ''}`}>
-                        <SortableItem id={task.id} title={task.title} />
-                        <button
-                          className="absolute top-2 right-2 text-red-500 opacity-0 group-hover:opacity-100 transition"
-                          onClick={() => handleDelete(task.id)}
-                        >
-                          &times;
-                        </button>
-                      </div>
-                    ))}
-                  </SortableContext>
-                </DroppableColumn>
-              ))}
-            </div>
-            <DragOverlay>
-              {draggedTask ? (
-                <div className="mb-4 p-3 rounded bg-blue-100 text-gray-800 shadow cursor-pointer">
-                  {draggedTask.title}
-                </div>
-              ) : null}
-            </DragOverlay>
-          </DndContext>
+    <div className="p-8">
+      <h1 className="text-3xl font-bold mb-8">Kanban Board</h1>
+      {selectedProject && (
+        <form onSubmit={handleAddTask} className="mb-6 flex gap-2">
+          <input
+            className="border rounded px-3 py-2 flex-1"
+            placeholder="Add new task..."
+            value={newTask}
+            onChange={e => setNewTask(e.target.value)}
+          />
+          <button className="bg-blue-600 text-white px-4 py-2 rounded" type="submit">Add</button>
+        </form>
+      )}
+      {showLoading ? <div>Loading...</div> : null}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {columns.map((col) => (
+            <DroppableColumn key={col.key} col={col}>
+              <SortableContext items={displayTasks[col.key]?.map(i => i.id) || []} strategy={verticalListSortingStrategy}>
+                {displayTasks[col.key]?.map((task) => (
+                  <div key={task.id} className={`relative group ${activeId === task.id ? 'opacity-50' : ''}`}>
+                    <SortableItem id={task.id} title={task.title} />
+                    <button
+                      className="absolute top-2 right-2 text-red-500 opacity-0 group-hover:opacity-100 transition"
+                      onClick={() => handleDelete(task.id)}
+                    >
+                      &times;
+                    </button>
+                  </div>
+                ))}
+              </SortableContext>
+            </DroppableColumn>
+          ))}
         </div>
-        <Footer />
-      </div>
+        <DragOverlay>
+          {draggedTask ? (
+            <div className="mb-4 p-3 rounded bg-blue-100 text-gray-800 shadow cursor-pointer">
+              {draggedTask.title}
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
     </div>
   );
 }

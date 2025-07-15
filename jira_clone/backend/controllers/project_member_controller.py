@@ -3,7 +3,9 @@ from models.db import db
 from models.project_member import ProjectMember
 from models.user import User
 from models.project import Project
+from controllers.rbac import require_project_role
 
+@require_project_role('add_remove_members')
 def add_member(project_id):
     data = request.get_json()
     email = data.get('email')
@@ -20,6 +22,7 @@ def add_member(project_id):
         return jsonify({'message': 'Member added'}), 201
     return jsonify({'error': 'User already a member'}), 409
 
+@require_project_role('add_remove_members')
 def remove_member(project_id, user_id):
     member = ProjectMember.query.filter_by(project_id=project_id, user_id=user_id).first()
     if not member:
@@ -28,6 +31,7 @@ def remove_member(project_id, user_id):
     db.session.commit()
     return jsonify({'message': 'Member removed'})
 
+@require_project_role('view_project_settings')
 def list_members(project_id):
     members = ProjectMember.query.filter_by(project_id=project_id).all()
     result = []
@@ -41,6 +45,7 @@ def list_members(project_id):
         })
     return jsonify({'members': result})
 
+@require_project_role('change_roles')
 def change_role(project_id, user_id):
     data = request.get_json()
     role = data.get('role')

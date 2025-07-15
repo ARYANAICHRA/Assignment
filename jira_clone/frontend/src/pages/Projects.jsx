@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { ProjectContext } from '../context/ProjectContext';
 import Header from '../components/Header';
-import Sidebar from '../components/Sidebar';
 import Footer from '../components/Footer';
 
 function Projects() {
@@ -38,33 +37,30 @@ function Projects() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar />
-      <div className="flex-1 ml-56">
-        <Header />
-        <div className="max-w-3xl mx-auto mt-8">
-          <h1 className="text-3xl font-bold mb-6">All Projects</h1>
-          {loading ? <div>Loading...</div> : error ? <div className="text-red-500">{error}</div> : (
-            <ul className="divide-y divide-gray-200">
-              {projects.map(project => (
-                <li key={project.id} className={`py-3 flex items-center justify-between ${selectedProject && selectedProject.id === project.id ? 'bg-blue-100' : ''}`}>
-                  <div>
-                    <span className="font-semibold">{project.name}</span>
-                    <span className="ml-2 text-gray-500">{project.description}</span>
-                  </div>
-                  <button
-                    className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700"
-                    onClick={() => handleSelect(project)}
-                  >
-                    {selectedProject && selectedProject.id === project.id ? 'Selected' : 'Select'}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-        <Footer />
-      </div>
+    <div className="max-w-3xl mx-auto mt-8">
+      <h1 className="text-3xl font-bold mb-6">All Projects</h1>
+      {loading ? (
+        <div>Loading...</div>
+      ) : error ? (
+        <div className="text-red-500">{error}</div>
+      ) : (
+        <ul className="divide-y divide-gray-200 bg-white rounded-lg shadow">
+          {projects.map(project => (
+            <li key={project.id} className={`py-3 px-4 flex items-center justify-between transition-colors ${selectedProject && selectedProject.id === project.id ? 'bg-blue-100' : 'hover:bg-gray-50'}`}>
+              <div>
+                <span className="font-semibold">{project.name}</span>
+                <span className="ml-2 text-gray-500">{project.description}</span>
+              </div>
+              <button
+                className={`px-4 py-1 rounded font-semibold transition ${selectedProject && selectedProject.id === project.id ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-blue-500 hover:text-white'}`}
+                onClick={() => handleSelect(project)}
+              >
+                {selectedProject && selectedProject.id === project.id ? 'Selected' : 'Select'}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
