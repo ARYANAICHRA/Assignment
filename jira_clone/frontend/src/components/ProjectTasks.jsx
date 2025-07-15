@@ -1,35 +1,17 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { ProjectContext } from '../context/ProjectContext';
-import TaskDetailModal from './TaskDetailModal';
-import Modal from 'react-modal';
+import { Table, Button, Tag, Modal, Select, Input, Spin, Alert, Space, Typography, Form, Avatar, Tooltip, DatePicker } from 'antd';
+import { PlusOutlined, BugOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, UserOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
 
-function TypeIcon({ type }) {
-  if (type === 'bug') return <span className="inline-block mr-1 text-red-600" title="Bug">🐞</span>;
-  if (type === 'feature') return <span className="inline-block mr-1 text-blue-600" title="Feature">🌟</span>;
-  return <span className="inline-block mr-1 text-green-600" title="Task">✅</span>;
-}
-
-function StatusBadge({ status }) {
-  const color = status === 'done' ? 'bg-green-200 text-green-800' :
-    status === 'inprogress' ? 'bg-yellow-200 text-yellow-800' :
-    status === 'inreview' ? 'bg-blue-200 text-blue-800' :
-    'bg-gray-200 text-gray-800';
-  return <span className={`px-2 py-0.5 rounded text-xs font-semibold ${color}`}>{status}</span>;
-}
-
-function SeverityBadge({ severity }) {
-  if (!severity) return null;
-  const color = severity === 'Critical' ? 'bg-red-600 text-white' :
-    severity === 'Major' ? 'bg-orange-500 text-white' :
-    'bg-yellow-400 text-black';
-  return <span className={`ml-2 px-2 py-0.5 rounded text-xs font-semibold ${color}`}>{severity}</span>;
-}
+const { Option } = Select;
+const { Title } = Typography;
 
 const TYPE_OPTIONS = [
-  { value: 'all', label: 'All', color: 'bg-gray-200' },
-  { value: 'bug', label: 'Bugs', color: 'bg-red-200' },
-  { value: 'feature', label: 'Features', color: 'bg-blue-200' },
-  { value: 'task', label: 'Tasks', color: 'bg-green-200' },
+  { value: 'all', label: 'All' },
+  { value: 'bug', label: 'Bugs' },
+  { value: 'feature', label: 'Features' },
+  { value: 'task', label: 'Tasks' },
 ];
 
 const SORT_OPTIONS = [
@@ -39,27 +21,19 @@ const SORT_OPTIONS = [
 ];
 
 function ProjectTasks() {
-  const { selectedProject, userRole } = useContext(ProjectContext); // userRole assumed in context
+  const { selectedProject } = useContext(ProjectContext);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editTaskId, setEditTaskId] = useState(null);
-  const [editForm, setEditForm] = useState({ title: '', status: '', assignee_id: '' });
+  const [editForm] = Form.useForm();
   const [users, setUsers] = useState([]);
-  const [detailTaskId, setDetailTaskId] = useState(null); // For modal
   const [typeFilter, setTypeFilter] = useState('all');
   const [showBugModal, setShowBugModal] = useState(false);
-  const [bugForm, setBugForm] = useState({
-    title: '',
-    description: '',
-    severity: '',
-    steps_to_reproduce: '',
-    status: 'todo',
-    priority: '',
-    due_date: ''
-  });
+  const [bugForm] = Form.useForm();
   const [bugError, setBugError] = useState('');
   const [sortField, setSortField] = useState('');
   const [sortDir, setSortDir] = useState('asc');
+  const [alert, setAlert] = useState('');
 
   useEffect(() => {
     if (selectedProject) {
@@ -93,50 +67,63 @@ function ProjectTasks() {
 
   const handleEdit = (task) => {
     setEditTaskId(task.id);
-    setEditForm({ title: task.title, status: task.status, assignee_id: task.assignee_id || '' });
+    editForm.setFieldsValue({
+      title: task.title,
+      status: task.status,
+      assignee_id: task.assignee_id || ''
+    });
     fetchUsers();
-  };
-
-  const handleEditChange = (e) => {
-    setEditForm({ ...editForm, [e.target.name]: e.target.value });
   };
 
   const handleEditSave = async () => {
     const token = localStorage.getItem('token');
+    const values = await editForm.validateFields();
     await fetch(`http://localhost:5000/items/${editTaskId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(editForm)
+      body: JSON.stringify(values)
     });
     setEditTaskId(null);
     fetchTasks();
+    setAlert('Task updated!');
+    setTimeout(() => setAlert(''), 2000);
   };
 
   const handleDelete = async (id) => {
-    const token = localStorage.getItem('token');
-    await fetch(`http://localhost:5000/items/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
+    Modal.confirm({
+      title: 'Delete Task',
+      icon: <ExclamationCircleOutlined />,
+      content: 'Are you sure you want to delete this task?',
+      okText: 'Delete',
+      okType: 'danger',
+      cancelText: 'Cancel',
+      onOk: async () => {
+        const token = localStorage.getItem('token');
+        await fetch(`http://localhost:5000/items/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        fetchTasks();
+        setAlert('Task deleted!');
+        setTimeout(() => setAlert(''), 2000);
+      }
     });
-    fetchTasks();
   };
 
-  const handleBugChange = e => setBugForm({ ...bugForm, [e.target.name]: e.target.value });
-
-  const handleBugSubmit = async e => {
-    e.preventDefault();
+  const handleBugSubmit = async (values) => {
     setBugError('');
-    if (!bugForm.title) { setBugError('Title is required'); return; }
     const token = localStorage.getItem('token');
     const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/items`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ ...bugForm, type: 'bug' })
+      body: JSON.stringify({ ...values, type: 'bug' })
     });
     if (res.ok) {
       setShowBugModal(false);
-      setBugForm({ title: '', description: '', severity: '', steps_to_reproduce: '', status: 'todo', priority: '', due_date: '' });
+      bugForm.resetFields();
       fetchTasks();
+      setAlert('Bug reported!');
+      setTimeout(() => setAlert(''), 2000);
     } else {
       const data = await res.json();
       setBugError(data.error || 'Failed to create bug');
@@ -153,7 +140,6 @@ function ProjectTasks() {
       return sortDir === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
     }
     if (sortField === 'priority') {
-      // Custom order: Critical > High > Medium > Low > ''
       const order = { 'Critical': 4, 'High': 3, 'Medium': 2, 'Low': 1, '': 0, null: 0, undefined: 0 };
       return sortDir === 'asc' ? (order[aVal] - order[bVal]) : (order[bVal] - order[aVal]);
     }
@@ -161,144 +147,153 @@ function ProjectTasks() {
       const order = { 'todo': 1, 'inprogress': 2, 'inreview': 3, 'done': 4 };
       return sortDir === 'asc' ? (order[aVal] - order[bVal]) : (order[bVal] - order[aVal]);
     }
-    // Fallback: string compare
     return sortDir === 'asc' ? String(aVal).localeCompare(String(bVal)) : String(bVal).localeCompare(String(aVal));
   });
 
+  const columns = [
+    {
+      title: 'Type',
+      dataIndex: 'type',
+      key: 'type',
+      render: (type) => {
+        if (type === 'bug') return <Tag color="red" icon={<BugOutlined />}>Bug</Tag>;
+        if (type === 'feature') return <Tag color="blue">Feature</Tag>;
+        return <Tag color="green">Task</Tag>;
+      },
+    },
+    {
+      title: 'Title',
+      dataIndex: 'title',
+      key: 'title',
+      render: (text, record) => editTaskId === record.id ? (
+        <Form form={editForm} layout="inline" style={{ margin: 0 }}>
+          <Form.Item name="title" style={{ margin: 0, width: 120 }} rules={[{ required: true, message: 'Title required' }]}> 
+            <Input />
+          </Form.Item>
+        </Form>
+      ) : text,
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status, record) => editTaskId === record.id ? (
+        <Form form={editForm} layout="inline" style={{ margin: 0 }}>
+          <Form.Item name="status" style={{ margin: 0, width: 120 }} rules={[{ required: true }]}> 
+            <Select>
+              <Option value="todo">To Do</Option>
+              <Option value="inprogress">In Progress</Option>
+              <Option value="inreview">In Review</Option>
+              <Option value="done">Done</Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      ) : <Tag color={status === 'done' ? 'green' : status === 'inprogress' ? 'gold' : status === 'inreview' ? 'blue' : 'default'}>{status}</Tag>,
+    },
+    {
+      title: 'Severity',
+      dataIndex: 'severity',
+      key: 'severity',
+      render: (severity, record) => record.type === 'bug' && severity ? <Tag color={severity === 'Critical' ? 'red' : severity === 'Major' ? 'orange' : 'yellow'}>{severity}</Tag> : null,
+    },
+    {
+      title: 'Assignee',
+      dataIndex: 'assignee_id',
+      key: 'assignee_id',
+      render: (assignee_id) => {
+        const user = users.find(u => u.user_id === assignee_id);
+        return user ? (
+          <Space>
+            <Avatar style={{ backgroundColor: '#1890ff' }} icon={<UserOutlined />} size="small" />
+            {user.username}
+          </Space>
+        ) : 'Unassigned';
+      },
+    },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record) => editTaskId === record.id ? (
+        <Space>
+          <Button type="primary" size="small" icon={<EditOutlined />} onClick={handleEditSave}>Save</Button>
+          <Button size="small" onClick={() => setEditTaskId(null)}>Cancel</Button>
+        </Space>
+      ) : (
+        <Space>
+          <Tooltip title="Edit Task"><Button icon={<EditOutlined />} size="small" onClick={() => handleEdit(record)} /></Tooltip>
+          <Tooltip title="Delete Task"><Button icon={<DeleteOutlined />} size="small" danger onClick={() => handleDelete(record.id)} /></Tooltip>
+        </Space>
+      ),
+    },
+  ];
+
   return (
-    <div className="bg-white rounded-lg shadow p-6 mb-8">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-semibold">Project Tasks</h3>
-        <div className="flex gap-2 items-center">
-          {TYPE_OPTIONS.map(opt => (
-            <button
-              key={opt.value}
-              className={`px-3 py-1 rounded text-sm font-semibold border ${typeFilter === opt.value ? opt.color + ' border-black' : 'border-transparent bg-white'}`}
-              onClick={() => setTypeFilter(opt.value)}
-            >
-              {opt.label}
-            </button>
-          ))}
-          <div className="flex items-center gap-1 ml-2">
-            <span className="text-xs">Sort by:</span>
-            <select value={sortField} onChange={e => setSortField(e.target.value)} className="border rounded px-2 py-1 text-sm">
-              <option value="">None</option>
-              {SORT_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-            </select>
-            {sortField && (
-              <button
-                className="text-xs px-2 py-1 border rounded ml-1"
-                onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}
-                title={sortDir === 'asc' ? 'Ascending' : 'Descending'}
-              >
-                {sortDir === 'asc' ? '↑' : '↓'}
-              </button>
-            )}
-          </div>
-          <button className="bg-red-600 text-white px-3 py-1 rounded text-sm" onClick={() => setShowBugModal(true)}>Report Bug</button>
-        </div>
+    <div style={{ background: '#fff', borderRadius: 8, padding: 24, marginBottom: 32 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <Title level={4} style={{ margin: 0 }}>Project Tasks</Title>
+        <Space>
+          <Select value={typeFilter} onChange={setTypeFilter} style={{ width: 120 }}>
+            {TYPE_OPTIONS.map(opt => <Option key={opt.value} value={opt.value}>{opt.label}</Option>)}
+          </Select>
+          <Select value={sortField} onChange={setSortField} style={{ width: 120 }} placeholder="Sort by">
+            <Option value="">None</Option>
+            {SORT_OPTIONS.map(opt => <Option key={opt.value} value={opt.value}>{opt.label}</Option>)}
+          </Select>
+          {sortField && (
+            <Button size="small" onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}>{sortDir === 'asc' ? 'Asc' : 'Desc'}</Button>
+          )}
+          <Button type="primary" icon={<BugOutlined />} onClick={() => setShowBugModal(true)}>
+            Report Bug
+          </Button>
+        </Space>
       </div>
-      {loading ? <div>Loading...</div> : (
-        <table className="min-w-full text-sm">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="py-2 px-3 text-left">Type</th>
-              <th className="py-2 px-3 text-left">Title</th>
-              <th className="py-2 px-3 text-left">Status</th>
-              <th className="py-2 px-3 text-left">Severity</th>
-              <th className="py-2 px-3 text-left">Assignee</th>
-              <th className="py-2 px-3 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedTasks.map(task => (
-              <tr
-                key={task.id}
-                className={`border-b hover:bg-gray-50 cursor-pointer ${task.type === 'bug' ? 'bg-red-50' : task.type === 'feature' ? 'bg-blue-50' : task.type === 'task' ? 'bg-green-50' : ''}`}
-                onClick={() => setDetailTaskId(task.id)}
-              >
-                <td className="py-2 px-3"><TypeIcon type={task.type} /></td>
-                <td className="py-2 px-3 flex items-center">
-                  {editTaskId === task.id ? (
-                    <input name="title" value={editForm.title} onChange={handleEditChange} className="border rounded px-2 py-1" />
-                  ) : task.title}
-                </td>
-                <td className="py-2 px-3">
-                  {editTaskId === task.id ? (
-                    <select name="status" value={editForm.status} onChange={handleEditChange} className="border rounded px-2 py-1">
-                      <option value="todo">To Do</option>
-                      <option value="inprogress">In Progress</option>
-                      <option value="inreview">In Review</option>
-                      <option value="done">Done</option>
-                    </select>
-                  ) : <StatusBadge status={task.status} />}
-                </td>
-                <td className="py-2 px-3">
-                  {task.type === 'bug' ? <SeverityBadge severity={task.severity} /> : null}
-                </td>
-                <td className="py-2 px-3">
-                  {editTaskId === task.id ? (
-                    <select name="assignee_id" value={editForm.assignee_id} onChange={handleEditChange} className="border rounded px-2 py-1">
-                      <option value="">Unassigned</option>
-                      {users.map(u => (
-                        <option key={u.user_id} value={u.user_id}>{u.username}</option>
-                      ))}
-                    </select>
-                  ) : (
-                    task.assignee_id ? (users.find(u => u.user_id === task.assignee_id)?.username || task.assignee_id) : 'Unassigned'
-                  )}
-                </td>
-                <td className="py-2 px-3" onClick={e => e.stopPropagation()}>
-                  {editTaskId === task.id ? (
-                    <>
-                      <button className="text-green-600 mr-2" onClick={handleEditSave}>Save</button>
-                      <button className="text-gray-500" onClick={() => setEditTaskId(null)}>Cancel</button>
-                    </>
-                  ) : (
-                    <>
-                      <button className="text-blue-600 mr-2" onClick={() => handleEdit(task)}>Edit</button>
-                      <button className="text-red-600" onClick={() => handleDelete(task.id)}>Delete</button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-      <TaskDetailModal isOpen={!!detailTaskId} onRequestClose={() => setDetailTaskId(null)} taskId={detailTaskId} userRole={userRole} />
+      {alert && <Alert message={alert} type="success" showIcon style={{ marginBottom: 12 }} />}
+      <Table
+        dataSource={sortedTasks}
+        columns={columns}
+        rowKey="id"
+        loading={loading}
+        pagination={false}
+        size="middle"
+        bordered
+      />
       <Modal
-        isOpen={showBugModal}
-        onRequestClose={() => setShowBugModal(false)}
-        contentLabel="Report Bug"
-        className="bg-white rounded-lg shadow-lg p-6 max-w-lg mx-auto mt-20 outline-none"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+        open={showBugModal}
+        title="Report Bug"
+        onCancel={() => setShowBugModal(false)}
+        onOk={() => bugForm.submit()}
+        okText="Report"
+        destroyOnClose
       >
-        <h2 className="text-xl font-bold mb-4">Report a Bug</h2>
-        <form onSubmit={handleBugSubmit} className="flex flex-col gap-2">
-          <input name="title" value={bugForm.title} onChange={handleBugChange} placeholder="Bug title" className="border rounded px-2 py-1" required />
-          <textarea name="description" value={bugForm.description} onChange={handleBugChange} placeholder="Description" className="border rounded px-2 py-1" />
-          <select name="severity" value={bugForm.severity} onChange={handleBugChange} className="border rounded px-2 py-1" required>
-            <option value="">Select severity</option>
-            <option value="Minor">Minor</option>
-            <option value="Major">Major</option>
-            <option value="Critical">Critical</option>
-          </select>
-          <textarea name="steps_to_reproduce" value={bugForm.steps_to_reproduce} onChange={handleBugChange} placeholder="Steps to reproduce" className="border rounded px-2 py-1" />
-          <select name="status" value={bugForm.status} onChange={handleBugChange} className="border rounded px-2 py-1">
-            <option value="todo">To Do</option>
-            <option value="inprogress">In Progress</option>
-            <option value="inreview">In Review</option>
-            <option value="done">Done</option>
-          </select>
-          <input name="priority" value={bugForm.priority} onChange={handleBugChange} placeholder="Priority (optional)" className="border rounded px-2 py-1" />
-          <input name="due_date" value={bugForm.due_date} onChange={handleBugChange} placeholder="Due date (YYYY-MM-DD)" className="border rounded px-2 py-1" />
-          {bugError && <div className="text-red-500 text-xs">{bugError}</div>}
-          <div className="flex gap-2 mt-2">
-            <button type="submit" className="bg-red-600 text-white px-3 py-1 rounded">Create Bug</button>
-            <button type="button" className="text-gray-500" onClick={() => setShowBugModal(false)}>Cancel</button>
-          </div>
-        </form>
+        <Form form={bugForm} layout="vertical" onFinish={handleBugSubmit}>
+          <Form.Item label="Title" name="title" rules={[{ required: true, message: 'Title is required' }]}> 
+            <Input />
+          </Form.Item>
+          <Form.Item label="Description" name="description">
+            <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
+          </Form.Item>
+          <Form.Item label="Severity" name="severity">
+            <Select>
+              <Option value="Critical">Critical</Option>
+              <Option value="Major">Major</Option>
+              <Option value="Minor">Minor</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item label="Steps to Reproduce" name="steps_to_reproduce">
+            <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
+          </Form.Item>
+          <Form.Item label="Priority" name="priority">
+            <Select allowClear>
+              <Option value="High">High</Option>
+              <Option value="Medium">Medium</Option>
+              <Option value="Low">Low</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item label="Due Date" name="due_date">
+            <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+          </Form.Item>
+          {bugError && <Alert message={bugError} type="error" showIcon style={{ marginBottom: 12 }} />}
+        </Form>
       </Modal>
     </div>
   );

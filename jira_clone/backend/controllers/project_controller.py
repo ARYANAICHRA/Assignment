@@ -20,6 +20,10 @@ def create_project():
     project = Project(name=name, description=description, owner_id=user.id)
     db.session.add(project)
     db.session.commit()
+    # Add creator as a project member with role 'owner'
+    member = ProjectMember(project_id=project.id, user_id=user.id, role='owner')
+    db.session.add(member)
+    db.session.commit()
     return jsonify({'message': 'Project created', 'project': {'id': project.id, 'name': project.name, 'description': project.description, 'owner_id': project.owner_id}}), 201
 
 def get_projects():
@@ -50,6 +54,22 @@ def get_dashboard_stats():
         'projectCount': project_count,
         'taskCount': task_count,
         'teamCount': team_count
+    })
+
+@jwt_required
+def get_project_progress(project_id):
+    user = getattr(request, 'user', None)
+    if not user:
+        return jsonify({'error': 'User not found'}), 401
+    total = Item.query.filter_by(project_id=project_id).count()
+    completed = Item.query.filter_by(project_id=project_id, status='done').count()
+    in_progress = Item.query.filter_by(project_id=project_id, status='in_progress').count()
+    todo = Item.query.filter_by(project_id=project_id, status='todo').count()
+    return jsonify({
+        'total': total,
+        'completed': completed,
+        'in_progress': in_progress,
+        'todo': todo
     })
 
 @require_project_role('manage_project')

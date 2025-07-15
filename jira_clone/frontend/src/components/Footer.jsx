@@ -1,12 +1,14 @@
 import React from 'react';
+import { Layout, Typography } from 'antd';
+
+const { Footer: AntFooter } = Layout;
+const { Text } = Typography;
 
 function Footer() {
   return (
-    <footer className="bg-gray-100 py-4 mt-8 text-center">
-      <div className="container mx-auto">
-        <span className="text-gray-500">&copy; 2025 Jira Clone. All rights reserved.</span>
-      </div>
-    </footer>
+    <AntFooter style={{ textAlign: 'center', background: '#fff', padding: '16px 0', borderTop: '1px solid #f0f0f0' }}>
+      <Text type="secondary">&copy; 2025 Jira Clone. All rights reserved.</Text>
+    </AntFooter>
   );
 }
 

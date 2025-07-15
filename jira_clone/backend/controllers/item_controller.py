@@ -13,6 +13,7 @@ def log_activity(item_id, user_id, action, details=None):
     db.session.add(log)
     db.session.commit()
 
+@jwt_required
 def get_recent_activity():
     user = getattr(request, 'user', None)
     if not user:
@@ -71,7 +72,6 @@ def create_item(project_id):
 
 @require_project_role('view_tasks')
 def get_items(project_id=None, **kwargs):
-    print(f"[get_items] Called with project_id={project_id}, kwargs={kwargs}")
     item_type = request.args.get('type')
     query = Item.query.filter_by(project_id=project_id)
     if item_type:

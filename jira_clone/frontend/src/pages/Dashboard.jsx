@@ -3,136 +3,164 @@ import { ProjectContext } from '../context/ProjectContext';
 import CreateProjectForm from '../components/CreateProjectForm';
 import ProjectMembers from '../components/ProjectMembers';
 import ProjectTasks from '../components/ProjectTasks';
-
-function ProgressBar({ percent }) {
-  return (
-    <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
-      <div className="bg-blue-600 h-3 rounded-full" style={{ width: `${percent}%` }}></div>
-    </div>
-  );
-}
+import { Row, Col, Card, Statistic, Progress, List, Button, Spin, message } from 'antd';
+import { PlusOutlined, UsergroupAddOutlined, CheckCircleOutlined, ProjectOutlined, TeamOutlined } from '@ant-design/icons';
 
 function Dashboard() {
   const { selectedProject } = useContext(ProjectContext);
   const [stats, setStats] = useState({ projectCount: 0, taskCount: 0, teamCount: 0 });
-  const [recentProjects, setRecentProjects] = useState([]);
   const [activity, setActivity] = useState([]);
   const [myTasks, setMyTasks] = useState([]);
-  const [projectProgress, setProjectProgress] = useState({ done: 0, total: 0 });
+  const [projectProgress, setProjectProgress] = useState({ completed: 0, in_progress: 0, todo: 0, total: 0 });
   const [loading, setLoading] = useState(true);
+  const [showProjectModal, setShowProjectModal] = useState(false);
+  const [showTaskModal, setShowTaskModal] = useState(false);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       setLoading(true);
       const token = localStorage.getItem('token');
-      // Fetch stats
-      const statsRes = await fetch('http://localhost:5000/dashboard/stats', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (statsRes.ok) {
-        const data = await statsRes.json();
-        setStats(data);
-        setRecentProjects(data.recentProjects || []);
-      }
-      // Fetch activity log
-      const activityRes = await fetch('http://localhost:5000/activity', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (activityRes.ok) {
-        const data = await activityRes.json();
-        setActivity(data.activity || []);
-      }
-      // Fetch my tasks
-      const myTasksRes = await fetch('http://localhost:5000/my-tasks', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (myTasksRes.ok) {
-        const data = await myTasksRes.json();
-        setMyTasks(data.tasks || []);
-      }
-      // Fetch project progress
-      if (selectedProject) {
-        const progressRes = await fetch(`http://localhost:5000/projects/${selectedProject.id}/progress`, {
+      try {
+        // Fetch stats
+        const statsRes = await fetch('http://localhost:5000/dashboard/stats', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (progressRes.ok) {
-          const data = await progressRes.json();
-          setProjectProgress(data);
+        if (statsRes.ok) {
+          const data = await statsRes.json();
+          setStats(data);
         }
+        // Fetch activity log
+        const activityRes = await fetch('http://localhost:5000/activity', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (activityRes.ok) {
+          const data = await activityRes.json();
+          setActivity(data.activity || []);
+        }
+        // Fetch my tasks
+        const myTasksRes = await fetch('http://localhost:5000/my-tasks', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (myTasksRes.ok) {
+          const data = await myTasksRes.json();
+          setMyTasks(data.tasks || []);
+        }
+        // Fetch project progress
+        if (selectedProject) {
+          const progressRes = await fetch(`http://localhost:5000/projects/${selectedProject.id}/progress`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (progressRes.ok) {
+            const data = await progressRes.json();
+            setProjectProgress({
+              ...data,
+              total: data.total || 0
+            });
+          }
+        } else {
+          setProjectProgress({ completed: 0, in_progress: 0, todo: 0, total: 0 });
+        }
+      } catch (err) {
+        message.error('Failed to load dashboard data');
       }
       setLoading(false);
     };
     fetchDashboardData();
   }, [selectedProject]);
 
+  if (loading) {
+    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}><Spin size="large" /></div>;
+  }
+
   return (
-    <div className="max-w-6xl mx-auto mt-8 space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-blue-600 text-white rounded-lg shadow p-6">
-          <div className="text-lg font-semibold mb-2">Projects</div>
-          <div className="text-3xl font-bold">{stats.projectCount}</div>
-          <div>Total Projects</div>
-        </div>
-        <div className="bg-green-600 text-white rounded-lg shadow p-6">
-          <div className="text-lg font-semibold mb-2">Tasks</div>
-          <div className="text-3xl font-bold">{stats.taskCount}</div>
-          <div>Total Tasks</div>
-        </div>
-        <div className="bg-yellow-400 text-white rounded-lg shadow p-6">
-          <div className="text-lg font-semibold mb-2">Teams</div>
-          <div className="text-3xl font-bold">{stats.teamCount}</div>
-          <div>Total Teams</div>
-        </div>
-        <div className="bg-white text-gray-900 rounded-lg shadow p-6 flex flex-col justify-between">
-          <div className="text-lg font-semibold mb-2">Quick Actions</div>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded mb-2 hover:bg-blue-700 transition">+ New Project</button>
-          <button className="bg-green-600 text-white px-4 py-2 rounded mb-2 hover:bg-green-700 transition">+ New Task</button>
-          <button className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition">Invite Member</button>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-xl font-semibold mb-4">Project Progress</h3>
-          <ProgressBar percent={projectProgress.total ? Math.round((projectProgress.done / projectProgress.total) * 100) : 0} />
-          <div className="text-sm text-gray-600">{projectProgress.done} of {projectProgress.total} tasks done</div>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-xl font-semibold mb-4">My Tasks</h3>
-          <ul className="divide-y divide-gray-200 max-h-48 overflow-y-auto">
-            {myTasks.length > 0 ? myTasks.slice(0, 6).map((task, idx) => (
-              <li key={idx} className="py-2 flex items-center justify-between">
-                <span>{task.title}</span>
-                <span className={`ml-2 px-2 py-0.5 rounded text-xs font-semibold ${task.status === 'done' ? 'bg-green-200 text-green-800' : 'bg-gray-200 text-gray-800'}`}>{task.status}</span>
-              </li>
-            )) : <li className="py-2 text-gray-500">No tasks assigned to you</li>}
-          </ul>
-        </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-xl font-semibold mb-4">Activity Feed</h3>
-          <ul className="divide-y divide-gray-200 max-h-48 overflow-y-auto">
-            {activity.length > 0 ? activity.slice(0, 8).map((log, idx) => (
-              <li key={idx} className="py-2 text-sm text-gray-700">
-                <span className="font-semibold">{log.user}</span> {log.action} <span className="text-gray-500">{log.details}</span> <span className="text-gray-400">{new Date(log.timestamp).toLocaleString()}</span>
-              </li>
-            )) : <li className="py-2 text-gray-500">No recent activity</li>}
-          </ul>
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Project Members</h3>
-          <ProjectMembers />
-        </div>
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Project Tasks</h3>
-          <ProjectTasks />
-        </div>
-      </div>
-      <div className="mt-8">
-        <CreateProjectForm />
-      </div>
+    <div style={{ maxWidth: 1200, margin: '32px auto', padding: '0 16px' }}>
+      <Row gutter={[24, 24]}>
+        <Col xs={24} sm={8}>
+          <Card bordered={false} style={{ background: '#e6f4ff' }}>
+            <Statistic title="Projects" value={stats.projectCount} prefix={<ProjectOutlined />} valueStyle={{ color: '#1677ff' }} />
+          </Card>
+        </Col>
+        <Col xs={24} sm={8}>
+          <Card bordered={false} style={{ background: '#f6ffed' }}>
+            <Statistic title="Tasks" value={stats.taskCount} prefix={<CheckCircleOutlined />} valueStyle={{ color: '#52c41a' }} />
+          </Card>
+        </Col>
+        <Col xs={24} sm={8}>
+          <Card bordered={false} style={{ background: '#fffbe6' }}>
+            <Statistic title="Teams" value={stats.teamCount} prefix={<TeamOutlined />} valueStyle={{ color: '#faad14' }} />
+          </Card>
+        </Col>
+      </Row>
+      <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+        <Col xs={24} sm={12}>
+          <Card title="Project Progress" bordered={false}>
+            <Progress
+              percent={projectProgress.total ? Math.round((projectProgress.completed / projectProgress.total) * 100) : 0}
+              status="active"
+              strokeColor="#1677ff"
+              showInfo
+            />
+            <div style={{ marginTop: 8, color: '#888' }}>{projectProgress.completed} of {projectProgress.total} tasks done</div>
+            <div style={{ marginTop: 8, color: '#888' }}>In Progress: {projectProgress.in_progress} | Todo: {projectProgress.todo}</div>
+          </Card>
+        </Col>
+        <Col xs={24} sm={12}>
+          <Card title="Quick Actions" bordered={false}>
+            <Button type="primary" icon={<PlusOutlined />} block style={{ marginBottom: 12 }} onClick={() => setShowProjectModal(true)}>
+              New Project
+            </Button>
+            <Button type="default" icon={<PlusOutlined />} block style={{ marginBottom: 12 }} onClick={() => setShowTaskModal(true)}>
+              New Task
+            </Button>
+            <Button type="dashed" icon={<UsergroupAddOutlined />} block>
+              Invite Member
+            </Button>
+          </Card>
+        </Col>
+      </Row>
+      <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+        <Col xs={24} sm={12}>
+          <Card title="My Tasks" bordered={false}>
+            <List
+              dataSource={myTasks.slice(0, 6)}
+              renderItem={task => (
+                <List.Item>
+                  <span>{task.title}</span>
+                  <span style={{ marginLeft: 8, padding: '2px 8px', borderRadius: 4, background: task.status === 'done' ? '#f6ffed' : '#f0f0f0', color: task.status === 'done' ? '#52c41a' : '#888', fontWeight: 500, fontSize: 12 }}>{task.status}</span>
+                </List.Item>
+              )}
+              locale={{ emptyText: 'No tasks assigned to you' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12}>
+          <Card title="Activity Feed" bordered={false}>
+            <List
+              dataSource={activity.slice(0, 8)}
+              renderItem={log => (
+                <List.Item>
+                  <span style={{ fontWeight: 500 }}>{log.user}</span> {log.action} <span style={{ color: '#888' }}>{log.details}</span> <span style={{ color: '#bbb', fontSize: 12 }}>{log.created_at ? new Date(log.created_at).toLocaleString() : ''}</span>
+                </List.Item>
+              )}
+              locale={{ emptyText: 'No recent activity' }}
+            />
+          </Card>
+        </Col>
+      </Row>
+      <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+        <Col xs={24} sm={12}>
+          <Card title="Project Members" bordered={false}>
+            <ProjectMembers />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12}>
+          <Card title="Project Tasks" bordered={false}>
+            <ProjectTasks />
+          </Card>
+        </Col>
+      </Row>
+      <CreateProjectForm open={showProjectModal} onProjectCreated={() => setShowProjectModal(false)} onCancel={() => setShowProjectModal(false)} />
+      {/* TODO: Add New Task Modal here */}
     </div>
   );
 }

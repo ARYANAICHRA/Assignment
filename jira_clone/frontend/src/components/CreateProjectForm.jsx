@@ -1,17 +1,19 @@
 import React, { useState, useContext } from 'react';
 import { ProjectContext } from '../context/ProjectContext';
+import { Form, Input, Button, Alert, Typography } from 'antd';
 
-function CreateProjectForm({ onProjectCreated }) {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+const { Title } = Typography;
+
+function CreateProjectForm({ onProjectCreated, open, onCancel }) {
+  const [form] = Form.useForm();
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const { setSelectedProject } = useContext(ProjectContext);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (values) => {
     setError('');
+    setLoading(true);
     try {
-      // Replace with your backend endpoint
       const token = localStorage.getItem('token');
       const res = await fetch('http://localhost:5000/projects', {
         method: 'POST',
@@ -19,36 +21,41 @@ function CreateProjectForm({ onProjectCreated }) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ name, description })
+        body: JSON.stringify({ name: values.name, description: values.description })
       });
       const data = await res.json();
       if (res.ok) {
         setSelectedProject(data.project);
         onProjectCreated && onProjectCreated(data.project);
-        setName('');
-        setDescription('');
+        form.resetFields();
+        if (onCancel) onCancel();
       } else {
         setError(data.error || 'Failed to create project');
       }
     } catch (err) {
       setError('Network error');
     }
+    setLoading(false);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow mb-6">
-      <h3 className="text-xl font-bold mb-4">Create New Project</h3>
-      <div className="mb-4">
-        <label className="block mb-1">Project Name</label>
-        <input className="w-full border rounded px-3 py-2" value={name} onChange={e => setName(e.target.value)} required />
-      </div>
-      <div className="mb-4">
-        <label className="block mb-1">Description</label>
-        <textarea className="w-full border rounded px-3 py-2" value={description} onChange={e => setDescription(e.target.value)} />
-      </div>
-      {error && <div className="mb-2 text-red-500">{error}</div>}
-      <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Create Project</button>
-    </form>
+    <div style={{ maxWidth: 400, margin: '0 auto' }}>
+      <Title level={4} style={{ marginBottom: 16 }}>Create New Project</Title>
+      <Form form={form} layout="vertical" onFinish={handleSubmit}>
+        <Form.Item label="Project Name" name="name" rules={[{ required: true, message: 'Please enter a project name' }]}> 
+          <Input placeholder="Project name" />
+        </Form.Item>
+        <Form.Item label="Description" name="description">
+          <Input.TextArea placeholder="Description (optional)" autoSize={{ minRows: 2, maxRows: 4 }} />
+        </Form.Item>
+        {error && <Alert message={error} type="error" showIcon style={{ marginBottom: 12 }} />}
+        <Form.Item>
+          <Button type="primary" htmlType="submit" loading={loading} block>
+            Create Project
+          </Button>
+        </Form.Item>
+      </Form>
+    </div>
   );
 }
 

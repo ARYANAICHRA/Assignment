@@ -1,18 +1,21 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { ProjectContext } from '../context/ProjectContext';
+import { List, Form, Input, Select, Button, Alert, Typography, Tag, Space, Avatar, Popconfirm, message } from 'antd';
+import { UserOutlined, DeleteOutlined } from '@ant-design/icons';
+
+const { Title, Text } = Typography;
 
 function ProjectMembers() {
   const { selectedProject } = useContext(ProjectContext);
   const [members, setMembers] = useState([]);
   const [owner, setOwner] = useState(null);
-  const [email, setEmail] = useState('');
-  const [role, setRole] = useState('member');
+  const [form] = Form.useForm();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (selectedProject) {
-      console.log('Selected project:', selectedProject);
       fetchMembers();
       fetchOwner();
     }
@@ -20,66 +23,54 @@ function ProjectMembers() {
   }, [selectedProject]);
 
   const fetchOwner = async () => {
-    if (!selectedProject?.owner_id) {
-      console.log('No owner_id in selectedProject:', selectedProject);
-      return;
-    }
+    if (!selectedProject?.owner_id) return;
     try {
       const token = localStorage.getItem('token');
-      console.log('Fetching owner:', selectedProject.owner_id);
       const res = await fetch(`http://localhost:5000/users/${selectedProject.owner_id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      console.log('Owner fetch response status:', res.status);
       if (res.ok) {
         const data = await res.json();
-        console.log('Owner data:', data);
         setOwner(data.user);
       } else {
         setOwner(null);
-        console.log('Failed to fetch owner');
       }
     } catch (err) {
       setOwner(null);
-      console.log('Error fetching owner:', err);
     }
   };
 
   const fetchMembers = async () => {
     setError('');
     setSuccess('');
+    setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      console.log('Fetching members for project:', selectedProject.id);
       const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/members`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      console.log('Members fetch response status:', res.status);
       const data = await res.json();
-      console.log('Members data:', data);
       if (res.ok) setMembers(data.members);
       else setError(data.error || 'Failed to fetch members');
     } catch (err) {
       setError('Network error');
-      console.log('Error fetching members:', err);
     }
+    setLoading(false);
   };
 
-  const handleAdd = async (e) => {
-    e.preventDefault();
+  const handleAdd = async (values) => {
     setError(''); setSuccess('');
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/members`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ email, role })
+        body: JSON.stringify({ email: values.email, role: values.role })
       });
       const data = await res.json();
       if (res.ok) {
         setSuccess('Member added');
-        setEmail('');
-        setRole('member');
+        form.resetFields();
         fetchMembers();
       } else setError(data.error || 'Failed to add member');
     } catch { setError('Network error'); }
@@ -101,38 +92,63 @@ function ProjectMembers() {
     } catch { setError('Network error'); }
   };
 
+  // Helper for role color
+  const getRoleTag = (role, isOwner) => {
+    if (isOwner) return <Tag color="gold">Owner</Tag>;
+    if (role === 'admin') return <Tag color="volcano">Admin</Tag>;
+    return <Tag color="blue">Member</Tag>;
+  };
+
   return selectedProject ? (
-    <div className="bg-white p-6 rounded shadow mb-6">
-      <h3 className="text-xl font-bold mb-4">Project Members</h3>
-      <form onSubmit={handleAdd} className="flex gap-2 mb-4">
-        <input className="border rounded px-2 py-1" placeholder="User Email" value={email} onChange={e => setEmail(e.target.value)} required />
-        <select className="border rounded px-2 py-1" value={role} onChange={e => setRole(e.target.value)}>
-          <option value="member">Member</option>
-          <option value="admin">Admin</option>
-        </select>
-        <button className="bg-blue-600 text-white px-3 py-1 rounded" type="submit">Add</button>
-      </form>
-      {error && <div className="text-red-500 mb-2">{error}</div>}
-      {success && <div className="text-green-600 mb-2">{success}</div>}
-      <ul className="divide-y divide-gray-200">
-        {owner && (
-          <li className="py-2 flex justify-between items-center bg-yellow-50">
-            <span>
-              <span className="font-semibold">{owner.username}</span> (<span className="text-gray-600">{owner.email}</span>)
-              {' | '}<span className="text-yellow-700 font-bold">Owner</span>
-            </span>
-          </li>
+    <div style={{ maxWidth: 520, margin: '0 auto', background: '#fff', padding: 24, borderRadius: 8, boxShadow: '0 2px 8px #f0f1f2' }}>
+      <Title level={4} style={{ marginBottom: 16 }}>Project Members</Title>
+      <Form form={form} layout="inline" onFinish={handleAdd} style={{ marginBottom: 16, flexWrap: 'wrap' }}>
+        <Form.Item name="email" rules={[{ required: true, message: 'Enter user email' }]}> 
+          <Input placeholder="User Email" style={{ width: 180 }} />
+        </Form.Item>
+        <Form.Item name="role" initialValue="member" rules={[{ required: true }]}> 
+          <Select style={{ width: 120 }}>
+            <Select.Option value="member">Member</Select.Option>
+            <Select.Option value="admin">Admin</Select.Option>
+          </Select>
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" htmlType="submit">Add</Button>
+        </Form.Item>
+      </Form>
+      {error && <Alert message={error} type="error" showIcon style={{ marginBottom: 12 }} />}
+      {success && <Alert message={success} type="success" showIcon style={{ marginBottom: 12 }} />}
+      <List
+        loading={loading}
+        bordered
+        dataSource={[
+          ...(owner ? [{ ...owner, isOwner: true }] : []),
+          ...members
+        ]}
+        renderItem={m => (
+          <List.Item
+            actions={m.isOwner ? [getRoleTag(null, true)] : [
+              <Popconfirm
+                title="Remove this member?"
+                onConfirm={() => handleRemove(m.user_id)}
+                okText="Yes"
+                cancelText="No"
+              >
+                <Button type="link" danger icon={<DeleteOutlined />} style={{ padding: 0 }}>Remove</Button>
+              </Popconfirm>,
+              getRoleTag(m.role, false)
+            ]}
+          >
+            <List.Item.Meta
+              avatar={<Avatar style={{ backgroundColor: m.isOwner ? '#faad14' : '#1890ff' }} icon={<UserOutlined />} />}
+              title={<Text strong>{m.username}</Text>}
+              description={<Text type="secondary">{m.email}</Text>}
+            />
+          </List.Item>
         )}
-        {members.map(m => (
-          <li key={m.user_id} className="py-2 flex justify-between items-center">
-            <span>
-              <span className="font-semibold">{m.username}</span> (<span className="text-gray-600">{m.email}</span>)
-              {m.role ? ` | Role: ${m.role}` : ''}
-            </span>
-            <button className="text-red-500 hover:underline" onClick={() => handleRemove(m.user_id)}>Remove</button>
-          </li>
-        ))}
-      </ul>
+        locale={{ emptyText: 'No members' }}
+        style={{ background: '#fafafa', borderRadius: 4 }}
+      />
     </div>
   ) : null;
 }

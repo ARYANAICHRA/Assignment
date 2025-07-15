@@ -13,6 +13,5 @@ auth_bp.route('/login', methods=['POST'])(cross_origin()(login_user))
 @auth_bp.route('/me', methods=['GET'])
 @jwt_required
 def me():
-    print(f"/me endpoint hit. User: {getattr(request, 'user', None)}")
     user = request.user
     return jsonify({'id': user.id, 'username': user.username, 'email': user.email})

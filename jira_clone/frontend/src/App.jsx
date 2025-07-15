@@ -11,7 +11,11 @@ import Projects from './pages/Projects';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import { Layout, Spin } from 'antd';
+import 'antd/dist/reset.css';
 import './index.css';
+
+const { Sider, Content, Header: AntHeader, Footer: AntFooter } = Layout;
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -44,18 +48,22 @@ function App() {
   }, []);
 
   if (loading) {
-    return <div className="flex items-center justify-center min-h-screen text-xl">Loading...</div>;
+    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontSize: 24 }}><Spin size="large" /> Loading...</div>;
   }
 
   return (
     <ProjectProvider>
       <Router>
         {isAuthenticated ? (
-          <div className="flex min-h-screen bg-gray-100">
-            <Sidebar />
-            <div className="flex flex-col flex-1 min-h-screen ml-56">
-              <Header />
-              <main className="flex-1 p-6 overflow-y-auto">
+          <Layout style={{ minHeight: '100vh' }}>
+            <Sider width={220} style={{ background: '#001529' }}>
+              <Sidebar />
+            </Sider>
+            <Layout>
+              <AntHeader style={{ background: '#fff', padding: 0, boxShadow: '0 2px 8px #f0f1f2' }}>
+                <Header />
+              </AntHeader>
+              <Content style={{ margin: '24px 16px 0', overflow: 'initial' }}>
                 <Routes>
                   <Route path="/" element={<Dashboard />} />
                   <Route path="/dashboard" element={<Dashboard />} />
@@ -63,10 +71,12 @@ function App() {
                   <Route path="/board" element={<Board />} />
                   <Route path="/projects" element={<Projects />} />
                 </Routes>
-              </main>
-              <Footer />
-            </div>
-          </div>
+              </Content>
+              <AntFooter style={{ textAlign: 'center' }}>
+                <Footer />
+              </AntFooter>
+            </Layout>
+          </Layout>
         ) : (
           <Routes>
             <Route path="/" element={<Home isAuthenticated={isAuthenticated} />} />

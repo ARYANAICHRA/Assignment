@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useContext } from 'react';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
 import { ProjectContext } from '../context/ProjectContext';
 import {
   DndContext,
@@ -17,6 +15,8 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { SortableItem } from '../components/SortableItem';
+import { Row, Col, Card, Button, Input, Spin, Modal, message } from 'antd';
+import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
 
 const columnsDefault = [
   { key: 'todo', label: 'To Do' },
@@ -28,19 +28,20 @@ const columnsDefault = [
 function Board() {
   const { selectedProject } = useContext(ProjectContext);
   const [tasks, setTasks] = useState({ todo: [], inprogress: [], inreview: [], done: [] });
-  const [columns, setColumns] = useState(columnsDefault); // Store columns from backend
+  const [columns, setColumns] = useState(columnsDefault);
   const [activeId, setActiveId] = useState(null);
   const [newTask, setNewTask] = useState('');
   const [loading, setLoading] = useState(false);
-  const [userId, setUserId] = useState(null); // Store current user id
-  const [draggedTask, setDraggedTask] = useState(null); // For DragOverlay
-  const [optimisticTasks, setOptimisticTasks] = useState(null); // For instant UI update
-  const [prevTasks, setPrevTasks] = useState(null); // Store previous state for rollback
-  const [syncing, setSyncing] = useState(false); // Track if a backend sync is in progress after optimistic update
+  const [userId, setUserId] = useState(null);
+  const [draggedTask, setDraggedTask] = useState(null);
+  const [optimisticTasks, setOptimisticTasks] = useState(null);
+  const [prevTasks, setPrevTasks] = useState(null);
+  const [syncing, setSyncing] = useState(false);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [taskModalCol, setTaskModalCol] = useState('todo');
   const sensors = useSensors(useSensor(PointerSensor));
 
   useEffect(() => {
-    // Fetch user id on mount
     const fetchUser = async () => {
       const token = localStorage.getItem('token');
       if (!token) return;
@@ -77,7 +78,6 @@ function Board() {
           label: col.name,
           id: col.id
         }));
-        // Remove duplicates by key (keep first occurrence)
         const seen = new Set();
         backendCols = backendCols.filter(col => {
           if (seen.has(col.key)) return false;
@@ -95,9 +95,7 @@ function Board() {
     }
   };
 
-  // Helper to create default columns if none exist
   const createDefaultColumns = async (token) => {
-    // Fetch columns again to avoid race conditions
     const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/columns`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -132,13 +130,11 @@ function Board() {
       });
       const data = await res.json();
       if (res.ok) {
-        // Group items by status
         const grouped = { todo: [], inprogress: [], inreview: [], done: [] };
         data.items.forEach(item => {
           if (grouped[item.status]) grouped[item.status].push(item);
         });
         setTasks(grouped);
-        // If we are syncing after a drag, clear optimisticTasks now
         if (syncing) {
           setOptimisticTasks(null);
           setSyncing(false);
@@ -149,16 +145,14 @@ function Board() {
     }
   };
 
-  const handleAddTask = async (e) => {
-    e.preventDefault();
+  const handleAddTask = async (colKey) => {
     if (!newTask.trim()) return;
     const token = localStorage.getItem('token');
-    // Find the column with status 'todo' for this project
-    const todoCol = columns.find(col => col.key === 'todo');
-    if (!todoCol) return alert('No To Do column found for this project.');
-    if (!userId) return alert('User not loaded.');
-    const status = 'todo';
-    const column_id = todoCol.id;
+    const col = columns.find(col => col.key === colKey);
+    if (!col) return message.error('No column found for this project.');
+    if (!userId) return message.error('User not loaded.');
+    const status = colKey;
+    const column_id = col.id;
     const type = 'task';
     const project_id = selectedProject.id;
     const reporter_id = userId;
@@ -169,7 +163,9 @@ function Board() {
     });
     if (res.ok) {
       setNewTask('');
+      setShowTaskModal(false);
       fetchTasks();
+      message.success('Task created!');
     }
   };
 
@@ -180,16 +176,15 @@ function Board() {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     fetchTasks();
+    message.success('Task deleted');
   };
 
-  // Droppable column wrapper
   function DroppableColumn({ col, children }) {
     const { setNodeRef } = useDroppable({ id: col.key });
     return (
-      <div ref={setNodeRef} className="bg-white rounded-lg shadow p-4 min-h-[300px]">
-        <h2 className="text-lg font-semibold mb-4 text-center">{col.label}</h2>
+      <Card ref={setNodeRef} title={col.label} bordered={false} style={{ minHeight: 350, background: '#fff', marginBottom: 16 }}>
         {children}
-      </div>
+      </Card>
     );
   }
 
@@ -216,15 +211,12 @@ function Board() {
     if (!targetCol) {
       return;
     }
-    // Save previous state for rollback
     setPrevTasks(tasks);
-    // Optimistically update UI
     const newTasks = { ...tasks };
     const movedTask = newTasks[fromCol].find(t => t.id === active.id);
     newTasks[fromCol] = newTasks[fromCol].filter(t => t.id !== active.id);
     newTasks[toCol] = [ { ...movedTask, status: toCol, column_id: targetCol.id }, ...newTasks[toCol] ];
     setOptimisticTasks(newTasks);
-    // Update backend
     const token = localStorage.getItem('token');
     try {
       const res = await fetch(`http://localhost:5000/items/${active.id}`, {
@@ -235,70 +227,95 @@ function Board() {
       if (!res.ok) {
         setOptimisticTasks(prevTasks);
         setTimeout(() => setOptimisticTasks(null), 1000);
+        message.error('Failed to move task');
       } else {
-        setSyncing(true); // Wait for fetchTasks to clear optimisticTasks
+        setSyncing(true);
         fetchTasks();
+        message.success('Task moved!');
       }
     } catch {
       setOptimisticTasks(prevTasks);
       setTimeout(() => setOptimisticTasks(null), 1000);
+      message.error('Failed to move task');
     }
   };
 
-  // Use optimisticTasks if present
   const displayTasks = optimisticTasks || tasks;
 
-  // Only show loading on initial board load, not after drag/drop
-  const showLoading = loading && !optimisticTasks && !prevTasks && Object.values(tasks).every(arr => arr.length === 0);
-
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-8">Kanban Board</h1>
-      {selectedProject && (
-        <form onSubmit={handleAddTask} className="mb-6 flex gap-2">
-          <input
-            className="border rounded px-3 py-2 flex-1"
-            placeholder="Add new task..."
-            value={newTask}
-            onChange={e => setNewTask(e.target.value)}
-          />
-          <button className="bg-blue-600 text-white px-4 py-2 rounded" type="submit">Add</button>
-        </form>
-      )}
-      {showLoading ? <div>Loading...</div> : null}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          {columns.map((col) => (
-            <DroppableColumn key={col.key} col={col}>
-              <SortableContext items={displayTasks[col.key]?.map(i => i.id) || []} strategy={verticalListSortingStrategy}>
-                {displayTasks[col.key]?.map((task) => (
-                  <div key={task.id} className={`relative group ${activeId === task.id ? 'opacity-50' : ''}`}>
-                    <SortableItem id={task.id} title={task.title} />
-                    <button
-                      className="absolute top-2 right-2 text-red-500 opacity-0 group-hover:opacity-100 transition"
-                      onClick={() => handleDelete(task.id)}
-                    >
-                      &times;
-                    </button>
-                  </div>
-                ))}
-              </SortableContext>
+    <div style={{ maxWidth: 1200, margin: '32px auto', padding: '0 16px' }}>
+      <Row gutter={24}>
+        {columns.map(col => (
+          <Col key={col.key} xs={24} sm={12} md={6}>
+            <DroppableColumn col={col}>
+              <Button
+                type="dashed"
+                icon={<PlusOutlined />}
+                block
+                style={{ marginBottom: 12 }}
+                onClick={() => { setShowTaskModal(true); setTaskModalCol(col.key); }}
+              >
+                Add Task
+              </Button>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext items={displayTasks[col.key].map(t => t.id)} strategy={verticalListSortingStrategy}>
+                  {displayTasks[col.key].map(task => (
+                    <SortableItem key={task.id} id={task.id}>
+                      <Card
+                        size="small"
+                        style={{ marginBottom: 8, borderLeft: task.status === 'done' ? '4px solid #52c41a' : '4px solid #1677ff' }}
+                        actions={[
+                          <Button
+                            type="text"
+                            icon={<DeleteOutlined />}
+                            danger
+                            size="small"
+                            onClick={() => handleDelete(task.id)}
+                          >
+                            Delete
+                          </Button>
+                        ]}
+                      >
+                        <div style={{ fontWeight: 500 }}>{task.title}</div>
+                        <div style={{ color: '#888', fontSize: 12 }}>{task.status}</div>
+                      </Card>
+                    </SortableItem>
+                  ))}
+                </SortableContext>
+                <DragOverlay>
+                  {draggedTask ? (
+                    <Card size="small" style={{ borderLeft: '4px solid #1677ff', background: '#f0f5ff' }}>
+                      <div style={{ fontWeight: 500 }}>{draggedTask.title}</div>
+                      <div style={{ color: '#888', fontSize: 12 }}>{draggedTask.status}</div>
+                    </Card>
+                  ) : null}
+                </DragOverlay>
+              </DndContext>
             </DroppableColumn>
-          ))}
-        </div>
-        <DragOverlay>
-          {draggedTask ? (
-            <div className="mb-4 p-3 rounded bg-blue-100 text-gray-800 shadow cursor-pointer">
-              {draggedTask.title}
-            </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+          </Col>
+        ))}
+      </Row>
+      <Modal
+        open={showTaskModal}
+        title="Add New Task"
+        onCancel={() => setShowTaskModal(false)}
+        onOk={() => handleAddTask(taskModalCol)}
+        okText="Add Task"
+        destroyOnClose
+      >
+        <Input
+          placeholder="Task title"
+          value={newTask}
+          onChange={e => setNewTask(e.target.value)}
+          onPressEnter={() => handleAddTask(taskModalCol)}
+        />
+      </Modal>
+      {loading && <Spin size="large" style={{ position: 'fixed', top: '50%', left: '50%' }} />}
     </div>
   );
 }

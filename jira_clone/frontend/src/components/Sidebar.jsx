@@ -1,25 +1,19 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ProjectContext } from '../context/ProjectContext';
-import Modal from 'react-modal';
 import CreateProjectForm from './CreateProjectForm';
+import { Menu, Button, Modal, Select, Divider, Typography } from 'antd';
+import {
+  DashboardOutlined,
+  ProjectOutlined,
+  AppstoreOutlined,
+  UserOutlined,
+  LogoutOutlined,
+  PlusOutlined
+} from '@ant-design/icons';
 
-const navSections = [
-  {
-    title: 'Main',
-    items: [
-      { name: 'Dashboard', path: '/dashboard', icon: '🏠' },
-      { name: 'Projects', path: '/projects', icon: '📁' },
-      { name: 'Board', path: '/board', icon: '🗂️' },
-    ],
-  },
-  {
-    title: 'Account',
-    items: [
-      { name: 'Profile', path: '/profile', icon: '👤' },
-    ],
-  },
-];
+const { Option } = Select;
+const { Title } = Typography;
 
 function Sidebar() {
   const location = useLocation();
@@ -30,6 +24,7 @@ function Sidebar() {
 
   useEffect(() => {
     fetchProjects();
+    // eslint-disable-next-line
   }, []);
 
   const fetchProjects = async () => {
@@ -41,8 +36,8 @@ function Sidebar() {
     if (res.ok) setProjects(data.projects);
   };
 
-  const handleProjectChange = (e) => {
-    const project = projects.find(p => p.id === Number(e.target.value));
+  const handleProjectChange = (value) => {
+    const project = projects.find(p => p.id === Number(value));
     setSelectedProject(project || null);
   };
 
@@ -58,69 +53,78 @@ function Sidebar() {
   };
 
   return (
-    <aside className="h-screen w-56 bg-gray-900 text-white flex flex-col py-8 px-4 fixed">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="text-2xl font-bold tracking-tight">Jira Clone</div>
-        <button
-          className="ml-2 bg-blue-600 hover:bg-blue-700 text-white rounded px-2 py-1 text-lg font-bold"
-          title="New Project"
-          onClick={() => setShowCreateModal(true)}
-        >
-          +
-        </button>
+    <div style={{ height: '100vh', background: '#001529', color: '#fff', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ padding: '24px 16px 8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Title level={4} style={{ color: '#fff', margin: 0, fontWeight: 700, letterSpacing: 1 }}>Jira Clone</Title>
+        <Button type="primary" icon={<PlusOutlined />} shape="circle" onClick={() => setShowCreateModal(true)} />
       </div>
-      <div className="mb-6">
-        <label className="block text-xs uppercase text-gray-400 mb-1 px-2 tracking-wider">Project</label>
-        <select
-          className="w-full px-3 py-2 rounded bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring"
-          value={selectedProject ? selectedProject.id : ''}
+      <div style={{ padding: '0 16px 16px 16px' }}>
+        <div style={{ color: '#bfbfbf', fontSize: 12, marginBottom: 4 }}>Project</div>
+        <Select
+          style={{ width: '100%' }}
+          placeholder="Select Project"
+          value={selectedProject ? selectedProject.id : undefined}
           onChange={handleProjectChange}
+          optionLabelProp="label"
+          dropdownStyle={{ zIndex: 1300 }}
         >
-          <option value="">Select Project</option>
           {projects.map(project => (
-            <option key={project.id} value={project.id}>{project.name}</option>
+            <Option key={project.id} value={project.id} label={project.name}>{project.name}</Option>
           ))}
-        </select>
+        </Select>
       </div>
-      <nav className="flex-1">
-        {navSections.map(section => (
-          <div key={section.title} className="mb-6">
-            <div className="text-xs uppercase text-gray-400 mb-2 px-2 tracking-wider">{section.title}</div>
-            <ul className="space-y-1">
-              {section.items.map(item => (
-                <li key={item.path}>
-                  <Link
-                    to={item.path}
-                    className={`flex items-center gap-2 px-4 py-2 rounded hover:bg-gray-700 transition font-medium ${location.pathname === item.path ? 'bg-blue-700 text-white' : ''}`}
-                  >
-                    <span>{item.icon}</span> {item.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </nav>
-      <div className="mt-auto pt-8">
-        <button
+      <Divider style={{ margin: '8px 0', borderColor: '#222' }} />
+      <Menu
+        theme="dark"
+        mode="inline"
+        selectedKeys={[location.pathname]}
+        style={{ borderRight: 0, background: 'transparent', flex: 1 }}
+        items={[
+          {
+            key: '/dashboard',
+            icon: <DashboardOutlined />,
+            label: <Link to="/dashboard">Dashboard</Link>,
+          },
+          {
+            key: '/projects',
+            icon: <ProjectOutlined />,
+            label: <Link to="/projects">Projects</Link>,
+          },
+          {
+            key: '/board',
+            icon: <AppstoreOutlined />,
+            label: <Link to="/board">Board</Link>,
+          },
+          {
+            key: '/profile',
+            icon: <UserOutlined />,
+            label: <Link to="/profile">Profile</Link>,
+          },
+        ]}
+      />
+      <Divider style={{ margin: '8px 0', borderColor: '#222' }} />
+      <div style={{ padding: '0 16px 24px 16px', marginTop: 'auto' }}>
+        <Button
+          type="text"
+          icon={<LogoutOutlined />}
+          danger
+          block
           onClick={handleLogout}
-          className="flex items-center gap-2 w-full text-left px-4 py-2 rounded hover:bg-gray-700 transition text-red-300 font-semibold"
+          style={{ textAlign: 'left' }}
         >
-          <span>🚪</span> Logout
-        </button>
+          Logout
+        </Button>
       </div>
       <Modal
-        isOpen={showCreateModal}
-        onRequestClose={() => setShowCreateModal(false)}
-        contentLabel="Create Project"
-        className="bg-white rounded-lg shadow-lg p-6 max-w-md mx-auto mt-20 outline-none"
-        overlayClassName="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+        open={showCreateModal}
+        onCancel={() => setShowCreateModal(false)}
+        title={<span style={{ fontWeight: 600 }}>Create New Project</span>}
+        footer={null}
+        destroyOnClose
       >
-        <h2 className="text-xl font-bold mb-4 text-gray-800">Create New Project</h2>
         <CreateProjectForm onProjectCreated={handleProjectCreated} />
-        <button className="mt-4 text-gray-500 hover:underline" onClick={() => setShowCreateModal(false)}>Cancel</button>
       </Modal>
-    </aside>
+    </div>
   );
 }
 

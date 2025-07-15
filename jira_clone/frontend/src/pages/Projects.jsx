@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { ProjectContext } from '../context/ProjectContext';
-import Header from '../components/Header';
-import Footer from '../components/Footer';
+import { Table, Card, Button, Spin, Alert, Typography } from 'antd';
+
+const { Title } = Typography;
 
 function Projects() {
   const [projects, setProjects] = useState([]);
@@ -36,30 +37,52 @@ function Projects() {
     setSelectedProject(project);
   };
 
+  const columns = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+      render: (text, record) => <span style={{ fontWeight: 500 }}>{text}</span>,
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
+      render: (text) => <span style={{ color: '#888' }}>{text}</span>,
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      render: (_, record) => (
+        <Button
+          type={selectedProject && selectedProject.id === record.id ? 'primary' : 'default'}
+          onClick={() => handleSelect(record)}
+        >
+          {selectedProject && selectedProject.id === record.id ? 'Selected' : 'Select'}
+        </Button>
+      ),
+    },
+  ];
+
   return (
-    <div className="max-w-3xl mx-auto mt-8">
-      <h1 className="text-3xl font-bold mb-6">All Projects</h1>
+    <div style={{ maxWidth: 900, margin: '32px auto', padding: '0 16px' }}>
+      <Card bordered={false} style={{ marginBottom: 24 }}>
+        <Title level={2} style={{ margin: 0 }}>All Projects</Title>
+      </Card>
       {loading ? (
-        <div>Loading...</div>
+        <Spin size="large" style={{ display: 'block', margin: '40px auto' }} />
       ) : error ? (
-        <div className="text-red-500">{error}</div>
+        <Alert message={error} type="error" showIcon style={{ marginBottom: 24 }} />
       ) : (
-        <ul className="divide-y divide-gray-200 bg-white rounded-lg shadow">
-          {projects.map(project => (
-            <li key={project.id} className={`py-3 px-4 flex items-center justify-between transition-colors ${selectedProject && selectedProject.id === project.id ? 'bg-blue-100' : 'hover:bg-gray-50'}`}>
-              <div>
-                <span className="font-semibold">{project.name}</span>
-                <span className="ml-2 text-gray-500">{project.description}</span>
-              </div>
-              <button
-                className={`px-4 py-1 rounded font-semibold transition ${selectedProject && selectedProject.id === project.id ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-800 hover:bg-blue-500 hover:text-white'}`}
-                onClick={() => handleSelect(project)}
-              >
-                {selectedProject && selectedProject.id === project.id ? 'Selected' : 'Select'}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <Card bordered={false}>
+          <Table
+            dataSource={projects}
+            columns={columns}
+            rowKey="id"
+            pagination={false}
+            rowClassName={(record) => selectedProject && selectedProject.id === record.id ? 'ant-table-row-selected' : ''}
+          />
+        </Card>
       )}
     </div>
   );
