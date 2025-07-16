@@ -15,8 +15,9 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { SortableItem } from '../components/SortableItem';
-import { Row, Col, Card, Button, Input, Spin, Modal, message } from 'antd';
+import { Row, Col, Card, Button, Input, Spin, Modal, message, Tag } from 'antd';
 import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import TaskDetailModal from '../components/TaskDetailModal';
 
 const columnsDefault = [
   { key: 'todo', label: 'To Do' },
@@ -39,6 +40,7 @@ function ProjectBoard() {
   const [syncing, setSyncing] = useState(false);
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [taskModalCol, setTaskModalCol] = useState('todo');
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
   const sensors = useSensors(useSensor(PointerSensor));
 
   useEffect(() => {
@@ -282,7 +284,7 @@ function ProjectBoard() {
                       ) : (
                         displayTasks[col.key].map(task => (
                           <SortableItem key={task.id} id={task.id}>
-                            <div style={{ position: 'relative', marginBottom: 8, maxWidth: 320, width: '100%' }}>
+                            <div style={{ position: 'relative', marginBottom: 8, maxWidth: 320, width: '100%', cursor: 'pointer' }} onClick={() => setSelectedTaskId(task.id)}>
                               <Card
                                 size="small"
                                 style={{
@@ -297,6 +299,14 @@ function ProjectBoard() {
                                 styles={{ body: { padding: 0, paddingRight: 32, position: 'relative' } }}
                               >
                                 <div style={{ fontWeight: 500, fontSize: 15, padding: '8px 0 2px 0', wordBreak: 'break-word' }}>{task.title}</div>
+                                {task.priority && (
+                                  <Tag
+                                    color={task.priority === 'High' ? 'red' : task.priority === 'Medium' ? 'orange' : task.priority === 'Low' ? 'blue' : 'default'}
+                                    style={{ position: 'absolute', top: 8, right: 8 }}
+                                  >
+                                    {task.priority}
+                                  </Tag>
+                                )}
                               </Card>
                             </div>
                           </SortableItem>
@@ -333,6 +343,7 @@ function ProjectBoard() {
           onPressEnter={() => handleAddTask(taskModalCol)}
         />
       </Modal>
+      <TaskDetailModal isOpen={!!selectedTaskId} onRequestClose={() => setSelectedTaskId(null)} taskId={selectedTaskId} userRole={null} />
       {loading && <Spin size="large" style={{ position: 'fixed', top: '50%', left: '50%' }} />}
     </div>
   );

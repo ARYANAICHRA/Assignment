@@ -13,6 +13,7 @@ function ProjectMembers() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
     if (selectedProject) {
@@ -99,6 +100,16 @@ function ProjectMembers() {
     return <Tag color="blue">Member</Tag>;
   };
 
+  // Check if current user is a member or owner
+  const isMember = user && (
+    (owner && user.id === owner.id) ||
+    members.some(m => m.user_id === user.id)
+  );
+
+  if (!isMember) {
+    return <div style={{ textAlign: 'center', color: '#888', margin: 32 }}>You are not a member of this project.</div>;
+  }
+
   return selectedProject ? (
     <div style={{ maxWidth: 520, margin: '0 auto', background: '#fff', padding: 24, borderRadius: 8, boxShadow: '0 2px 8px #f0f1f2' }}>
       <Title level={4} style={{ marginBottom: 16 }}>Project Members</Title>
@@ -108,8 +119,9 @@ function ProjectMembers() {
         </Form.Item>
         <Form.Item name="role" initialValue="member" rules={[{ required: true }]}> 
           <Select style={{ width: 120 }}>
+            <Select.Option value="manager">Manager</Select.Option>
             <Select.Option value="member">Member</Select.Option>
-            <Select.Option value="admin">Admin</Select.Option>
+            <Select.Option value="viewer">Viewer</Select.Option>
           </Select>
         </Form.Item>
         <Form.Item>
@@ -123,7 +135,7 @@ function ProjectMembers() {
         bordered
         dataSource={[
           ...(owner ? [{ ...owner, isOwner: true }] : []),
-          ...members
+          ...members.filter(m => !owner || m.user_id !== owner.id)
         ]}
         renderItem={m => (
           <List.Item

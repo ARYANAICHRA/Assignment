@@ -2,23 +2,28 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Descriptions, List, Button, Input, Tag, Typography, Space, Form, Alert, Spin, Select, Avatar, Tooltip, DatePicker, Popconfirm } from 'antd';
 import { BugOutlined, EditOutlined, DeleteOutlined, PlusOutlined, UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { useContext } from 'react';
+import { ProjectContext } from '../context/ProjectContext';
 
 const { Title, Text } = Typography;
 
 function TaskDetailModal({ isOpen, onRequestClose, taskId, userRole }) {
+  const { selectedProject } = useContext(ProjectContext);
   const [task, setTask] = useState(null);
   const [subtasks, setSubtasks] = useState([]);
   const [activityLogs, setActivityLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [members, setMembers] = useState([]);
 
   useEffect(() => {
     if (isOpen && taskId) {
       fetchTaskDetails();
       fetchSubtasks();
       fetchActivityLogs();
+      if (selectedProject) fetchMembers();
     }
     // eslint-disable-next-line
-  }, [isOpen, taskId]);
+  }, [isOpen, taskId, selectedProject]);
 
   const fetchTaskDetails = async () => {
     setLoading(true);
@@ -49,6 +54,26 @@ function TaskDetailModal({ isOpen, onRequestClose, taskId, userRole }) {
     if (res.ok) setActivityLogs(data.activity_logs);
   };
 
+  const fetchMembers = async () => {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/members`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (res.ok) setMembers(data.members);
+  };
+
+  const handleFieldChange = async (field, value) => {
+    if (!task) return;
+    const token = localStorage.getItem('token');
+    const res = await fetch(`http://localhost:5000/items/${task.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ [field]: value })
+    });
+    if (res.ok) fetchTaskDetails();
+  };
+
   if (!isOpen) return null;
 
   const isBug = task && task.type === 'bug';
@@ -71,12 +96,50 @@ function TaskDetailModal({ isOpen, onRequestClose, taskId, userRole }) {
             <Descriptions.Item label="Status">
               <Tag color={task.status === 'done' ? 'green' : task.status === 'inprogress' ? 'gold' : task.status === 'inreview' ? 'blue' : 'default'}>{task.status}</Tag>
             </Descriptions.Item>
-            <Descriptions.Item label="Priority">{task.priority ? <Tag color={task.priority === 'High' ? 'red' : task.priority === 'Medium' ? 'orange' : 'blue'}>{task.priority}</Tag> : '—'}</Descriptions.Item>
-            <Descriptions.Item label="Due Date">{task.due_date ? <Tag color="purple">{task.due_date}</Tag> : '—'}</Descriptions.Item>
-            <Descriptions.Item label="Assignee">{task.assignee_id ? <Space><Avatar size="small" icon={<UserOutlined />} />{task.assignee_id}</Space> : '—'}</Descriptions.Item>
-            {isBug && <Descriptions.Item label="Severity" span={2}><Tag color="red">{task.severity || '—'}</Tag></Descriptions.Item>}
-            {isBug && <Descriptions.Item label="Steps to Reproduce" span={2}>{task.steps_to_reproduce || '—'}</Descriptions.Item>}
-            <Descriptions.Item label="Description" span={2}>{task.description || '—'}</Descriptions.Item>
+            <Descriptions.Item label="Priority">
+              <Select
+                value={task.priority || undefined}
+                style={{ minWidth: 120 }}
+                onChange={val => handleFieldChange('priority', val)}
+                placeholder="Select priority"
+                allowClear
+              >
+                <Select.Option value="High">High</Select.Option>
+                <Select.Option value="Medium">Medium</Select.Option>
+                <Select.Option value="Low">Low</Select.Option>
+              </Select>
+            </Descriptions.Item>
+            <Descriptions.Item label="Due Date">{task.due_date ? <Tag color="purple">{task.due_date}</Tag> : '\u2014'}</Descriptions.Item>
+            <Descriptions.Item label="Assignee">
+              <Select
+                value={task.assignee_id || undefined}
+                style={{ minWidth: 120 }}
+                onChange={val => handleFieldChange('assignee_id', val)}
+                placeholder="Assign to..."
+                allowClear
+                showSearch
+                optionFilterProp="children"
+              >
+                {members.map(m => (
+                  <Select.Option key={m.user_id} value={m.user_id}>{m.username || m.email}</Select.Option>
+                ))}
+              </Select>
+            </Descriptions.Item>
+            {isBug && <Descriptions.Item label="Severity" span={2}>
+              <Select
+                value={task.severity || undefined}
+                style={{ minWidth: 120 }}
+                onChange={val => handleFieldChange('severity', val)}
+                placeholder="Select severity"
+              >
+                <Select.Option value="Critical">Critical</Select.Option>
+                <Select.Option value="Major">Major</Select.Option>
+                <Select.Option value="Minor">Minor</Select.Option>
+                <Select.Option value="Trivial">Trivial</Select.Option>
+              </Select>
+            </Descriptions.Item>}
+            {isBug && <Descriptions.Item label="Steps to Reproduce" span={2}>{task.steps_to_reproduce || '\u2014'}</Descriptions.Item>}
+            <Descriptions.Item label="Description" span={2}>{task.description || '\u2014'}</Descriptions.Item>
           </Descriptions>
           <SubtasksSection subtasks={subtasks} parentId={taskId} refresh={fetchSubtasks} userRole={userRole} />
           <ActivityLogSection logs={activityLogs} />

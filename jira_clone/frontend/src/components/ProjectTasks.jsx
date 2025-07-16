@@ -3,6 +3,7 @@ import { ProjectContext } from '../context/ProjectContext';
 import { Table, Button, Tag, Modal, Select, Input, Spin, Alert, Space, Typography, Form, Avatar, Tooltip, DatePicker } from 'antd';
 import { PlusOutlined, BugOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import TaskDetailModal from './TaskDetailModal';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -35,6 +36,10 @@ function ProjectTasks() {
   const [sortDir, setSortDir] = useState('asc');
   const [alert, setAlert] = useState('');
   const [columns, setColumns] = useState([]);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [taskForm] = Form.useForm();
+  const [taskError, setTaskError] = useState('');
 
   useEffect(() => {
     if (selectedProject) {
@@ -179,6 +184,39 @@ function ProjectTasks() {
     return sortDir === 'asc' ? String(aVal).localeCompare(String(bVal)) : String(bVal).localeCompare(String(aVal));
   });
 
+  const handleTaskSubmit = async (values) => {
+    setTaskError('');
+    const token = localStorage.getItem('token');
+    let columnId = undefined;
+    if (columns && columns.length > 0) {
+      const todoCol = columns.find(col => (col.status || col.name.toLowerCase().replace(/\s/g, '')) === 'todo');
+      columnId = todoCol ? todoCol.id : columns[0].id;
+    }
+    if (!columnId) {
+      setTaskError('No columns found for this project.');
+      return;
+    }
+    const payload = { ...values, type: 'task', column_id: columnId };
+    if (payload.due_date && typeof payload.due_date === 'object' && payload.due_date.format) {
+      payload.due_date = payload.due_date.format('YYYY-MM-DD');
+    }
+    const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/items`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      setShowTaskModal(false);
+      taskForm.resetFields();
+      fetchTasks();
+      setAlert('Task created!');
+      setTimeout(() => setAlert(''), 2000);
+    } else {
+      const data = await res.json();
+      setTaskError(data.error || 'Failed to create task');
+    }
+  };
+
   const taskTableColumns = [
     {
       title: 'Type',
@@ -226,6 +264,24 @@ function ProjectTasks() {
       render: (severity, record) => record.type === 'bug' && severity ? <Tag color={severity === 'Critical' ? 'red' : severity === 'Major' ? 'orange' : 'yellow'}>{severity}</Tag> : null,
     },
     {
+      title: 'Priority',
+      dataIndex: 'priority',
+      key: 'priority',
+      render: (priority, record) => editTaskId === record.id ? (
+        <Form form={editForm} layout="inline" style={{ margin: 0 }}>
+          <Form.Item name="priority" style={{ margin: 0, width: 100 }}>
+            <Select allowClear placeholder="Priority">
+              <Option value="High">High</Option>
+              <Option value="Medium">Medium</Option>
+              <Option value="Low">Low</Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      ) : (
+        priority ? <Tag color={priority === 'High' ? 'red' : priority === 'Medium' ? 'orange' : priority === 'Low' ? 'blue' : 'default'}>{priority}</Tag> : <Tag color="default">None</Tag>
+      ),
+    },
+    {
       title: 'Assignee',
       dataIndex: 'assignee_id',
       key: 'assignee_id',
@@ -250,6 +306,7 @@ function ProjectTasks() {
       ) : (
         <Space>
           <Tooltip title="Edit Task"><Button icon={<EditOutlined />} size="small" onClick={() => handleEdit(record)} /></Tooltip>
+          <Tooltip title="Details"><Button icon={<ExclamationCircleOutlined />} size="small" onClick={() => setSelectedTaskId(record.id)} /></Tooltip>
           <Tooltip title="Delete Task"><Button icon={<DeleteOutlined />} size="small" danger onClick={() => handleDelete(record.id)} /></Tooltip>
         </Space>
       ),
@@ -271,6 +328,9 @@ function ProjectTasks() {
           {sortField && (
             <Button size="small" onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}>{sortDir === 'asc' ? 'Asc' : 'Desc'}</Button>
           )}
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setShowTaskModal(true)}>
+            Add Task
+          </Button>
           <Button type="primary" icon={<BugOutlined />} onClick={() => setShowBugModal(true)}>
             Report Bug
           </Button>
@@ -323,6 +383,41 @@ function ProjectTasks() {
           {bugError && <Alert message={bugError} type="error" showIcon style={{ marginBottom: 12 }} />}
         </Form>
       </Modal>
+      <Modal
+        open={showTaskModal}
+        title="Add Task"
+        onCancel={() => setShowTaskModal(false)}
+        onOk={() => taskForm.submit()}
+        destroyOnClose
+      >
+        <Form form={taskForm} layout="vertical" onFinish={handleTaskSubmit}>
+          <Form.Item label="Title" name="title" rules={[{ required: true, message: 'Title is required' }]}> 
+            <Input />
+          </Form.Item>
+          <Form.Item label="Description" name="description">
+            <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
+          </Form.Item>
+          <Form.Item label="Priority" name="priority">
+            <Select allowClear>
+              <Option value="High">High</Option>
+              <Option value="Medium">Medium</Option>
+              <Option value="Low">Low</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item label="Assignee" name="assignee_id">
+            <Select allowClear showSearch optionFilterProp="children" placeholder="Assign to...">
+              {users.map(m => (
+                <Option key={m.user_id} value={m.user_id}>{m.username || m.email}</Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item label="Due Date" name="due_date">
+            <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+          </Form.Item>
+          {taskError && <Alert message={taskError} type="error" showIcon style={{ marginBottom: 12 }} />}
+        </Form>
+      </Modal>
+      <TaskDetailModal isOpen={!!selectedTaskId} onRequestClose={() => setSelectedTaskId(null)} taskId={selectedTaskId} userRole={null} />
     </div>
   );
 }

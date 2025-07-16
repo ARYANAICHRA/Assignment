@@ -47,6 +47,7 @@ def create_item(project_id):
     due_date = data.get('due_date')
     priority = data.get('priority')
     parent_id = data.get('parent_id')
+    severity = data.get('severity')
     if not title or not column_id:
         return jsonify({'error': 'Title and column_id required'}), 400
     item = Item(
@@ -60,7 +61,8 @@ def create_item(project_id):
         assignee_id=assignee_id,
         due_date=datetime.strptime(due_date, '%Y-%m-%d').date() if due_date else None,
         priority=priority,
-        parent_id=parent_id
+        parent_id=parent_id,
+        severity=severity
     )
     db.session.add(item)
     db.session.commit()
@@ -116,7 +118,7 @@ def update_item(item_id):
     data = request.get_json()
     changes = []
     old_assignee = item.assignee_id
-    for field in ['title', 'description', 'status', 'assignee_id', 'column_id', 'priority', 'parent_id', 'type']:
+    for field in ['title', 'description', 'status', 'assignee_id', 'column_id', 'priority', 'parent_id', 'type', 'severity']:
         if field in data:
             old = getattr(item, field)
             new = data[field]

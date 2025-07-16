@@ -8,6 +8,7 @@ import {
   UserOutlined,
   LogoutOutlined
 } from '@ant-design/icons';
+import CreateProjectModal from './CreateProjectModal';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -15,8 +16,8 @@ const { Title } = Typography;
 function Sidebar({ setIsAuthenticated }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { selectedProject, setSelectedProject } = useContext(ProjectContext);
   const [projects, setProjects] = useState([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     fetchProjects();
@@ -32,24 +33,10 @@ function Sidebar({ setIsAuthenticated }) {
     if (res.ok) setProjects(data.projects);
   };
 
-  const handleProjectChange = (value) => {
-    const project = projects.find(p => p.id === Number(value));
-    setSelectedProject(project || null);
-    // Do NOT navigate on project select
-  };
-
   const handleLogout = () => {
     localStorage.removeItem('token');
     setIsAuthenticated(false);
     navigate('/login');
-  };
-
-  const handleBoardsClick = () => {
-    if (selectedProject) {
-      navigate(`/projects/${selectedProject.id}`);
-    } else {
-      message.info('Please select a project first.');
-    }
   };
 
   return (
@@ -57,25 +44,38 @@ function Sidebar({ setIsAuthenticated }) {
       <div style={{ padding: '24px 16px 8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Title level={4} style={{ color: '#fff', margin: 0, fontWeight: 700, letterSpacing: 1 }}>Jira Clone</Title>
       </div>
-      <div style={{ padding: '0 16px 16px 16px' }}>
-        <div style={{ color: '#bfbfbf', fontSize: 12, marginBottom: 4 }}>Project</div>
-        <Select
-          style={{ width: '100%' }}
-          placeholder="Select Project"
-          value={selectedProject ? selectedProject.id : undefined}
-          onChange={handleProjectChange}
-          optionLabelProp="label"
-        >
+      <div style={{ padding: '0 16px 0 16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <span style={{ color: '#bfbfbf', fontSize: 12 }}>Projects</span>
+          <Button type="link" size="small" style={{ color: '#1677ff', fontWeight: 700, padding: 0 }} onClick={() => setShowCreateModal(true)}>
+            +
+          </Button>
+        </div>
+        <div style={{ maxHeight: 220, overflowY: 'auto', marginBottom: 8 }}>
           {projects.map(project => (
-            <Option key={project.id} value={project.id} label={project.name}>{project.name}</Option>
+            <div
+              key={project.id}
+              style={{
+                padding: '6px 0 6px 8px',
+                borderRadius: 4,
+                background: location.pathname === `/projects/${project.id}` ? '#1677ff' : 'transparent',
+                color: location.pathname === `/projects/${project.id}` ? '#fff' : '#bfbfbf',
+                fontWeight: location.pathname === `/projects/${project.id}` ? 600 : 400,
+                cursor: 'pointer',
+                marginBottom: 2
+              }}
+              onClick={() => navigate(`/projects/${project.id}`)}
+            >
+              {project.name}
+            </div>
           ))}
-        </Select>
+        </div>
       </div>
       <Divider style={{ margin: '8px 0', borderColor: '#222' }} />
       <Menu
         theme="dark"
         mode="inline"
-        selectedKeys={[location.pathname.startsWith('/projects/') ? '/boards' : location.pathname]}
+        selectedKeys={[location.pathname.startsWith('/projects/') ? '/projects' : location.pathname]}
         style={{ borderRight: 0, background: 'transparent', flex: 1 }}
         items={[
           {
@@ -86,14 +86,7 @@ function Sidebar({ setIsAuthenticated }) {
           {
             key: '/boards',
             icon: <AppstoreOutlined />,
-            label: (
-              <span
-                style={{ color: selectedProject ? undefined : '#888', cursor: selectedProject ? 'pointer' : 'not-allowed' }}
-                onClick={e => { e.preventDefault(); handleBoardsClick(); }}
-              >
-                Boards
-              </span>
-            ),
+            label: <Link to="/boards">Boards</Link>,
           },
           {
             key: '/profile',
@@ -115,6 +108,14 @@ function Sidebar({ setIsAuthenticated }) {
           Logout
         </Button>
       </div>
+      <CreateProjectModal
+        visible={showCreateModal}
+        onProjectCreated={() => {
+          setShowCreateModal(false);
+          fetchProjects();
+        }}
+        onCancel={() => setShowCreateModal(false)}
+      />
     </div>
   );
 }

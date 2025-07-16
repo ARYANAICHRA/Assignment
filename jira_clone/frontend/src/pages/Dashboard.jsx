@@ -3,7 +3,8 @@ import { ProjectContext } from '../context/ProjectContext';
 import ProjectMembers from '../components/ProjectMembers';
 import ProjectTasks from '../components/ProjectTasks';
 import { Row, Col, Card, Statistic, Progress, List, Spin, message } from 'antd';
-import { CheckCircleOutlined, ProjectOutlined, TeamOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, ProjectOutlined, TeamOutlined, PlusOutlined } from '@ant-design/icons';
+import { Button, Modal, Form, Input, Select, DatePicker, Alert, Space } from 'antd';
 
 function Dashboard() {
   const { selectedProject } = useContext(ProjectContext);
@@ -12,6 +13,11 @@ function Dashboard() {
   const [myTasks, setMyTasks] = useState([]);
   const [projectProgress, setProjectProgress] = useState({ completed: 0, in_progress: 0, todo: 0, total: 0 });
   const [loading, setLoading] = useState(true);
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [taskForm] = Form.useForm();
+  const [taskError, setTaskError] = useState('');
+  const [users, setUsers] = useState([]);
+  const [columns, setColumns] = useState([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -63,7 +69,63 @@ function Dashboard() {
       setLoading(false);
     };
     fetchDashboardData();
+    if (selectedProject) {
+      fetchUsers();
+      fetchColumns();
+    }
   }, [selectedProject]);
+
+  const fetchUsers = async () => {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/members`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    const data = await res.json();
+    if (res.ok) setUsers(data.members);
+  };
+
+  const fetchColumns = async () => {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/columns`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setColumns(data.columns);
+    }
+  };
+
+  const handleTaskSubmit = async (values) => {
+    setTaskError('');
+    const token = localStorage.getItem('token');
+    let columnId = undefined;
+    if (columns && columns.length > 0) {
+      const todoCol = columns.find(col => (col.status || col.name.toLowerCase().replace(/\s/g, '')) === 'todo');
+      columnId = todoCol ? todoCol.id : columns[0].id;
+    }
+    if (!columnId) {
+      setTaskError('No columns found for this project.');
+      return;
+    }
+    const payload = { ...values, type: 'task', column_id: columnId };
+    if (payload.due_date && typeof payload.due_date === 'object' && payload.due_date.format) {
+      payload.due_date = payload.due_date.format('YYYY-MM-DD');
+    }
+    const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/items`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+      setShowTaskModal(false);
+      taskForm.resetFields();
+      // Optionally, trigger ProjectTasks to refresh
+      window.dispatchEvent(new Event('taskCreated'));
+    } else {
+      const data = await res.json();
+      setTaskError(data.error || 'Failed to create task');
+    }
+  };
 
   if (loading) {
     return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}><Spin size="large" /></div>;
@@ -71,6 +133,13 @@ function Dashboard() {
 
   return (
     <div style={{ maxWidth: 1200, margin: '32px auto', padding: '0 16px' }}>
+      {selectedProject && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setShowTaskModal(true)}>
+            Add Task
+          </Button>
+        </div>
+      )}
       <Row gutter={[24, 24]}>
         <Col xs={24} sm={8}>
           <Card bordered={false} style={{ background: '#e6f4ff' }}>
@@ -88,11 +157,14 @@ function Dashboard() {
           </Card>
         </Col>
       </Row>
+      <style>{`
+        .dashboard-hide-scrollbar::-webkit-scrollbar { display: none; }
+      `}</style>
       <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
         <Col xs={24} sm={12}>
-          <Card title="My Tasks" bordered={false}>
+          <Card title="My Tasks" bordered={false} style={{ height: 340, display: 'flex', flexDirection: 'column' }}>
             <List
-              dataSource={myTasks.slice(0, 6)}
+              dataSource={myTasks}
               renderItem={task => (
                 <List.Item>
                   <span>{task.title}</span>
@@ -100,19 +172,23 @@ function Dashboard() {
                 </List.Item>
               )}
               locale={{ emptyText: 'No tasks assigned to you' }}
+              style={{ maxHeight: 260, overflowY: 'auto', minHeight: 0, scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              className="dashboard-hide-scrollbar"
             />
           </Card>
         </Col>
         <Col xs={24} sm={12}>
-          <Card title="Activity Feed" bordered={false}>
+          <Card title="Activity Feed" bordered={false} style={{ height: 340, display: 'flex', flexDirection: 'column' }}>
             <List
-              dataSource={activity.slice(0, 8)}
+              dataSource={activity}
               renderItem={log => (
                 <List.Item>
                   <span style={{ fontWeight: 500 }}>{log.user}</span> {log.action} <span style={{ color: '#888' }}>{log.details}</span> <span style={{ color: '#bbb', fontSize: 12 }}>{log.created_at ? new Date(log.created_at).toLocaleString() : ''}</span>
                 </List.Item>
               )}
               locale={{ emptyText: 'No recent activity' }}
+              style={{ maxHeight: 260, overflowY: 'auto', minHeight: 0, scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              className="dashboard-hide-scrollbar"
             />
           </Card>
         </Col>
@@ -147,6 +223,40 @@ function Dashboard() {
           </Row>
         </>
       )}
+      <Modal
+        open={showTaskModal}
+        title="Add Task"
+        onCancel={() => setShowTaskModal(false)}
+        onOk={() => taskForm.submit()}
+        destroyOnClose
+      >
+        <Form form={taskForm} layout="vertical" onFinish={handleTaskSubmit}>
+          <Form.Item label="Title" name="title" rules={[{ required: true, message: 'Title is required' }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item label="Description" name="description">
+            <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
+          </Form.Item>
+          <Form.Item label="Priority" name="priority">
+            <Select allowClear>
+              <Select.Option value="High">High</Select.Option>
+              <Select.Option value="Medium">Medium</Select.Option>
+              <Select.Option value="Low">Low</Select.Option>
+            </Select>
+          </Form.Item>
+          <Form.Item label="Assignee" name="assignee_id">
+            <Select allowClear showSearch optionFilterProp="children" placeholder="Assign to...">
+              {users.map(m => (
+                <Select.Option key={m.user_id} value={m.user_id}>{m.username || m.email}</Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item label="Due Date" name="due_date">
+            <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+          </Form.Item>
+          {taskError && <Alert message={taskError} type="error" showIcon style={{ marginBottom: 12 }} />}
+        </Form>
+      </Modal>
     </div>
   );
 }
