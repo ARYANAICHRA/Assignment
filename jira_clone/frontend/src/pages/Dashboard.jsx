@@ -18,6 +18,8 @@ function Dashboard() {
   const [taskError, setTaskError] = useState('');
   const [users, setUsers] = useState([]);
   const [columns, setColumns] = useState([]);
+  const [allProjects, setAllProjects] = useState([]);
+  const [selectedTaskProject, setSelectedTaskProject] = useState(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -48,6 +50,14 @@ function Dashboard() {
           const data = await myTasksRes.json();
           setMyTasks(data.tasks || []);
         }
+        // Fetch all projects for Add Task modal
+        const projectsRes = await fetch('http://localhost:5000/projects', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (projectsRes.ok) {
+          const data = await projectsRes.json();
+          setAllProjects(data.projects || []);
+        }
         // Fetch project progress
         if (selectedProject) {
           const progressRes = await fetch(`http://localhost:5000/projects/${selectedProject.id}/progress`, {
@@ -74,6 +84,31 @@ function Dashboard() {
       fetchColumns();
     }
   }, [selectedProject]);
+
+  // Fetch columns and users for the selected project in the Add Task modal
+  useEffect(() => {
+    if (!selectedTaskProject) return;
+    const fetchForProject = async () => {
+      const token = localStorage.getItem('token');
+      // Fetch columns
+      const colRes = await fetch(`http://localhost:5000/projects/${selectedTaskProject}/columns`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (colRes.ok) {
+        const data = await colRes.json();
+        setColumns(data.columns || []);
+      }
+      // Fetch users
+      const userRes = await fetch(`http://localhost:5000/projects/${selectedTaskProject}/members`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (userRes.ok) {
+        const data = await userRes.json();
+        setUsers(data.members || []);
+      }
+    };
+    fetchForProject();
+  }, [selectedTaskProject]);
 
   const fetchUsers = async () => {
     const token = localStorage.getItem('token');
@@ -107,11 +142,15 @@ function Dashboard() {
       setTaskError('No columns found for this project.');
       return;
     }
+    if (!selectedTaskProject) {
+      setTaskError('Please select a project.');
+      return;
+    }
     const payload = { ...values, type: 'task', column_id: columnId };
     if (payload.due_date && typeof payload.due_date === 'object' && payload.due_date.format) {
       payload.due_date = payload.due_date.format('YYYY-MM-DD');
     }
-    const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/items`, {
+    const res = await fetch(`http://localhost:5000/projects/${selectedTaskProject}/items`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(payload)
@@ -119,6 +158,7 @@ function Dashboard() {
     if (res.ok) {
       setShowTaskModal(false);
       taskForm.resetFields();
+      setSelectedTaskProject(null);
       // Optionally, trigger ProjectTasks to refresh
       window.dispatchEvent(new Event('taskCreated'));
     } else {
@@ -193,44 +233,30 @@ function Dashboard() {
           </Card>
         </Col>
       </Row>
-      {selectedProject && (
-        <>
-          <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
-            <Col xs={24} sm={12}>
-              <Card title="Project Progress" bordered={false}>
-                <Progress
-                  percent={projectProgress.total ? Math.round((projectProgress.completed / projectProgress.total) * 100) : 0}
-                  status="active"
-                  strokeColor="#1677ff"
-                  showInfo
-                />
-                <div style={{ marginTop: 8, color: '#888' }}>{projectProgress.completed} of {projectProgress.total} tasks done</div>
-                <div style={{ marginTop: 8, color: '#888' }}>In Progress: {projectProgress.in_progress} | Todo: {projectProgress.todo}</div>
-              </Card>
-            </Col>
-            <Col xs={24} sm={12}>
-              <Card title="Project Members" bordered={false}>
-                <ProjectMembers />
-              </Card>
-            </Col>
-          </Row>
-          <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
-            <Col xs={24} sm={24}>
-              <Card title="Project Tasks" bordered={false}>
-                <ProjectTasks />
-              </Card>
-            </Col>
-          </Row>
-        </>
-      )}
       <Modal
         open={showTaskModal}
         title="Add Task"
-        onCancel={() => setShowTaskModal(false)}
+        onCancel={() => { setShowTaskModal(false); setSelectedTaskProject(null); }}
         onOk={() => taskForm.submit()}
         destroyOnClose
       >
         <Form form={taskForm} layout="vertical" onFinish={handleTaskSubmit}>
+          <Form.Item label="Project" name="project_id" rules={[{ required: true, message: 'Please select a project' }]}>
+            <Select
+              showSearch
+              placeholder="Select a project"
+              optionFilterProp="children"
+              onChange={val => setSelectedTaskProject(val)}
+              value={selectedTaskProject}
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+            >
+              {allProjects.map(p => (
+                <Select.Option key={p.id} value={p.id}>{p.name}</Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
           <Form.Item label="Title" name="title" rules={[{ required: true, message: 'Title is required' }]}>
             <Input />
           </Form.Item>
@@ -252,7 +278,7 @@ function Dashboard() {
             </Select>
           </Form.Item>
           <Form.Item label="Due Date" name="due_date">
-            <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+            <DatePicker style={{ width: '100%' }} />
           </Form.Item>
           {taskError && <Alert message={taskError} type="error" showIcon style={{ marginBottom: 12 }} />}
         </Form>
