@@ -599,7 +599,7 @@ function ProjectTasks() {
           </Form.Item>
         </Form>
       </Modal>
-      <TaskDetailModal isOpen={!!selectedTaskId} onRequestClose={() => setSelectedTaskId(null)} taskId={selectedTaskId} userRole={null} />
+      <TaskDetailModal isOpen={!!selectedTaskId} onRequestClose={() => setSelectedTaskId(null)} taskId={selectedTaskId} userRole={userRole} canEditOrDelete={canEditOrDelete} currentUser={currentUser} />
       <style>{`
         .child-task-row td {
           border-left: 4px solid #d3adf7 !important;

@@ -7,7 +7,7 @@ import { ProjectContext } from '../context/ProjectContext';
 
 const { Title, Text } = Typography;
 
-function TaskDetailModal({ isOpen, onRequestClose, taskId, userRole }) {
+function TaskDetailModal({ isOpen, onRequestClose, taskId, userRole, canEditOrDelete, currentUser }) {
   const { selectedProject } = useContext(ProjectContext);
   const [task, setTask] = useState(null);
   const [subtasks, setSubtasks] = useState([]);
@@ -77,6 +77,8 @@ function TaskDetailModal({ isOpen, onRequestClose, taskId, userRole }) {
   if (!isOpen) return null;
 
   const isBug = task && task.type === 'bug';
+  // Determine if the user can edit this task
+  const canEdit = task && canEditOrDelete && currentUser && canEditOrDelete(task);
 
   return (
     <Modal
@@ -100,9 +102,10 @@ function TaskDetailModal({ isOpen, onRequestClose, taskId, userRole }) {
               <Select
                 value={task.priority || undefined}
                 style={{ minWidth: 120 }}
-                onChange={val => handleFieldChange('priority', val)}
+                onChange={val => canEdit && handleFieldChange('priority', val)}
                 placeholder="Select priority"
                 allowClear
+                disabled={!canEdit}
               >
                 <Select.Option value="High">High</Select.Option>
                 <Select.Option value="Medium">Medium</Select.Option>
@@ -114,11 +117,12 @@ function TaskDetailModal({ isOpen, onRequestClose, taskId, userRole }) {
               <Select
                 value={task.assignee_id || undefined}
                 style={{ minWidth: 120 }}
-                onChange={val => handleFieldChange('assignee_id', val)}
+                onChange={val => canEdit && handleFieldChange('assignee_id', val)}
                 placeholder="Assign to..."
                 allowClear
                 showSearch
                 optionFilterProp="children"
+                disabled={!canEdit}
               >
                 {members.map(m => (
                   <Select.Option key={m.user_id} value={m.user_id}>{m.username || m.email}</Select.Option>
@@ -129,8 +133,9 @@ function TaskDetailModal({ isOpen, onRequestClose, taskId, userRole }) {
               <Select
                 value={task.severity || undefined}
                 style={{ minWidth: 120 }}
-                onChange={val => handleFieldChange('severity', val)}
+                onChange={val => canEdit && handleFieldChange('severity', val)}
                 placeholder="Select severity"
+                disabled={!canEdit}
               >
                 <Select.Option value="Critical">Critical</Select.Option>
                 <Select.Option value="Major">Major</Select.Option>
@@ -139,7 +144,12 @@ function TaskDetailModal({ isOpen, onRequestClose, taskId, userRole }) {
               </Select>
             </Descriptions.Item>}
             {isBug && <Descriptions.Item label="Steps to Reproduce" span={2}>{task.steps_to_reproduce || '\u2014'}</Descriptions.Item>}
-            <Descriptions.Item label="Description" span={2}>{task.description || '\u2014'}</Descriptions.Item>
+            <Descriptions.Item label="Description" span={2}>
+              <Input.TextArea value={task.description || ''} autoSize={{ minRows: 2, maxRows: 4 }}
+                onChange={e => canEdit && handleFieldChange('description', e.target.value)}
+                disabled={!canEdit}
+              />
+            </Descriptions.Item>
           </Descriptions>
           <SubtasksSection subtasks={subtasks} parentId={taskId} refresh={fetchSubtasks} userRole={userRole} />
           <ActivityLogSection logs={activityLogs} />
