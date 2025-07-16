@@ -5,6 +5,7 @@ from models.user import User
 from models.project_member import ProjectMember
 from models.team import Team
 from models.item import Item
+from models.board_column import BoardColumn
 from controllers.jwt_utils import jwt_required
 from controllers.rbac import require_project_role
 
@@ -17,8 +18,16 @@ def create_project():
         return jsonify({'error': 'Project name is required'}), 400
     if not user:
         return jsonify({'error': 'User not found'}), 401
+    if not user or user.role != 'admin':
+        return jsonify({'error': 'Only admin can create projects'}), 403
     project = Project(name=name, description=description, admin_id=user.id)
     db.session.add(project)
+    db.session.commit()
+    # Add default board columns
+    default_columns = ["To Do", "In Progress", "In Review", "Done"]
+    for idx, col_name in enumerate(default_columns):
+        column = BoardColumn(name=col_name, project_id=project.id, order=idx)
+        db.session.add(column)
     db.session.commit()
     # Add creator as a project member with role 'admin'
     member = ProjectMember(project_id=project.id, user_id=user.id, role='admin')
@@ -87,6 +96,9 @@ def update_project(project_id):
 
 @require_project_role('delete_project')
 def delete_project(project_id):
+    user = getattr(request, 'user', None)
+    if not user or user.role != 'admin':
+        return jsonify({'error': 'Only admin can delete projects'}), 403
     project = Project.query.get(project_id)
     if not project:
         return jsonify({'error': 'Project not found'}), 404
@@ -94,8 +106,8 @@ def delete_project(project_id):
     db.session.commit()
     return jsonify({'message': 'Project deleted'})
 
-@require_project_role('transfer_ownership')
-def transfer_ownership(project_id):
+@require_project_role('transfer_admin')
+def transfer_admin(project_id):
     data = request.get_json()
     new_admin_id = data.get('new_admin_id')
     project = Project.query.get(project_id)

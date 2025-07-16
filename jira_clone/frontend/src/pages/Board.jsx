@@ -231,6 +231,17 @@ function Board() {
     }
   };
 
+  // Helper: can edit/move/delete this task?
+  const canEditOrMove = (task) => {
+    if (!userId) return false;
+    if (selectedProject && selectedProject.admin_id === userId) return true;
+    // TODO: fetch project members/roles if needed
+    if (task.assignee_id === userId) return true;
+    if (task.reporter_id === userId) return true;
+    // Optionally, check for manager role if available
+    return false;
+  };
+
   const displayTasks = optimisticTasks || tasks;
 
   return (
@@ -238,8 +249,18 @@ function Board() {
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
+        onDragStart={e => {
+          const { active } = e;
+          const task = Object.values(tasks).flat().find(t => t.id === active.id);
+          if (!canEditOrMove(task)) return;
+          handleDragStart(e);
+        }}
+        onDragEnd={e => {
+          const { active } = e;
+          const task = Object.values(tasks).flat().find(t => t.id === active.id);
+          if (!canEditOrMove(task)) return;
+          handleDragEnd(e);
+        }}
       >
         <Row gutter={24}>
           {columns.map(col => {
@@ -268,7 +289,7 @@ function Board() {
                       </div>
                     )}
                     {displayTasks[col.key].map(task => (
-                      <SortableItem key={task.id} id={task.id}>
+                      <SortableItem key={task.id} id={task.id} disabled={!canEditOrMove(task)}>
                         <div style={{ position: 'relative', marginBottom: 8, maxWidth: 320, width: '100%' }}>
                           <div style={{ position: 'absolute', top: 4, right: 4, zIndex: 2 }}>
                             <Button
@@ -276,8 +297,9 @@ function Board() {
                               icon={<DeleteOutlined />}
                               danger
                               size="small"
-                              onClick={() => handleDelete(task.id)}
+                              onClick={() => canEditOrMove(task) && handleDelete(task.id)}
                               aria-label="Delete task"
+                              disabled={!canEditOrMove(task)}
                             />
                           </div>
                           <Card

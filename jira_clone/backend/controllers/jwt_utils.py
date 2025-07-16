@@ -10,6 +10,7 @@ def generate_jwt(user):
         'user_id': user.id,
         'username': user.username,
         'email': user.email,
+        'role': user.role,
         'exp': datetime.utcnow() + timedelta(days=1)
     }
     token = jwt.encode(payload, current_app.config['SECRET_KEY'], algorithm='HS256')

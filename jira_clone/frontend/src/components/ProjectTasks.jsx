@@ -379,12 +379,16 @@ function ProjectTasks() {
       key: 'actions',
       render: (_, record) => (
         <Space>
-          <Tooltip title="Edit">
-            <Button type="text" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
-          </Tooltip>
-          <Tooltip title="Delete">
-            <Button type="text" icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
-          </Tooltip>
+          {canEditOrDelete(record) && (
+            <Tooltip title="Edit">
+              <Button type="text" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
+            </Tooltip>
+          )}
+          {canEditOrDelete(record) && (
+            <Tooltip title="Delete">
+              <Button type="text" icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
+            </Tooltip>
+          )}
           <Tooltip title="View Details">
             <Button type="text" icon={<ExclamationCircleOutlined />} onClick={() => setSelectedTaskId(record.id)} />
           </Tooltip>
@@ -437,6 +441,7 @@ function ProjectTasks() {
 
   // Helper: can edit/delete this item?
   const canEditOrDelete = (item) => {
+    if (!item) return false;
     if (!currentUser.id) return false;
     if (selectedProject.admin_id === currentUser.id) return true;
     const member = users.find(u => u.user_id === currentUser.id);
@@ -538,6 +543,7 @@ function ProjectTasks() {
         onCancel={() => setEditTaskId(null)}
         onOk={handleEditSave}
         destroyOnClose
+        okButtonProps={{ disabled: !canEditOrDelete(tasks.find(t => t.id === editTaskId)) }}
       >
         <Form form={editForm} layout="vertical">
           <Form.Item label="Type" name="type" rules={[{ required: true, message: 'Please select a type' }]}> 
@@ -550,7 +556,7 @@ function ProjectTasks() {
           </Form.Item>
           {editForm.getFieldValue('type') !== 'epic' && (
             <Form.Item label="Parent Epic" name="parent_id">
-              <Select allowClear placeholder="Select an epic">
+              <Select allowClear placeholder="Select an epic" disabled={!canEditOrDelete(tasks.find(t => t.id === editTaskId))}>
                 {epics.map(e => (
                   <Option key={e.id} value={e.id}>{e.title}</Option>
                 ))}
@@ -558,20 +564,20 @@ function ProjectTasks() {
             </Form.Item>
           )}
           <Form.Item label="Title" name="title" rules={[{ required: true, message: 'Title is required' }]}> 
-            <Input />
+            <Input disabled={!canEditOrDelete(tasks.find(t => t.id === editTaskId))} />
           </Form.Item>
           <Form.Item label="Description" name="description">
-            <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} />
+            <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} disabled={!canEditOrDelete(tasks.find(t => t.id === editTaskId))} />
           </Form.Item>
           <Form.Item label="Priority" name="priority">
-            <Select allowClear>
+            <Select allowClear disabled={!canEditOrDelete(tasks.find(t => t.id === editTaskId))}>
               <Option value="High">High</Option>
               <Option value="Medium">Medium</Option>
               <Option value="Low">Low</Option>
             </Select>
           </Form.Item>
           <Form.Item label="Status" name="status" rules={[{ required: true, message: 'Status is required' }]}> 
-            <Select>
+            <Select disabled={!canEditOrDelete(tasks.find(t => t.id === editTaskId))}>
               <Option value="todo">To Do</Option>
               <Option value="inprogress">In Progress</Option>
               <Option value="inreview">In Review</Option>
@@ -579,7 +585,7 @@ function ProjectTasks() {
             </Select>
           </Form.Item>
           <Form.Item label="Assignee" name="assignee_id">
-            <Select allowClear showSearch optionFilterProp="children" placeholder="Assign to...">
+            <Select allowClear showSearch optionFilterProp="children" placeholder="Assign to..." disabled={!canEditOrDelete(tasks.find(t => t.id === editTaskId))}>
               {currentUser.id && (
                 <Option value={currentUser.id} key="me">Assign to me ({currentUser.username || currentUser.email || 'Me'})</Option>
               )}
@@ -589,7 +595,7 @@ function ProjectTasks() {
             </Select>
           </Form.Item>
           <Form.Item label="Due Date" name="due_date">
-            <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+            <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" disabled={!canEditOrDelete(tasks.find(t => t.id === editTaskId))} />
           </Form.Item>
         </Form>
       </Modal>

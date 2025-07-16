@@ -6,9 +6,12 @@ import {
   DashboardOutlined,
   AppstoreOutlined,
   UserOutlined,
-  LogoutOutlined
+  LogoutOutlined,
+  MoreOutlined
 } from '@ant-design/icons';
 import CreateProjectModal from './CreateProjectModal';
+import { jwtDecode } from "jwt-decode";
+import { Dropdown, Menu as AntMenu } from 'antd';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -39,17 +42,50 @@ function Sidebar({ setIsAuthenticated }) {
     navigate('/login');
   };
 
+  const token = localStorage.getItem('token');
+  let userRole = null;
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+      userRole = decoded.role;
+    } catch (e) {
+      userRole = null;
+    }
+  }
+
   return (
     <div style={{ height: '100vh', background: '#001529', color: '#fff', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '24px 16px 8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ padding: '24px 16px 8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
         <Title level={4} style={{ color: '#fff', margin: 0, fontWeight: 700, letterSpacing: 1 }}>Jira Clone</Title>
+        {/* Removed admin three-dot menu from header area */}
       </div>
       <div style={{ padding: '0 16px 0 16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
           <span style={{ color: '#bfbfbf', fontSize: 12 }}>Projects</span>
-          <Button type="link" size="small" style={{ color: '#1677ff', fontWeight: 700, padding: 0 }} onClick={() => setShowCreateModal(true)}>
-            +
-          </Button>
+          {userRole === 'admin' && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <Button type="link" size="small" style={{ color: '#1677ff', fontWeight: 700, padding: 0 }} onClick={() => setShowCreateModal(true)}>
+                +
+              </Button>
+              <Dropdown
+                overlay={
+                  <AntMenu>
+                    <AntMenu.Item key="project-management" onClick={() => navigate('/project-management')}>
+                      Project Management
+                    </AntMenu.Item>
+                  </AntMenu>
+                }
+                trigger={["click"]}
+                placement="bottomRight"
+              >
+                <Button
+                  type="text"
+                  icon={<MoreOutlined style={{ fontSize: 16, color: '#bfbfbf' }} />}
+                  style={{ padding: 0, height: 20 }}
+                />
+              </Dropdown>
+            </div>
+          )}
         </div>
         <div style={{ maxHeight: 220, overflowY: 'auto', marginBottom: 8 }}>
           {projects.map(project => (

@@ -140,11 +140,15 @@ def get_item(item_id):
         'attachments': attachments
     }})
 
-@require_project_role('edit_any_task')
+@require_project_role('edit_any_task', allow_own='edit_own_task')
 def update_item(item_id):
     item = Item.query.get(item_id)
     if not item:
         return jsonify({'error': 'Item not found'}), 404
+    user = getattr(request, 'user', None)
+    # Only allow if user is admin/manager, or is reporter/assignee
+    if user.role == 'member' and user.id not in [item.reporter_id, item.assignee_id]:
+        return jsonify({'error': 'Forbidden: You can only edit tasks you reported or are assigned to.'}), 403
     data = request.get_json()
     changes = []
     old_assignee = item.assignee_id
@@ -172,11 +176,15 @@ def update_item(item_id):
         pass # Removed notification logic
     return jsonify({'message': 'Item updated'})
 
-@require_project_role('delete_any_task')
+@require_project_role('delete_any_task', allow_own='delete_own_task')
 def delete_item(item_id):
     item = Item.query.get(item_id)
     if not item:
         return jsonify({'error': 'Item not found'}), 404
+    user = getattr(request, 'user', None)
+    # Only allow if user is admin/manager, or is reporter/assignee
+    if user.role == 'member' and user.id not in [item.reporter_id, item.assignee_id]:
+        return jsonify({'error': 'Forbidden: You can only delete tasks you reported or are assigned to.'}), 403
     db.session.delete(item)
     db.session.commit()
     log_activity(item_id, getattr(request.user, 'id', None), 'deleted', 'Task deleted')

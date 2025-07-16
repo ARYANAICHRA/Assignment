@@ -9,12 +9,13 @@ def register_user():
     username = data.get('username')
     email = data.get('email')
     password = data.get('password')
+    role = data.get('role', 'visitor')
     if not username or not email or not password:
         return jsonify({'error': 'Missing required fields'}), 400
     if User.query.filter((User.username == username) | (User.email == email)).first():
         return jsonify({'error': 'User already exists'}), 409
     password_hash = generate_password_hash(password)
-    user = User(username=username, email=email, password_hash=password_hash)
+    user = User(username=username, email=email, password_hash=password_hash, role=role)
     db.session.add(user)
     db.session.commit()
     return jsonify({'message': 'User registered successfully'}), 201

@@ -15,6 +15,7 @@ import { Layout, Spin } from 'antd';
 import 'antd/dist/reset.css';
 import './index.css';
 import ItemDetail from './pages/ItemDetail';
+import ProjectManagement from './pages/ProjectManagement';
 
 const { Sider, Content, Header: AntHeader, Footer: AntFooter } = Layout;
 
@@ -45,6 +46,7 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
             <Route path="/profile" element={<Profile />} />
             <Route path="/projects/:id" element={<ProjectPage />} />
             <Route path="/item/:itemId" element={<ItemDetail />} />
+            <Route path="/project-management" element={<ProjectManagement />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </Content>
@@ -89,7 +91,7 @@ function App() {
   }, []);
 
   if (loading) {
-    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontSize: 24 }}><Spin size="large" /> Loading...</div>;
+    return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', fontSize: 24 }}><Spin size="large" /></div>;
   }
 
   return (

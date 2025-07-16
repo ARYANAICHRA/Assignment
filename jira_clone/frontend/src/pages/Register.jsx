@@ -11,6 +11,7 @@ function Register() {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [role, setRole] = useState('visitor');
 
   const onFinish = async (values) => {
     setError('');
@@ -24,7 +25,7 @@ function Register() {
       const res = await fetch('http://localhost:5000/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: values.username, email: values.email, password: values.password })
+        body: JSON.stringify({ username: values.username, email: values.email, password: values.password, role: role })
       });
       const data = await res.json();
       if (res.ok) {
@@ -57,6 +58,14 @@ function Register() {
             </Form.Item>
             <Form.Item label="Confirm Password" name="confirmPassword" rules={[{ required: true, message: 'Please confirm your password' }]}> 
               <Input.Password />
+            </Form.Item>
+            <Form.Item label="Role" name="role" rules={[{ required: true, message: 'Please select a role' }]}>
+              <select value={role} onChange={(e) => setRole(e.target.value)}>
+                <option value="admin">Admin</option>
+                <option value="manager">Manager</option>
+                <option value="member">Member</option>
+                <option value="visitor">Visitor</option>
+              </select>
             </Form.Item>
             {error && <Alert message={error} type="error" showIcon style={{ marginBottom: 12 }} />}
             {success && <Alert message={success} type="success" showIcon style={{ marginBottom: 12 }} />}

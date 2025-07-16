@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button, Typography, Row, Col, Card } from 'antd';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import ProjectManagement from './ProjectManagement';
 
 const { Title, Paragraph } = Typography;
 
