@@ -107,3 +107,14 @@ def transfer_ownership(project_id):
     project.owner_id = new_owner_id
     db.session.commit()
     return jsonify({'message': 'Ownership transferred', 'project': {'id': project.id, 'owner_id': project.owner_id}})
+
+def get_project(project_id):
+    project = Project.query.get(project_id)
+    if not project:
+        return jsonify({'error': 'Project not found'}), 404
+    return jsonify({'project': {
+        'id': project.id,
+        'name': project.name,
+        'description': project.description,
+        'owner_id': project.owner_id
+    }})

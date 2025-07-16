@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ProjectProvider, ProjectContext } from './context/ProjectContext';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
@@ -7,6 +7,7 @@ import Register from './pages/Register';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import ProjectBoard from './pages/ProjectBoard';
+import ProjectPage from './pages/ProjectPage';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -18,6 +19,15 @@ const { Sider, Content, Header: AntHeader, Footer: AntFooter } = Layout;
 
 function AppLayout({ isAuthenticated, setIsAuthenticated }) {
   const { selectedProject } = useContext(ProjectContext);
+  const location = useLocation();
+  // Only show footer on dashboard, home, login, register, and profile
+  const showFooter = [
+    '/',
+    '/dashboard',
+    '/login',
+    '/register',
+    '/profile'
+  ].some(path => location.pathname === path);
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Sider width={220} style={{ background: '#001529', position: 'fixed', left: 0, top: 0, bottom: 0, height: '100vh', zIndex: 100 }}>
@@ -32,13 +42,15 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
             <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/projects/:id" element={<ProjectBoard />} />
+            <Route path="/projects/:id" element={<ProjectPage />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </Content>
-        <AntFooter style={{ textAlign: 'center', background: '#fff', position: 'sticky', bottom: 0, zIndex: 99 }}>
-          <Footer />
-        </AntFooter>
+        {showFooter && (
+          <AntFooter style={{ textAlign: 'center', background: '#fff', position: 'sticky', bottom: 0, zIndex: 99 }}>
+            <Footer />
+          </AntFooter>
+        )}
       </Layout>
     </Layout>
   );

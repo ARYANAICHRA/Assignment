@@ -6,7 +6,16 @@ const { Text } = Typography;
 
 function Footer() {
   return (
-    <AntFooter style={{ textAlign: 'center', background: '#fff', padding: '16px 0', borderTop: '1px solid #f0f0f0' }}>
+    <AntFooter style={{
+      textAlign: 'center',
+      background: '#f8fafc',
+      padding: '10px 0',
+      fontSize: 14,
+      color: '#888',
+      boxShadow: '0 -2px 8px #f0f1f2',
+      border: 'none',
+      minHeight: 40
+    }}>
       <Text type="secondary">&copy; 2025 Jira Clone. All rights reserved.</Text>
     </AntFooter>
   );
