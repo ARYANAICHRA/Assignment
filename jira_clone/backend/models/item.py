@@ -22,3 +22,4 @@ class Item(db.Model):
     subtasks = db.relationship('Item', backref=db.backref('parent', remote_side=[id]), lazy='dynamic')
     attachments = db.relationship('Attachment', backref='item', lazy='dynamic')
     activity_logs = db.relationship('ActivityLog', backref='item', lazy='dynamic')
+    comments = db.relationship('Comment', backref='item', lazy='dynamic')

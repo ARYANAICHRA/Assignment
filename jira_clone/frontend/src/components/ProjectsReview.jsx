@@ -3,14 +3,13 @@ import { ProjectContext } from '../context/ProjectContext';
 
 // Define project roles and their display names
 const PROJECT_ROLES = {
-  owner: 'Owner',
   admin: 'Admin',
   member: 'Member',
   viewer: 'Viewer',
 };
 
-function getRoleDisplay(role, isOwner) {
-  if (isOwner) return PROJECT_ROLES.owner;
+function getRoleDisplay(role, isAdmin) {
+  if (isAdmin) return PROJECT_ROLES.admin;
   if (!role) return PROJECT_ROLES.member;
   const key = role.toLowerCase();
   return PROJECT_ROLES[key] || role;
@@ -20,9 +19,9 @@ function ProjectsReview() {
   const { selectedProject, setSelectedProject } = useContext(ProjectContext);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [projectDetails, setProjectDetails] = useState({}); // { [projectId]: { owner, members, tasks } }
+  const [projectDetails, setProjectDetails] = useState({}); // { [projectId]: { admin, members, tasks } }
   const [detailsLoading, setDetailsLoading] = useState({}); // { [projectId]: true/false }
-  const [ownersById, setOwnersById] = useState({}); // { [ownerId]: ownerObj }
+  const [adminsById, setAdminsById] = useState({}); // { [adminId]: adminObj }
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -34,21 +33,21 @@ function ProjectsReview() {
       const data = await res.json();
       if (res.ok) {
         setProjects(data.projects);
-        // Fetch owner details for all projects
-        const uniqueOwnerIds = [...new Set(data.projects.map(p => p.owner_id).filter(Boolean))];
-        const owners = {};
-        await Promise.all(uniqueOwnerIds.map(async (ownerId) => {
+        // Fetch admin details for all projects
+        const uniqueAdminIds = [...new Set(data.projects.map(p => p.admin_id).filter(Boolean))];
+        const admins = {};
+        await Promise.all(uniqueAdminIds.map(async (adminId) => {
           try {
-            const resOwner = await fetch(`http://localhost:5000/users/${ownerId}`, {
+            const resAdmin = await fetch(`http://localhost:5000/users/${adminId}`, {
               headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (resOwner.ok) {
-              const dataOwner = await resOwner.json();
-              owners[ownerId] = dataOwner.user;
+            if (resAdmin.ok) {
+              const dataAdmin = await resAdmin.json();
+              admins[adminId] = dataAdmin.user;
             }
           } catch (e) {}
         }));
-        setOwnersById(owners);
+        setAdminsById(admins);
       }
       setLoading(false);
     };
@@ -59,19 +58,19 @@ function ProjectsReview() {
   const fetchProjectDetails = async (project) => {
     setDetailsLoading(prev => ({ ...prev, [project.id]: true }));
     const token = localStorage.getItem('token');
-    // Owner
-    let owner = null;
-    if (project.owner_id) {
-      // Use cached owner if available
-      owner = ownersById[project.owner_id] || null;
-      if (!owner) {
-        const res = await fetch(`http://localhost:5000/users/${project.owner_id}`, {
+    // Admin
+    let admin = null;
+    if (project.admin_id) {
+      // Use cached admin if available
+      admin = adminsById[project.admin_id] || null;
+      if (!admin) {
+        const res = await fetch(`http://localhost:5000/users/${project.admin_id}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
           const data = await res.json();
-          owner = data.user;
-          setOwnersById(prev => ({ ...prev, [project.owner_id]: data.user }));
+          admin = data.user;
+          setAdminsById(prev => ({ ...prev, [project.admin_id]: data.user }));
         }
       }
     }
@@ -93,7 +92,7 @@ function ProjectsReview() {
       const data = await resTasks.json();
       tasks = data.items;
     }
-    setProjectDetails(prev => ({ ...prev, [project.id]: { owner, members, tasks } }));
+    setProjectDetails(prev => ({ ...prev, [project.id]: { admin, members, tasks } }));
     setDetailsLoading(prev => ({ ...prev, [project.id]: false }));
   };
 
@@ -112,7 +111,7 @@ function ProjectsReview() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map(project => {
             const details = projectDetails[project.id];
-            const owner = ownersById[project.owner_id];
+            const admin = adminsById[project.admin_id];
             return (
               <div key={project.id} className={`bg-white rounded-lg shadow p-6 border hover:border-blue-500 transition cursor-pointer ${selectedProject && selectedProject.id === project.id ? 'border-blue-600' : 'border-gray-200'}`}
                 onClick={() => { setSelectedProject(project); if (!projectDetails[project.id]) fetchProjectDetails(project); }}>
@@ -124,7 +123,7 @@ function ProjectsReview() {
                 </div>
                 <div className="text-gray-600 mb-2">{project.description || 'No description'}</div>
                 <div className="flex flex-wrap gap-2 text-xs text-gray-500 mb-2">
-                  <span>Owner: {owner ? `${owner.username} (${owner.email})` : project.owner_id}</span>
+                  <span>Admin: {admin ? `${admin.username} (${admin.email})` : project.admin_id}</span>
                   <span>Members: {details?.members ? details.members.length : '-'}</span>
                   <span>Tasks: {details?.tasks ? details.tasks.length : '-'}</span>
                 </div>
@@ -136,13 +135,13 @@ function ProjectsReview() {
                       <>
                         <div className="mb-2 font-semibold text-gray-700">Members:</div>
                         <ul className="mb-2">
-                          {/* Show owner at the top, then other members */}
-                          {owner && (
-                            <li key={owner.id || owner.user_id} className="mb-1 font-bold text-blue-700">
-                              {owner.username} ({owner.email}) - {PROJECT_ROLES.owner}
+                          {/* Show admin at the top, then other members */}
+                          {admin && (
+                            <li key={admin.id || admin.user_id} className="mb-1 font-bold text-blue-700">
+                              {admin.username} ({admin.email}) - {PROJECT_ROLES.admin}
                             </li>
                           )}
-                          {(details.members || []).filter(m => m.user_id !== project.owner_id).map(m => (
+                          {(details.members || []).filter(m => m.user_id !== project.admin_id).map(m => (
                             <li key={m.user_id} className="mb-1">
                               {m.username} ({m.email}) - {getRoleDisplay(m.role, false)}
                             </li>
@@ -170,5 +169,5 @@ function ProjectsReview() {
 export default ProjectsReview;
 // ---
 // Backend suggestion: Enforce role-based permissions for project actions (edit, delete, assign, etc.)
-// Example: Only Owner/Admin can edit/delete project, Members can add tasks, Viewers can only view.
+// Example: Only Admin can edit/delete project, Members can add tasks, Viewers can only view.
 

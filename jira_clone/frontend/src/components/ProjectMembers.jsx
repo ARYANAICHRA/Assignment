@@ -8,7 +8,7 @@ const { Title, Text } = Typography;
 function ProjectMembers() {
   const { selectedProject } = useContext(ProjectContext);
   const [members, setMembers] = useState([]);
-  const [owner, setOwner] = useState(null);
+  const [admin, setAdmin] = useState(null);
   const [form] = Form.useForm();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -18,26 +18,26 @@ function ProjectMembers() {
   useEffect(() => {
     if (selectedProject) {
       fetchMembers();
-      fetchOwner();
+      fetchAdmin();
     }
     // eslint-disable-next-line
   }, [selectedProject]);
 
-  const fetchOwner = async () => {
-    if (!selectedProject?.owner_id) return;
+  const fetchAdmin = async () => {
+    if (!selectedProject?.admin_id) return;
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/users/${selectedProject.owner_id}`, {
+      const res = await fetch(`http://localhost:5000/users/${selectedProject.admin_id}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
         const data = await res.json();
-        setOwner(data.user);
+        setAdmin(data.user);
       } else {
-        setOwner(null);
+        setAdmin(null);
       }
     } catch (err) {
-      setOwner(null);
+      setAdmin(null);
     }
   };
 
@@ -94,15 +94,15 @@ function ProjectMembers() {
   };
 
   // Helper for role color
-  const getRoleTag = (role, isOwner) => {
-    if (isOwner) return <Tag color="gold">Owner</Tag>;
+  const getRoleTag = (role, isAdmin) => {
+    if (isAdmin) return <Tag color="gold">Admin</Tag>;
     if (role === 'admin') return <Tag color="volcano">Admin</Tag>;
     return <Tag color="blue">Member</Tag>;
   };
 
-  // Check if current user is a member or owner
+  // Check if current user is a member or admin
   const isMember = user && (
-    (owner && user.id === owner.id) ||
+    (admin && user.id === admin.id) ||
     members.some(m => m.user_id === user.id)
   );
 
@@ -134,32 +134,24 @@ function ProjectMembers() {
         loading={loading}
         bordered
         dataSource={[
-          ...(owner ? [{ ...owner, isOwner: true }] : []),
-          ...members.filter(m => !owner || m.user_id !== owner.id)
+          ...(admin ? [{ ...admin, isAdmin: true }] : []),
+          ...members.filter(m => !admin || m.user_id !== admin.id)
         ]}
         renderItem={m => (
           <List.Item
-            actions={m.isOwner ? [getRoleTag(null, true)] : [
-              <Popconfirm
-                title="Remove this member?"
-                onConfirm={() => handleRemove(m.user_id)}
-                okText="Yes"
-                cancelText="No"
-              >
-                <Button type="link" danger icon={<DeleteOutlined />} style={{ padding: 0 }}>Remove</Button>
-              </Popconfirm>,
-              getRoleTag(m.role, false)
+            actions={m.isAdmin ? [getRoleTag(null, true)] : [
+              <Popconfirm title="Remove member?" onConfirm={() => handleRemove(m.user_id)} okText="Remove" cancelText="Cancel">
+                <Button type="link" icon={<DeleteOutlined />} danger size="small">Remove</Button>
+              </Popconfirm>
             ]}
+            avatar={<Avatar style={{ backgroundColor: m.isAdmin ? '#faad14' : '#1890ff' }} icon={<UserOutlined />} />}
           >
-            <List.Item.Meta
-              avatar={<Avatar style={{ backgroundColor: m.isOwner ? '#faad14' : '#1890ff' }} icon={<UserOutlined />} />}
-              title={<Text strong>{m.username}</Text>}
-              description={<Text type="secondary">{m.email}</Text>}
-            />
+            <Space direction="vertical" size={0}>
+              <Text strong>{m.username || m.email}</Text>
+              <span style={{ fontSize: 12, color: '#888' }}>{getRoleTag(m.role, m.isAdmin)}</span>
+            </Space>
           </List.Item>
         )}
-        locale={{ emptyText: 'No members' }}
-        style={{ background: '#fafafa', borderRadius: 4 }}
       />
     </div>
   ) : null;

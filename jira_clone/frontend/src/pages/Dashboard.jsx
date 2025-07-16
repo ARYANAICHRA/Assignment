@@ -20,6 +20,8 @@ function Dashboard() {
   const [columns, setColumns] = useState([]);
   const [allProjects, setAllProjects] = useState([]);
   const [selectedTaskProject, setSelectedTaskProject] = useState(null);
+  const [taskType, setTaskType] = useState('task');
+  const [epics, setEpics] = useState([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -106,6 +108,14 @@ function Dashboard() {
         const data = await userRes.json();
         setUsers(data.members || []);
       }
+      // Fetch epics
+      const epicsRes = await fetch(`http://localhost:5000/projects/${selectedTaskProject}/items`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (epicsRes.ok) {
+        const data = await epicsRes.json();
+        setEpics((data.items || []).filter(i => i.type && i.type.toLowerCase() === 'epic'));
+      }
     };
     fetchForProject();
   }, [selectedTaskProject]);
@@ -146,9 +156,12 @@ function Dashboard() {
       setTaskError('Please select a project.');
       return;
     }
-    const payload = { ...values, type: 'task', column_id: columnId };
+    const payload = { ...values, type: taskType, column_id: columnId };
     if (payload.due_date && typeof payload.due_date === 'object' && payload.due_date.format) {
       payload.due_date = payload.due_date.format('YYYY-MM-DD');
+    }
+    if (taskType !== 'epic' && values.parent_id) {
+      payload.parent_id = values.parent_id;
     }
     const res = await fetch(`http://localhost:5000/projects/${selectedTaskProject}/items`, {
       method: 'POST',
@@ -159,6 +172,7 @@ function Dashboard() {
       setShowTaskModal(false);
       taskForm.resetFields();
       setSelectedTaskProject(null);
+      setTaskType('task');
       // Optionally, trigger ProjectTasks to refresh
       window.dispatchEvent(new Event('taskCreated'));
     } else {
@@ -246,7 +260,7 @@ function Dashboard() {
               showSearch
               placeholder="Select a project"
               optionFilterProp="children"
-              onChange={val => setSelectedTaskProject(val)}
+              onChange={val => { setSelectedTaskProject(val); taskForm.setFieldsValue({ parent_id: undefined }); }}
               value={selectedTaskProject}
               filterOption={(input, option) =>
                 option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
@@ -257,6 +271,23 @@ function Dashboard() {
               ))}
             </Select>
           </Form.Item>
+          <Form.Item label="Type" name="type" initialValue="task" rules={[{ required: true, message: 'Please select a type' }]}>
+            <Select value={taskType} onChange={val => { setTaskType(val); taskForm.setFieldsValue({ parent_id: undefined }); }}>
+              <Select.Option value="epic">Epic</Select.Option>
+              <Select.Option value="task">Task</Select.Option>
+              <Select.Option value="bug">Bug</Select.Option>
+              <Select.Option value="feature">Feature</Select.Option>
+            </Select>
+          </Form.Item>
+          {taskType !== 'epic' && (
+            <Form.Item label="Parent Epic" name="parent_id">
+              <Select allowClear placeholder="Select an epic">
+                {epics.map(e => (
+                  <Select.Option key={e.id} value={e.id}>{e.title}</Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+          )}
           <Form.Item label="Title" name="title" rules={[{ required: true, message: 'Title is required' }]}>
             <Input />
           </Form.Item>

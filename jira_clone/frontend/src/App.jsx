@@ -14,6 +14,7 @@ import Footer from './components/Footer';
 import { Layout, Spin } from 'antd';
 import 'antd/dist/reset.css';
 import './index.css';
+import ItemDetail from './pages/ItemDetail';
 
 const { Sider, Content, Header: AntHeader, Footer: AntFooter } = Layout;
 
@@ -43,6 +44,7 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/projects/:id" element={<ProjectPage />} />
+            <Route path="/item/:itemId" element={<ItemDetail />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </Content>

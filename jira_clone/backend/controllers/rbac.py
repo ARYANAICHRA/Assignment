@@ -5,18 +5,18 @@ from models.project_member import ProjectMember
 
 # Central RBAC rules
 ROLE_PERMISSIONS = {
-    "view_tasks": ["owner", "manager", "member", "viewer"],
-    "create_task": ["owner", "manager", "member"],
-    "edit_any_task": ["owner", "manager"],
-    "edit_own_task": ["owner", "manager", "member"],
-    "delete_any_task": ["owner", "manager"],
-    "delete_own_task": ["owner", "manager", "member"],
-    "manage_project": ["owner", "manager"],
-    "add_remove_members": ["owner", "manager"],
-    "change_roles": ["owner", "manager"],
-    "view_project_settings": ["owner", "manager", "member", "viewer"],
-    "delete_project": ["owner"],
-    "transfer_ownership": ["owner"],
+    "view_tasks": ["admin", "manager", "member", "viewer"],
+    "create_task": ["admin", "manager", "member"],
+    "edit_any_task": ["admin", "manager"],
+    "edit_own_task": ["admin", "manager", "member"],
+    "delete_any_task": ["admin", "manager"],
+    "delete_own_task": ["admin", "manager", "member"],
+    "manage_project": ["admin", "manager"],
+    "add_remove_members": ["admin", "manager"],
+    "change_roles": ["admin", "manager"],
+    "view_project_settings": ["admin", "manager", "member", "viewer"],
+    "delete_project": ["admin"],
+    "transfer_ownership": ["admin"],
 }
 
 def has_permission(role, action):

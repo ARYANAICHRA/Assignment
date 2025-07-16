@@ -9,6 +9,9 @@ from controllers.rbac import require_project_role
 from controllers.jwt_utils import jwt_required
 
 def log_activity(item_id, user_id, action, details=None):
+    if item_id is None:
+        print("Warning: Tried to log activity with null item_id. Skipping log entry.")
+        return
     log = ActivityLog(item_id=item_id, user_id=user_id, action=action, details=details)
     db.session.add(log)
     db.session.commit()
@@ -96,6 +99,27 @@ def get_item(item_id):
     item = Item.query.get(item_id)
     if not item:
         return jsonify({'error': 'Item not found'}), 404
+    # Fetch assignee and reporter names
+    assignee = User.query.get(item.assignee_id) if item.assignee_id else None
+    reporter = User.query.get(item.reporter_id) if item.reporter_id else None
+    # Fetch comments
+    comments = []
+    for c in item.comments.all() if hasattr(item, 'comments') else []:
+        author = User.query.get(c.user_id) if c.user_id else None
+        comments.append({
+            'id': c.id,
+            'author_name': author.username if author else None,
+            'content': c.content,
+            'created_at': c.created_at.isoformat() if hasattr(c, 'created_at') and c.created_at else None
+        })
+    # Fetch attachments
+    attachments = []
+    for a in item.attachments.all() if hasattr(item, 'attachments') else []:
+        attachments.append({
+            'id': a.id,
+            'filename': getattr(a, 'filename', None),
+            'url': getattr(a, 'url', None)
+        })
     return jsonify({'item': {
         'id': item.id,
         'title': item.title,
@@ -105,9 +129,15 @@ def get_item(item_id):
         'due_date': item.due_date.isoformat() if item.due_date else None,
         'parent_id': item.parent_id,
         'assignee_id': item.assignee_id,
+        'assignee_name': assignee.username if assignee else None,
         'reporter_id': item.reporter_id,
+        'reporter_name': reporter.username if reporter else None,
         'type': item.type,
-        'column_id': item.column_id
+        'column_id': item.column_id,
+        'created_at': item.created_at.isoformat() if item.created_at else None,
+        'updated_at': item.updated_at.isoformat() if item.updated_at else None,
+        'comments': comments,
+        'attachments': attachments
     }})
 
 @require_project_role('edit_any_task')

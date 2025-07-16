@@ -122,7 +122,7 @@ function ProjectPage() {
     innerRadius: 0.6,
     animation: true,
     label: {
-      type: 'inner',
+      position: 'inner',
       offset: '-30%',
       content: ({ percent }) => `${(percent * 100).toFixed(0)}%`,
       style: {
@@ -238,4 +238,3 @@ function ProjectPage() {
 }
 
 export default ProjectPage;
-

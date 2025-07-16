@@ -17,27 +17,27 @@ def create_project():
         return jsonify({'error': 'Project name is required'}), 400
     if not user:
         return jsonify({'error': 'User not found'}), 401
-    project = Project(name=name, description=description, owner_id=user.id)
+    project = Project(name=name, description=description, admin_id=user.id)
     db.session.add(project)
     db.session.commit()
-    # Add creator as a project member with role 'owner'
-    member = ProjectMember(project_id=project.id, user_id=user.id, role='owner')
+    # Add creator as a project member with role 'admin'
+    member = ProjectMember(project_id=project.id, user_id=user.id, role='admin')
     db.session.add(member)
     db.session.commit()
-    return jsonify({'message': 'Project created', 'project': {'id': project.id, 'name': project.name, 'description': project.description, 'owner_id': project.owner_id}}), 201
+    return jsonify({'message': 'Project created', 'project': {'id': project.id, 'name': project.name, 'description': project.description, 'admin_id': project.admin_id}}), 201
 
 def get_projects():
     user = getattr(request, 'user', None)
     if not user:
         return jsonify({'error': 'User not found'}), 401
-    # Get projects where user is owner
-    owned_projects = Project.query.filter_by(owner_id=user.id)
+    # Get projects where user is admin
+    admined_projects = Project.query.filter_by(admin_id=user.id)
     # Get projects where user is a member
     member_project_ids = db.session.query(ProjectMember.project_id).filter_by(user_id=user.id)
     member_projects = Project.query.filter(Project.id.in_(member_project_ids))
     # Union of both
-    projects = owned_projects.union(member_projects).all()
-    result = [{'id': p.id, 'name': p.name, 'description': p.description, 'owner_id': p.owner_id} for p in projects]
+    projects = admined_projects.union(member_projects).all()
+    result = [{'id': p.id, 'name': p.name, 'description': p.description, 'admin_id': p.admin_id} for p in projects]
     return jsonify({'projects': result})
 
 @jwt_required
@@ -46,9 +46,9 @@ def get_dashboard_stats():
     if not user:
         return jsonify({'error': 'User not found'}), 401
 
-    project_count = Project.query.filter_by(owner_id=user.id).count()
+    project_count = Project.query.filter_by(admin_id=user.id).count()
     task_count = Item.query.filter_by(reporter_id=user.id).count()
-    team_count = Team.query.filter_by(owner_id=user.id).count() if hasattr(Team, 'owner_id') else 0
+    team_count = Team.query.filter_by(admin_id=user.id).count() if hasattr(Team, 'admin_id') else 0
 
     return jsonify({
         'projectCount': project_count,
@@ -97,16 +97,16 @@ def delete_project(project_id):
 @require_project_role('transfer_ownership')
 def transfer_ownership(project_id):
     data = request.get_json()
-    new_owner_id = data.get('new_owner_id')
+    new_admin_id = data.get('new_admin_id')
     project = Project.query.get(project_id)
     if not project:
         return jsonify({'error': 'Project not found'}), 404
-    new_owner = User.query.get(new_owner_id)
-    if not new_owner:
-        return jsonify({'error': 'New owner not found'}), 404
-    project.owner_id = new_owner_id
+    new_admin = User.query.get(new_admin_id)
+    if not new_admin:
+        return jsonify({'error': 'New admin not found'}), 404
+    project.admin_id = new_admin_id
     db.session.commit()
-    return jsonify({'message': 'Ownership transferred', 'project': {'id': project.id, 'owner_id': project.owner_id}})
+    return jsonify({'message': 'Adminship transferred', 'project': {'id': project.id, 'admin_id': project.admin_id}})
 
 def get_project(project_id):
     project = Project.query.get(project_id)
@@ -116,5 +116,5 @@ def get_project(project_id):
         'id': project.id,
         'name': project.name,
         'description': project.description,
-        'owner_id': project.owner_id
+        'admin_id': project.admin_id
     }})
