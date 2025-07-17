@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { ProjectContext } from '../context/ProjectContext';
 import { Table, Button, Tag, Modal, Select, Input, Spin, Alert, Space, Typography, Form, Avatar, Tooltip, DatePicker, Collapse, Card as AntCard, List as AntList, Tooltip as AntdTooltip } from 'antd';
-import { PlusOutlined, BugOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, UserOutlined, ArrowRightOutlined, CaretRightOutlined, CaretDownOutlined } from '@ant-design/icons';
+import { PlusOutlined, BugOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined, UserOutlined, ArrowRightOutlined, CaretRightOutlined, CaretDownOutlined, MinusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import TaskDetailModal from './TaskDetailModal';
 import { useNavigate } from 'react-router-dom';
+import { getTypeIcon, getStatusColor, getPriorityColor } from '../utils/itemUi.jsx';
 
 const { Option } = Select;
 const { Title } = Typography;
@@ -296,9 +297,29 @@ function ProjectTasks() {
       title: 'Type',
       dataIndex: 'type',
       key: 'type',
-      render: (text, record) => (
-        <Tag color={text === 'bug' ? 'red' : text === 'feature' ? 'blue' : text === 'epic' ? '#722ed1' : 'green'}>{text}</Tag>
-      )
+      render: (text, record) => {
+        if (record.isEpic) {
+          const expanded = expandedEpics.includes(record.id);
+          return (
+            <span style={{ display: 'flex', alignItems: 'center' }}>
+              <Button
+                type="text"
+                size="small"
+                icon={expanded ? <MinusOutlined /> : <PlusOutlined />}
+                onClick={e => {
+                  e.stopPropagation();
+                  toggleEpic(record.id);
+                }}
+                style={{ marginRight: 4 }}
+              />
+              <Tag color={text === 'bug' ? 'red' : text === 'feature' ? 'blue' : text === 'epic' ? '#722ed1' : 'green'}>{text}</Tag>
+            </span>
+          );
+        }
+        return (
+          <Tag color={text === 'bug' ? 'red' : text === 'feature' ? 'blue' : text === 'epic' ? '#722ed1' : 'green'}>{text}</Tag>
+        );
+      }
     },
     {
       title: 'Title',

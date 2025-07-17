@@ -3,6 +3,9 @@ import { Modal, Descriptions, Button, Form, Input, Select, DatePicker, Tag, Spin
 import dayjs from 'dayjs';
 import { EditOutlined, SaveOutlined, CloseOutlined, UserOutlined } from '@ant-design/icons';
 import { ProjectContext } from '../context/ProjectContext';
+import { useNavigate } from 'react-router-dom';
+import { Card, Row, Col } from 'antd';
+import { getTypeIcon, getStatusColor, getPriorityColor } from '../utils/itemUi.jsx';
 
 const { Text } = Typography;
 
@@ -48,6 +51,7 @@ export default function TaskDetailModal({ isOpen, onRequestClose, taskId }) {
     return JSON.parse(localStorage.getItem('user')) || null;
   });
   const [userRole, setUserRole] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!isOpen) return;
@@ -190,77 +194,180 @@ export default function TaskDetailModal({ isOpen, onRequestClose, taskId }) {
   const canEdit = canEditTask(currentUser, userRole, task);
 
   return (
-    <Modal open={isOpen} onCancel={onRequestClose} footer={null} title="Task Details" width={700}>
-      {!editing ? (
-        <>
+    <Modal open={isOpen} onCancel={onRequestClose} footer={null} width={800} bodyStyle={{ padding: 0 }}>
+      {/* Accent Bar & Header */}
+      <div style={{ borderTop: `6px solid ${getPriorityColor(task.priority)}`, background: '#fff', borderBottom: '1px solid #eee', padding: '24px 32px 16px 32px', display: 'flex', alignItems: 'center', gap: 24 }}>
+        <div style={{ fontSize: 32, marginRight: 16 }}>{getTypeIcon(task.type)}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <h1 style={{ fontSize: 24, fontWeight: 600, margin: 0 }}>{task.title}</h1>
+            <Tag color={getStatusColor(task.status)} style={{ fontSize: 15, borderRadius: 6 }}>{task.status}</Tag>
+            <Tag color={getPriorityColor(task.priority)} style={{ fontSize: 15, borderRadius: 6 }}>{task.priority || 'No priority'}</Tag>
+            {task.due_date && (
+              <Tag icon={<UserOutlined />} color="default" style={{ fontSize: 15, borderRadius: 6 }}>
+                Due {dayjs(task.due_date).format('MMM D')}
+              </Tag>
+            )}
+          </div>
+          <div style={{ marginTop: 8, color: '#888', fontSize: 15 }}>
+            <UserOutlined style={{ marginRight: 4 }} />
+            {task.assignee_name || <span style={{ color: '#bbb' }}>Unassigned</span>}
+          </div>
+        </div>
+        {canEdit && !editing && (
+          <Button type="primary" icon={<EditOutlined />} onClick={() => {
+            setEditing(true);
+            if (task) {
+              const values = {
+                title: task.title,
+                description: task.description,
+                status: task.status,
+                type: task.type,
+                priority: task.priority,
+                assignee_id: task.assignee_id,
+                due_date: task.due_date ? dayjs(task.due_date) : null,
+              };
+              form.setFieldsValue(values);
+            }
+          }} style={{ marginLeft: 16 }}>Edit</Button>
+        )}
+      </div>
+      <Row gutter={[32, 32]} style={{ maxWidth: 1000, margin: '0 auto', padding: '32px 32px 0 32px' }}>
+        <Col xs={24} md={16}>
+          {/* Description */}
+          <Card title={<span>Description</span>} bordered={false} style={{ marginBottom: 24 }}>
+            <div style={{ minHeight: 60, color: task.description ? '#222' : '#bbb', fontSize: 16 }}>
+              {task.description || <span>No description provided</span>}
+            </div>
+          </Card>
+          {/* Subtasks (if epic) */}
+          {task.type === 'epic' && task.subtasks && task.subtasks.length > 0 && (
+            <Card title={<span>Subtasks ({task.subtasks.length})</span>} bordered={false} style={{ marginBottom: 24 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {task.subtasks.map(subtask => (
+                  <Card
+                    key={subtask.id}
+                    size="small"
+                    hoverable
+                    onClick={() => navigate(`/items/${subtask.id}`)}
+                    style={{
+                      background: '#fafcff',
+                      borderLeft: '4px solid #1677ff',
+                      marginBottom: 0,
+                      cursor: 'pointer',
+                      transition: 'box-shadow 0.2s',
+                    }}
+                    bodyStyle={{ padding: 12 }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      {/* Type Icon */}
+                      <div style={{ minWidth: 28, textAlign: 'center' }}>{getTypeIcon(subtask.type)}</div>
+                      {/* Title */}
+                      <div style={{ flex: 2, fontWeight: 500, fontSize: 16 }}>{subtask.title}</div>
+                      {/* Status */}
+                      <Tag color={getStatusColor(subtask.status)} style={{ minWidth: 80, textAlign: 'center' }}>{subtask.status}</Tag>
+                      {/* Priority */}
+                      <Tag color={getPriorityColor(subtask.priority)} style={{ minWidth: 70, textAlign: 'center' }}>{subtask.priority || 'No priority'}</Tag>
+                      {/* Due Date */}
+                      <div style={{ minWidth: 90, color: '#888', fontSize: 14 }}>
+                        {subtask.due_date ? dayjs(subtask.due_date).format('MMM D') : ''}
+                      </div>
+                      {/* Assignee */}
+                      <div style={{ minWidth: 100, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {subtask.assignee_name ? (
+                          <>
+                            <Avatar size={20} style={{ background: '#eee', color: '#555', fontSize: 12 }} icon={<UserOutlined />} />
+                            <span style={{ fontSize: 14 }}>{subtask.assignee_name}</span>
+                          </>
+                        ) : (
+                          <span style={{ color: '#bbb', fontSize: 14 }}>Unassigned</span>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </Card>
+          )}
+          {/* Comments Section */}
+          <Card title={<span>Comments</span>} bordered={false}>
+            <div style={{ display: 'flex', marginBottom: 24 }}>
+              <Avatar src={currentUser?.avatar} icon={<UserOutlined />} style={{ marginRight: 12 }} />
+              <div style={{ flex: 1 }}>
+                <Input.TextArea
+                  rows={3}
+                  placeholder="Add a comment..."
+                  value={commentInput}
+                  onChange={e => setCommentInput(e.target.value)}
+                  style={{ borderRadius: 8 }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                  <Button 
+                    type="primary" 
+                    onClick={handleAddComment}
+                    disabled={!commentInput.trim()}
+                  >
+                    Comment
+                  </Button>
+                </div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {(task.comments || []).map(comment => (
+                <div key={comment.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                  <Avatar src={comment.author_avatar} icon={<UserOutlined />} />
+                  <div style={{ background: '#f6f8fa', borderRadius: 12, padding: '12px 16px', minWidth: 120, maxWidth: 600 }}>
+                    <div style={{ fontWeight: 500, color: '#222' }}>{comment.author_name}</div>
+                    <div style={{ color: '#888', fontSize: 13, marginBottom: 4 }}>{dayjs(comment.created_at).format('MMM D, YYYY [at] h:mm A')}</div>
+                    <div style={{ fontSize: 15 }}>{comment.content}</div>
+                  </div>
+                </div>
+              ))}
+              {(!task.comments || task.comments.length === 0) && <div style={{ color: '#bbb', textAlign: 'center' }}>No comments yet</div>}
+            </div>
+          </Card>
+        </Col>
+        <Col xs={24} md={8}>
           {/* Parent Epic if this is a child */}
           {task.parent_epic && (
-            <div style={{ marginBottom: 24 }}>
-              <h3>Parent Epic</h3>
-              <Descriptions bordered size="small">
-                <Descriptions.Item label="Title">{task.parent_epic.title}</Descriptions.Item>
-                <Descriptions.Item label="Status">{task.parent_epic.status}</Descriptions.Item>
-                <Descriptions.Item label="Priority">{task.parent_epic.priority}</Descriptions.Item>
-                <Descriptions.Item label="Due Date">{task.parent_epic.due_date || '-'}</Descriptions.Item>
-              </Descriptions>
-            </div>
+            <Card bordered={false} style={{ marginBottom: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                {getTypeIcon('epic')}
+                <span style={{ fontWeight: 500 }}>{task.parent_epic.title}</span>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <Tag color={getStatusColor(task.parent_epic.status)}>{task.parent_epic.status}</Tag>
+                <Tag color={getPriorityColor(task.parent_epic.priority)}>{task.parent_epic.priority || 'No priority'}</Tag>
+              </div>
+            </Card>
           )}
-          <Descriptions bordered column={2} size="small">
-            <Descriptions.Item label="Title" span={2}>{task.title}</Descriptions.Item>
-            <Descriptions.Item label="Description" span={2}>{task.description}</Descriptions.Item>
-            <Descriptions.Item label="Status"><Tag>{task.status}</Tag></Descriptions.Item>
-            <Descriptions.Item label="Type"><Tag>{task.type}</Tag></Descriptions.Item>
-            <Descriptions.Item label="Priority"><Tag>{task.priority}</Tag></Descriptions.Item>
-            <Descriptions.Item label="Assignee">{task.assignee_name || <Tag>Unassigned</Tag>}</Descriptions.Item>
-            <Descriptions.Item label="Reporter">{task.reporter_name || <Tag>Unknown</Tag>}</Descriptions.Item>
-            <Descriptions.Item label="Due Date">{task.due_date || '-'}</Descriptions.Item>
-            <Descriptions.Item label="Created At">{task.created_at || '-'}</Descriptions.Item>
-            <Descriptions.Item label="Updated At">{task.updated_at || '-'}</Descriptions.Item>
-            <Descriptions.Item label="Task ID">{task.id}</Descriptions.Item>
-          </Descriptions>
-          {/* Subtasks if this is an epic */}
-          {task.type === 'epic' && task.subtasks && task.subtasks.length > 0 && (
-            <div style={{ marginTop: 24 }}>
-              <h3>Subtasks</h3>
-              <List
-                dataSource={task.subtasks}
-                renderItem={subtask => (
-                  <List.Item>
-                    <span style={{ fontWeight: 500 }}>{subtask.title}</span>
-                    <Tag color={subtask.status === 'done' ? 'green' : subtask.status === 'inprogress' ? 'orange' : subtask.status === 'inreview' ? 'purple' : 'blue'}>{subtask.status}</Tag>
-                    <Tag color={subtask.priority === 'High' ? 'red' : subtask.priority === 'Medium' ? 'orange' : subtask.priority === 'Critical' ? 'volcano' : 'blue'}>{subtask.priority || 'None'}</Tag>
-                    <span style={{ marginLeft: 12, color: '#888' }}>{subtask.due_date ? dayjs(subtask.due_date).format('YYYY-MM-DD') : 'No due date'}</span>
-                  </List.Item>
-                )}
-                locale={{ emptyText: <span style={{ color: '#bbb' }}>No subtasks</span> }}
-              />
-            </div>
-          )}
-          {canEdit && (
-            <Button type="primary" style={{ marginTop: 16 }} onClick={() => {
-              setEditing(true);
-              if (task) {
-                const values = {
-                  title: task.title,
-                  description: task.description,
-                  status: task.status,
-                  type: task.type,
-                  priority: task.priority,
-                  assignee_id: task.assignee_id,
-                  due_date: task.due_date ? dayjs(task.due_date) : null,
-                };
-                console.log('Setting form values on edit (modal):', values); // <-- LOGGING
-                form.setFieldsValue(values);
-              }
-            }} icon={<EditOutlined />}>Edit</Button>
-          )}
-        </>
-      ) : (
-        canEdit && task ? (
+          {/* Metadata */}
+          <Card bordered={false} style={{ marginBottom: 24 }}>
+            <Descriptions column={1} size="small" labelStyle={{ fontWeight: 500, color: '#888' }}>
+              <Descriptions.Item label={<span><UserOutlined /> Assignee</span>}>
+                {task.assignee_name || <span style={{ color: '#bbb' }}>Unassigned</span>}
+              </Descriptions.Item>
+              <Descriptions.Item label={<span><UserOutlined /> Reporter</span>}>
+                {task.reporter_name}
+              </Descriptions.Item>
+              <Descriptions.Item label={<span>Created</span>}>
+                {dayjs(task.created_at).format('MMM D, YYYY')}
+              </Descriptions.Item>
+              <Descriptions.Item label={<span>Updated</span>}>
+                {dayjs(task.updated_at).format('MMM D, YYYY')}
+              </Descriptions.Item>
+            </Descriptions>
+          </Card>
+        </Col>
+      </Row>
+      {/* Edit Mode */}
+      {editing && canEdit && task && (
+        <div style={{ position: 'absolute', top: 80, left: 0, width: '100%', background: 'rgba(255,255,255,0.98)', zIndex: 10, padding: 32 }}>
           <Form
             form={form}
             layout="vertical"
             onFinish={handleSave}
+            style={{ maxWidth: 600, margin: '0 auto' }}
           >
             <Form.Item name="title" label="Title" rules={[{ required: true, message: 'Title is required' }]}> 
               <Input /> 
@@ -283,58 +390,13 @@ export default function TaskDetailModal({ isOpen, onRequestClose, taskId }) {
             <Form.Item name="due_date" label="Due Date"> 
               <DatePicker /> 
             </Form.Item>
-            <div style={{ marginTop: 16 }}>
+            <div style={{ marginTop: 16, textAlign: 'right' }}>
               <Button type="primary" htmlType="submit" loading={saving} icon={<SaveOutlined />}>Save</Button>
               <Button style={{ marginLeft: 8 }} onClick={() => setEditing(false)} icon={<CloseOutlined />}>Cancel</Button>
             </div>
           </Form>
-        ) : (
-          <Alert type="error" message="You do not have permission to edit this item." showIcon style={{ marginTop: 16 }} />
-        )
+        </div>
       )}
-      {/* Comments Section */}
-      <div style={{ marginTop: 32 }}>
-        <h3>Comments</h3>
-        <List
-          dataSource={task.comments || []}
-          renderItem={comment => (
-            <List.Item
-              actions={currentUser && comment.user_id === currentUser.id ? [
-                editingCommentId === comment.id ? (
-                  <>
-                    <Button icon={<SaveOutlined />} size="small" onClick={() => handleSaveEditComment(comment)} />
-                    <Button icon={<CloseOutlined />} size="small" onClick={handleCancelEditComment} />
-                  </>
-                ) : (
-                  <Button icon={<EditOutlined />} size="small" onClick={() => handleEditComment(comment)} />
-                )
-              ] : []}
-            >
-              <Avatar icon={<UserOutlined />} style={{ marginRight: 8 }} />
-              <div>
-                <Text strong>{comment.author_name}:</Text> {editingCommentId === comment.id ? (
-                  <Input.TextArea
-                    value={editingCommentValue}
-                    onChange={e => setEditingCommentValue(e.target.value)}
-                    autoSize={{ minRows: 1, maxRows: 4 }}
-                  />
-                ) : (
-                  comment.content
-                )}
-                <Text type="secondary"> ({comment.created_at})</Text>
-              </div>
-            </List.Item>
-          )}
-        />
-        <Input.TextArea
-          value={commentInput}
-          onChange={e => setCommentInput(e.target.value)}
-          placeholder="Add a comment..."
-          autoSize={{ minRows: 1, maxRows: 4 }}
-          style={{ marginTop: 12 }}
-        />
-        <Button type="primary" onClick={handleAddComment} style={{ marginTop: 8 }}>Add Comment</Button>
-      </div>
     </Modal>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { useParams } from 'react-router-dom';
-import { Spin, Button, Form, Input, Select, DatePicker, Tag, Avatar, Divider, message, Modal } from 'antd';
+import { useParams, useNavigate } from 'react-router-dom';
+import { Spin, Button, Form, Input, Select, DatePicker, Tag, Avatar, Divider, message, Modal, Row, Col, Card, Badge, Descriptions } from 'antd';
 import { 
   EditOutlined, 
   SaveOutlined, 
@@ -20,6 +20,7 @@ import {
 } from '@ant-design/icons';
 import { ProjectContext } from '../context/ProjectContext';
 import dayjs from 'dayjs';
+import { getTypeIcon, getStatusColor, getPriorityColor } from '../utils/itemUi.jsx';
 
 const { TextArea } = Input;
 
@@ -45,34 +46,6 @@ const typeOptions = [
   { value: 'story', label: 'Story' },
 ];
 
-const getPriorityColor = (priority) => {
-  switch (priority) {
-    case 'High': return 'red';
-    case 'Medium': return 'orange';
-    case 'Critical': return 'volcano';
-    default: return 'blue';
-  }
-};
-
-const getStatusColor = (status) => {
-  switch (status) {
-    case 'done': return 'green';
-    case 'inprogress': return 'orange';
-    case 'inreview': return 'purple';
-    default: return 'blue';
-  }
-};
-
-const getTypeIcon = (type) => {
-  switch (type) {
-    case 'bug': return <span className="bg-red-100 text-red-600 p-1 rounded"><BugOutlined /></span>;
-    case 'epic': return <span className="bg-purple-100 text-purple-600 p-1 rounded"><RocketOutlined /></span>;
-    case 'story': return <span className="bg-blue-100 text-blue-600 p-1 rounded"><ProfileOutlined /></span>;
-    case 'task':
-    default: return <span className="bg-yellow-100 text-yellow-600 p-1 rounded"><FlagOutlined /></span>;
-  }
-};
-
 const TaskDetail = () => {
   const { itemId } = useParams();
   const { selectedProject } = useContext(ProjectContext);
@@ -83,6 +56,7 @@ const TaskDetail = () => {
   const [form] = Form.useForm();
   const [commentInput, setCommentInput] = useState('');
   const [currentUser] = useState(() => JSON.parse(localStorage.getItem('user')) || null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     console.log('[ItemDetail] useEffect - itemId:', itemId);
@@ -200,227 +174,173 @@ const TaskDetail = () => {
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 py-4 px-6 flex items-center">
-        <Button 
-          type="text" 
-          icon={<ArrowLeftOutlined />} 
-          className="mr-4"
-          onClick={() => window.history.back()}
-        >
-          Back
-        </Button>
-        <h1 className="text-xl font-medium text-gray-800">Task Details</h1>
-        <div className="ml-auto flex space-x-2">
-          <Button 
-            type="primary" 
-            icon={<EditOutlined />}
-            onClick={() => setEditModalVisible(true)}
-          >
-            Edit
-          </Button>
+      {/* Accent Bar & Header */}
+      <div style={{ borderTop: `6px solid ${getPriorityColor(task.priority)}`, background: '#fff', borderBottom: '1px solid #eee', padding: '24px 32px 16px 32px', display: 'flex', alignItems: 'center', gap: 24 }}>
+        <div style={{ fontSize: 32, marginRight: 16 }}>{getTypeIcon(task.type)}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <h1 style={{ fontSize: 28, fontWeight: 600, margin: 0 }}>{task.title}</h1>
+            <Tag color={getStatusColor(task.status)} style={{ fontSize: 16, borderRadius: 6 }}>{task.status}</Tag>
+            <Tag color={getPriorityColor(task.priority)} style={{ fontSize: 16, borderRadius: 6 }}>{task.priority || 'No priority'}</Tag>
+            {task.due_date && (
+              <Tag icon={<ClockCircleOutlined />} color="default" style={{ fontSize: 16, borderRadius: 6 }}>
+                Due {dayjs(task.due_date).format('MMM D')}
+              </Tag>
+            )}
+          </div>
+          <div style={{ marginTop: 8, color: '#888', fontSize: 15 }}>
+            <UserOutlined style={{ marginRight: 4 }} />
+            {task.assignee_name || <span style={{ color: '#bbb' }}>Unassigned</span>}
+          </div>
         </div>
+        <Button 
+          type="primary" 
+          icon={<EditOutlined />} 
+          onClick={() => setEditModalVisible(true)}
+          style={{ marginLeft: 16 }}
+        >
+          Edit
+        </Button>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto py-6 px-4">
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Left Column */}
-          <div className="flex-1">
-            {/* Task Header */}
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-              <div className="flex items-start">
-                <div className="mr-4">
-                  {getTypeIcon(task.type)}
-                </div>
-                <div className="flex-1">
-                  <h2 className="text-2xl font-medium text-gray-800 mb-2">{task.title}</h2>
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <Tag color={getStatusColor(task.status)} className="rounded-md">
-                      {task.status}
-                    </Tag>
-                    <Tag color={getPriorityColor(task.priority)} className="rounded-md">
-                      {task.priority || 'No priority'}
-                    </Tag>
-                    {task.due_date && (
-                      <Tag icon={<ClockCircleOutlined />} color="default" className="rounded-md">
-                        Due {dayjs(task.due_date).format('MMM D')}
-                      </Tag>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="mt-6">
-                <h3 className="text-lg font-medium text-gray-700 mb-3">Description</h3>
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  {task.description || (
-                    <p className="text-gray-400 italic">No description provided</p>
-                  )}
-                </div>
-              </div>
+      <Row gutter={[32, 32]} style={{ maxWidth: 1200, margin: '0 auto', padding: '32px 0' }}>
+        {/* Left Column */}
+        <Col xs={24} md={16}>
+          <Card title={<span><ProfileOutlined /> Description</span>} bordered={false} style={{ marginBottom: 24 }}>
+            <div style={{ minHeight: 60, color: task.description ? '#222' : '#bbb', fontSize: 16 }}>
+              {task.description || <span>No description provided</span>}
             </div>
+          </Card>
 
-            {/* Activity Section */}
-            <div className="bg-white rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-medium text-gray-700 mb-4">Activity</h3>
-              
-              {/* Comment Input */}
-              <div className="flex mb-6">
-                <Avatar 
-                  src={currentUser?.avatar} 
-                  icon={<UserOutlined />} 
-                  className="mr-3"
-                />
-                <div className="flex-1">
-                  <TextArea
-                    rows={3}
-                    placeholder="Add a comment..."
-                    value={commentInput}
-                    onChange={(e) => setCommentInput(e.target.value)}
-                    className="rounded-lg"
-                  />
-                  <div className="flex justify-between mt-2">
-                    <div className="flex space-x-2">
-                      <Button icon={<PaperClipOutlined />} type="text" />
-                      <Button icon={<LinkOutlined />} type="text" />
-                    </div>
-                    <Button 
-                      type="primary" 
-                      onClick={handleAddComment}
-                      disabled={!commentInput.trim()}
-                    >
-                      Comment
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Comments List */}
-              <div className="space-y-4">
-                {task.comments?.map(comment => (
-                  <div key={comment.id} className="flex">
-                    <Avatar 
-                      src={comment.author_avatar} 
-                      icon={<UserOutlined />} 
-                      className="mr-3"
-                    />
-                    <div className="flex-1 bg-gray-50 p-3 rounded-lg">
-                      <div className="flex items-center mb-1">
-                        <span className="font-medium text-gray-800 mr-2">{comment.author_name}</span>
-                        <span className="text-xs text-gray-500">
-                          {dayjs(comment.created_at).format('MMM D, YYYY [at] h:mm A')}
-                        </span>
-                        {currentUser?.id === comment.user_id && (
-                          <Button 
-                            type="text" 
-                            icon={<EditOutlined />} 
-                            size="small" 
-                            className="ml-auto"
-                          />
+          {/* Subtasks (if epic) */}
+          {task.type === 'epic' && task.subtasks?.length > 0 && (
+            <Card title={<span><CheckOutlined /> Subtasks ({task.subtasks.length})</span>} bordered={false} style={{ marginBottom: 24 }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {task.subtasks.map(subtask => (
+                  <Card
+                    key={subtask.id}
+                    size="small"
+                    hoverable
+                    onClick={() => navigate(`/items/${subtask.id}`)}
+                    style={{
+                      background: '#fafcff',
+                      borderLeft: '4px solid #1677ff',
+                      marginBottom: 0,
+                      cursor: 'pointer',
+                      transition: 'box-shadow 0.2s',
+                    }}
+                    bodyStyle={{ padding: 12 }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                      {/* Type Icon */}
+                      <div style={{ minWidth: 28, textAlign: 'center' }}>{getTypeIcon(subtask.type)}</div>
+                      {/* Title */}
+                      <div style={{ flex: 2, fontWeight: 500, fontSize: 16 }}>{subtask.title}</div>
+                      {/* Status */}
+                      <Tag color={getStatusColor(subtask.status)} style={{ minWidth: 80, textAlign: 'center' }}>{subtask.status}</Tag>
+                      {/* Priority */}
+                      <Tag color={getPriorityColor(subtask.priority)} style={{ minWidth: 70, textAlign: 'center' }}>{subtask.priority || 'No priority'}</Tag>
+                      {/* Due Date */}
+                      <div style={{ minWidth: 90, color: '#888', fontSize: 14 }}>
+                        {subtask.due_date ? dayjs(subtask.due_date).format('MMM D') : ''}
+                      </div>
+                      {/* Assignee */}
+                      <div style={{ minWidth: 100, display: 'flex', alignItems: 'center', gap: 6 }}>
+                        {subtask.assignee_name ? (
+                          <>
+                            <Avatar size={20} style={{ background: '#eee', color: '#555', fontSize: 12 }} icon={<UserOutlined />} />
+                            <span style={{ fontSize: 14 }}>{subtask.assignee_name}</span>
+                          </>
+                        ) : (
+                          <span style={{ color: '#bbb', fontSize: 14 }}>Unassigned</span>
                         )}
                       </div>
-                      <p className="text-gray-800">{comment.content}</p>
                     </div>
-                  </div>
+                  </Card>
                 ))}
               </div>
-            </div>
-          </div>
+            </Card>
+          )}
 
-          {/* Right Column */}
-          <div className="w-full lg:w-80 space-y-4">
-            {/* Details Card */}
-            <div className="bg-white rounded-lg shadow-sm p-4">
-              <h3 className="font-medium text-gray-700 mb-3">Details</h3>
-              <div className="space-y-3">
-                <div>
-                  <div className="text-xs text-gray-500 mb-1">Assignee</div>
-                  <div className="flex items-center">
-                    {task.assignee_id ? (
-                      <>
-                        <Avatar 
-                          src={task.assignee_avatar} 
-                          icon={<UserOutlined />} 
-                          size="small" 
-                          className="mr-2"
-                        />
-                        <span>{task.assignee_name}</span>
-                      </>
-                    ) : (
-                      <span className="text-gray-400">Unassigned</span>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-500 mb-1">Reporter</div>
-                  <div className="flex items-center">
-                    <Avatar 
-                      src={task.reporter_avatar} 
-                      icon={<UserOutlined />} 
-                      size="small" 
-                      className="mr-2"
-                    />
-                    <span>{task.reporter_name}</span>
-                  </div>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-500 mb-1">Created</div>
-                  <div>{dayjs(task.created_at).format('MMM D, YYYY')}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-500 mb-1">Updated</div>
-                  <div>{dayjs(task.updated_at).format('MMM D, YYYY')}</div>
-                </div>
-                <div>
-                  <div className="text-xs text-gray-500 mb-1">Project</div>
-                  <div>{selectedProject?.name || 'No project'}</div>
+          {/* Comments Section */}
+          <Card title={<span><CommentOutlined /> Activity</span>} bordered={false}>
+            {/* Comment Input */}
+            <div style={{ display: 'flex', marginBottom: 24 }}>
+              <Avatar src={currentUser?.avatar} icon={<UserOutlined />} style={{ marginRight: 12 }} />
+              <div style={{ flex: 1 }}>
+                <TextArea
+                  rows={3}
+                  placeholder="Add a comment..."
+                  value={commentInput}
+                  onChange={e => setCommentInput(e.target.value)}
+                  style={{ borderRadius: 8 }}
+                />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+                  <Button 
+                    type="primary" 
+                    onClick={handleAddComment}
+                    disabled={!commentInput.trim()}
+                  >
+                    Comment
+                  </Button>
                 </div>
               </div>
             </div>
+            {/* Comments List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {task.comments?.map(comment => (
+                <div key={comment.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+                  <Avatar src={comment.author_avatar} icon={<UserOutlined />} />
+                  <div style={{ background: '#f6f8fa', borderRadius: 12, padding: '12px 16px', minWidth: 120, maxWidth: 600 }}>
+                    <div style={{ fontWeight: 500, color: '#222' }}>{comment.author_name}</div>
+                    <div style={{ color: '#888', fontSize: 13, marginBottom: 4 }}>{dayjs(comment.created_at).format('MMM D, YYYY [at] h:mm A')}</div>
+                    <div style={{ fontSize: 15 }}>{comment.content}</div>
+                  </div>
+                </div>
+              ))}
+              {(!task.comments || task.comments.length === 0) && <div style={{ color: '#bbb', textAlign: 'center' }}>No comments yet</div>}
+            </div>
+          </Card>
+        </Col>
 
-            {/* Parent Epic */}
-            {task.parent_epic && (
-              <div className="bg-white rounded-lg shadow-sm p-4">
-                <h3 className="font-medium text-gray-700 mb-3">Parent Epic</h3>
-                <div className="flex items-center mb-2">
-                  {getTypeIcon('epic')}
-                  <span className="ml-2 font-medium">{task.parent_epic.title}</span>
-                </div>
-                <div className="flex space-x-2">
-                  <Tag color={getStatusColor(task.parent_epic.status)} className="rounded-md">
-                    {task.parent_epic.status}
-                  </Tag>
-                  <Tag color={getPriorityColor(task.parent_epic.priority)} className="rounded-md">
-                    {task.parent_epic.priority || 'No priority'}
-                  </Tag>
-                </div>
-              </div>
-            )}
+        {/* Right Column */}
+        <Col xs={24} md={8}>
+          <Card bordered={false} style={{ marginBottom: 24 }}>
+            <Descriptions column={1} size="small" labelStyle={{ fontWeight: 500, color: '#888' }}>
+              <Descriptions.Item label={<span><UserOutlined /> Assignee</span>}>
+                {task.assignee_name || <span style={{ color: '#bbb' }}>Unassigned</span>}
+              </Descriptions.Item>
+              <Descriptions.Item label={<span><UserOutlined /> Reporter</span>}>
+                {task.reporter_name}
+              </Descriptions.Item>
+              <Descriptions.Item label={<span><ClockCircleOutlined /> Created</span>}>
+                {dayjs(task.created_at).format('MMM D, YYYY')}
+              </Descriptions.Item>
+              <Descriptions.Item label={<span><ClockCircleOutlined /> Updated</span>}>
+                {dayjs(task.updated_at).format('MMM D, YYYY')}
+              </Descriptions.Item>
+              <Descriptions.Item label={<span><RocketOutlined /> Project</span>}>
+                {selectedProject?.name || 'No project'}
+              </Descriptions.Item>
+            </Descriptions>
+          </Card>
 
-            {/* Subtasks */}
-            {task.type === 'epic' && task.subtasks?.length > 0 && (
-              <div className="bg-white rounded-lg shadow-sm p-4">
-                <h3 className="font-medium text-gray-700 mb-3">Subtasks ({task.subtasks.length})</h3>
-                <div className="space-y-2">
-                  {task.subtasks.map(subtask => (
-                    <div key={subtask.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                      <div className="flex items-center">
-                        <CheckOutlined className="text-gray-400 mr-2" />
-                        <span className="text-gray-800">{subtask.title}</span>
-                      </div>
-                      <Tag color={getStatusColor(subtask.status)} className="rounded-md">
-                        {subtask.status}
-                      </Tag>
-                    </div>
-                  ))}
-                </div>
+          {/* Parent Epic */}
+          {task.parent_epic && (
+            <Card bordered={false} style={{ marginBottom: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                {getTypeIcon('epic')}
+                <span style={{ fontWeight: 500 }}>{task.parent_epic.title}</span>
               </div>
-            )}
-          </div>
-        </div>
-      </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <Tag color={getStatusColor(task.parent_epic.status)}>{task.parent_epic.status}</Tag>
+                <Tag color={getPriorityColor(task.parent_epic.priority)}>{task.parent_epic.priority || 'No priority'}</Tag>
+              </div>
+            </Card>
+          )}
+        </Col>
+      </Row>
 
       {/* Edit Task Modal */}
       <Modal
