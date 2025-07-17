@@ -16,6 +16,7 @@ import 'antd/dist/reset.css';
 import './index.css';
 import ItemDetail from './pages/ItemDetail';
 import ProjectManagement from './pages/ProjectManagement';
+import Teams from './pages/Teams';
 
 const { Sider, Content, Header: AntHeader, Footer: AntFooter } = Layout;
 
@@ -47,6 +48,7 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
             <Route path="/projects/:id" element={<ProjectPage />} />
             <Route path="/item/:itemId" element={<ItemDetail />} />
             <Route path="/project-management" element={<ProjectManagement />} />
+            <Route path="/teams" element={<Teams />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </Content>

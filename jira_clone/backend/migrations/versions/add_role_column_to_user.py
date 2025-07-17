@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'add_role_column_to_user'
-down_revision = 'rename_owner_id_to_admin_id'
+down_revision = '20240715_rename_owner_id'
 branch_labels = None
 depends_on = None
 

@@ -8,6 +8,7 @@ from routes.project_member import project_member_bp
 from routes.item import item_bp
 from routes.board_column import column_bp
 from routes.user import user_bp
+from routes.teams import teams_bp
 from flask_cors import CORS
 from flask import request
 from flask_jwt_extended import JWTManager
@@ -29,6 +30,7 @@ app.register_blueprint(project_member_bp)
 app.register_blueprint(item_bp)
 app.register_blueprint(column_bp)
 app.register_blueprint(user_bp)
+app.register_blueprint(teams_bp)
 
 db.init_app(app)
 migrate = Migrate(app, db)

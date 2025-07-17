@@ -16,3 +16,4 @@ class Project(db.Model):
     items = db.relationship('Item', backref='project', cascade='all, delete-orphan', lazy='dynamic')
     members = db.relationship('ProjectMember', backref='project', cascade='all, delete-orphan', lazy='dynamic')
     teams = db.relationship('ProjectTeam', backref='project', cascade='all, delete-orphan', lazy='dynamic')
+    owner_team_id = db.Column(db.Integer, db.ForeignKey('team.id'), nullable=True)

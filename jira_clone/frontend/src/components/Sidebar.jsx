@@ -125,6 +125,11 @@ function Sidebar({ setIsAuthenticated }) {
             label: <Link to="/boards">Boards</Link>,
           },
           {
+            key: '/teams',
+            icon: <UserOutlined />, // You can replace with Team icon if you have one
+            label: <Link to="/teams">Teams</Link>,
+          },
+          {
             key: '/profile',
             icon: <UserOutlined />,
             label: <Link to="/profile">Profile</Link>,
