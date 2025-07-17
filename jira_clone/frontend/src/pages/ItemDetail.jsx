@@ -85,6 +85,7 @@ const TaskDetail = () => {
   const [currentUser] = useState(() => JSON.parse(localStorage.getItem('user')) || null);
 
   useEffect(() => {
+    console.log('[ItemDetail] useEffect - itemId:', itemId);
     fetchTask();
   }, [itemId]);
 
@@ -96,11 +97,13 @@ const TaskDetail = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
+      console.log('[ItemDetail] fetchTask - data:', data);
       setTask(data.item);
       if (data.item?.project_id) {
         fetchMembers(data.item.project_id);
       }
     } catch (error) {
+      console.error('[ItemDetail] fetchTask error:', error);
       message.error('Failed to fetch task');
     } finally {
       setLoading(false);
@@ -114,8 +117,10 @@ const TaskDetail = () => {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
+      console.log('[ItemDetail] fetchMembers - data:', data);
       setMembers(data.members);
     } catch (error) {
+      console.error('[ItemDetail] fetchMembers error:', error);
       message.error('Failed to fetch members');
     }
   };
@@ -123,12 +128,13 @@ const TaskDetail = () => {
   const handleUpdateTask = async () => {
     try {
       const values = await form.validateFields();
+      console.log('[ItemDetail] handleUpdateTask - form values:', values);
       const token = localStorage.getItem('token');
       const payload = {
         ...values,
         due_date: values.due_date?.format('YYYY-MM-DD')
       };
-      
+      console.log('[ItemDetail] handleUpdateTask - payload:', payload);
       const res = await fetch(`http://localhost:5000/items/${itemId}`, {
         method: 'PATCH',
         headers: { 
@@ -137,13 +143,14 @@ const TaskDetail = () => {
         },
         body: JSON.stringify(payload)
       });
-      
+      console.log('[ItemDetail] handleUpdateTask - response status:', res.status);
       if (res.ok) {
         message.success('Task updated successfully');
         setEditModalVisible(false);
         fetchTask();
       }
     } catch (error) {
+      console.error('[ItemDetail] handleUpdateTask error:', error);
       message.error('Failed to update task');
     }
   };
@@ -160,13 +167,14 @@ const TaskDetail = () => {
         },
         body: JSON.stringify({ content: commentInput })
       });
-      
+      console.log('[ItemDetail] handleAddComment - response status:', res.status);
       if (res.ok) {
         setCommentInput('');
         fetchTask();
         message.success('Comment added');
       }
     } catch (error) {
+      console.error('[ItemDetail] handleAddComment error:', error);
       message.error('Failed to add comment');
     }
   };
@@ -418,10 +426,20 @@ const TaskDetail = () => {
       <Modal
         title="Edit Task"
         visible={editModalVisible}
-        onCancel={() => setEditModalVisible(false)}
+        onCancel={() => {
+          console.log('[ItemDetail] Modal onCancel');
+          setEditModalVisible(false);
+        }}
+        afterClose={() => {
+          console.log('[ItemDetail] Modal afterClose');
+        }}
+        onOk={handleUpdateTask}
         width={800}
         footer={[
-          <Button key="back" onClick={() => setEditModalVisible(false)}>
+          <Button key="back" onClick={() => {
+            console.log('[ItemDetail] Modal Cancel button clicked');
+            setEditModalVisible(false);
+          }}>
             Cancel
           </Button>,
           <Button 
@@ -444,6 +462,9 @@ const TaskDetail = () => {
             priority: task.priority,
             assignee_id: task.assignee_id,
             due_date: task.due_date ? dayjs(task.due_date) : null,
+          }}
+          onValuesChange={(changed, all) => {
+            console.log('[ItemDetail] Form onValuesChange', changed, all);
           }}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

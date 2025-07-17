@@ -223,9 +223,12 @@ def delete_item(item_id):
     item = Item.query.get(item_id)
     if not item:
         return jsonify({'error': f'Item not found: {item_id}'}), 404
+    # Log the deletion before deleting the item and its logs
+    log_activity(item_id, getattr(request.user, 'id', None), 'deleted', 'Task deleted')
+    for log in item.activity_logs.all():
+        db.session.delete(log)
     db.session.delete(item)
     db.session.commit()
-    log_activity(item_id, getattr(request.user, 'id', None), 'deleted', 'Task deleted')
     return jsonify({'message': 'Item deleted'})
 
 # --- Subtask Endpoints ---
