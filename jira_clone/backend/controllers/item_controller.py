@@ -10,6 +10,7 @@ from controllers.rbac import require_project_role
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.comment import Comment
 from sqlalchemy.orm import joinedload
+from controllers.notification_controller import create_notification
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -91,9 +92,11 @@ def create_item(project_id):
     db.session.add(item)
     db.session.commit()
     log_activity(item.id, reporter_id, 'created', f'Task created: {title}')
-    # Notify assignee if assigned
+    # Notify assignee if assigned (task creation)
     if assignee_id:
-        pass # Removed notification logic
+        assignee = User.query.get(assignee_id)
+        if assignee:
+            create_notification(assignee_id, f"You have been assigned to task '{title}'")
     return jsonify({'message': 'Item created', 'item': {'id': item.id, 'title': item.title}}), 201
 
 @require_project_role('view_tasks')
@@ -219,6 +222,16 @@ def update_item(item_id):
     db.session.commit()
     if changes:
         log_activity(item.id, getattr(request.user, 'id', None), 'updated', '; '.join(changes))
+    # Notify new assignee if changed (task update)
+    old_assignee = item.assignee_id
+    for field in ['title', 'description', 'status', 'assignee_id', 'column_id', 'priority', 'parent_id', 'type', 'severity']:
+        if field in data:
+            if field == 'assignee_id' and data['assignee_id'] != old_assignee:
+                new_assignee = data['assignee_id']
+                if new_assignee:
+                    assignee_user = User.query.get(new_assignee)
+                    if assignee_user:
+                        create_notification(new_assignee, f"You have been assigned to task '{item.title}'")
     return jsonify({'message': 'Item updated'})
 
 @require_project_role('delete_any_task', allow_own='delete_own_task')
@@ -278,6 +291,11 @@ def create_subtask(item_id):
     db.session.add(subtask)
     db.session.commit()
     log_activity(subtask.id, getattr(request.user, 'id', None), 'created', f'Subtask created: {title}')
+    # Notify assignee if assigned (subtask creation)
+    if data.get('assignee_id'):
+        assignee = User.query.get(data.get('assignee_id'))
+        if assignee:
+            create_notification(data.get('assignee_id'), f"You have been assigned to subtask '{title}'")
     return jsonify({'message': 'Subtask created', 'subtask': {'id': subtask.id, 'title': subtask.title}}), 201
 
 @require_project_role('edit_any_task')
@@ -287,6 +305,7 @@ def update_subtask(subtask_id):
         return jsonify({'error': 'Subtask not found'}), 404
     data = request.get_json()
     changes = []
+    old_assignee = subtask.assignee_id
     for field in ['title', 'description', 'status', 'assignee_id', 'priority', 'type']:
         if field in data:
             old = getattr(subtask, field)
@@ -294,6 +313,11 @@ def update_subtask(subtask_id):
             if old != new:
                 changes.append(f'{field}: {old} -> {new}')
             setattr(subtask, field, new)
+            if field == 'assignee_id' and new != old_assignee:
+                if new:
+                    assignee_user = User.query.get(new)
+                    if assignee_user:
+                        create_notification(new, f"You have been assigned to subtask '{subtask.title}'")
     if 'due_date' in data:
         old = subtask.due_date.isoformat() if subtask.due_date else None
         new = data['due_date']
@@ -374,6 +398,15 @@ def add_comment(item_id):
     comment = Comment(item_id=item_id, user_id=user.id, content=content)
     db.session.add(comment)
     db.session.commit()
+    # Notify assignee and reporter when a comment is added
+    item = Item.query.get(item_id)
+    if item:
+        notified_users = set()
+        if item.assignee_id and item.assignee_id != user.id:
+            create_notification(item.assignee_id, f"New comment on task '{item.title}'")
+            notified_users.add(item.assignee_id)
+        if item.reporter_id and item.reporter_id != user.id and item.reporter_id not in notified_users:
+            create_notification(item.reporter_id, f"New comment on task '{item.title}'")
     return jsonify({'message': 'Comment added', 'comment': {'id': comment.id, 'content': comment.content, 'user_id': comment.user_id, 'author_name': user.username, 'created_at': comment.created_at.isoformat()}}), 201
 
 @jwt_required

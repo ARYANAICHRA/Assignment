@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Breadcrumb, Avatar, Dropdown, Menu, Button, Typography } from 'antd';
-import { UserOutlined, DownOutlined } from '@ant-design/icons';
+import { UserOutlined, DownOutlined, BellOutlined } from '@ant-design/icons';
+import NotificationModal from './NotificationModal';
 
 const { Text } = Typography;
 
@@ -27,6 +28,26 @@ function Header({ setIsAuthenticated, isAuthenticated, selectedProject }) {
   const navigate = useNavigate();
   const location = useLocation();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const [notifVisible, setNotifVisible] = React.useState(false);
+  const [unreadCount, setUnreadCount] = React.useState(0);
+
+  React.useEffect(() => {
+    if (isAuthenticated) {
+      const fetchUnread = async () => {
+        const token = localStorage.getItem('token');
+        try {
+          const res = await fetch('http://localhost:5000/notifications', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const data = await res.json();
+          setUnreadCount(Array.isArray(data) ? data.filter(n => !n.is_read).length : 0);
+        } catch {
+          setUnreadCount(0);
+        }
+      };
+      fetchUnread();
+    }
+  }, [isAuthenticated, notifVisible]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -67,6 +88,14 @@ function Header({ setIsAuthenticated, isAuthenticated, selectedProject }) {
         )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        {isAuthenticated && (
+          <Button type="text" onClick={() => setNotifVisible(true)} style={{ fontSize: 20, position: 'relative' }}>
+            <BellOutlined />
+            {unreadCount > 0 && (
+              <span style={{ position: 'absolute', top: 2, right: 2, background: '#ff4d4f', color: '#fff', borderRadius: '50%', fontSize: 10, width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{unreadCount}</span>
+            )}
+          </Button>
+        )}
         {isAuthenticated && user && user.username && (
           <Dropdown overlay={menu} placement="bottomRight" trigger={["click"]}>
             <Button type="text" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -78,6 +107,7 @@ function Header({ setIsAuthenticated, isAuthenticated, selectedProject }) {
             </Button>
           </Dropdown>
         )}
+        <NotificationModal visible={notifVisible} onClose={() => setNotifVisible(false)} />
       </div>
     </div>
   );

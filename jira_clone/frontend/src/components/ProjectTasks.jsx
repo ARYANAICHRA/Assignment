@@ -193,7 +193,7 @@ function ProjectTasks() {
     if (payload.due_date && typeof payload.due_date === 'object' && payload.due_date.format) {
       payload.due_date = payload.due_date.format('YYYY-MM-DD');
     }
-    const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/items`, {
+    const res = await fetch(`http://localhost:5000/items/projects/${selectedProject.id}/items`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(payload)
@@ -249,7 +249,7 @@ function ProjectTasks() {
     if (taskType !== 'epic' && values.parent_id) {
       payload.parent_id = values.parent_id;
     }
-    const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/items`, {
+    const res = await fetch(`http://localhost:5000/items/projects/${selectedProject.id}/items`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(payload)
