@@ -35,6 +35,8 @@ def require_project_role(action, allow_own=False):
                 print("[RBAC] No user_id found in JWT")
                 return jsonify({"error": "Unauthorized: No user ID found."}), 401
             from models.user import User
+            from models.project import Project
+            from models.team_member import TeamMember
             user = User.query.get(user_id)
             if not user:
                 return jsonify({"error": "User not found"}), 404
@@ -53,6 +55,20 @@ def require_project_role(action, allow_own=False):
                 return jsonify({"error": "Project ID not found in request."}), 400
             from models.project_member import ProjectMember
             member = ProjectMember.query.filter_by(user_id=user_id, project_id=project_id).first()
+            project = Project.query.get(project_id)
+            # Allow project admin
+            if project and user_id == project.admin_id:
+                print(f"[RBAC] User {user_id} is project admin for project {project_id}")
+                request.project_role = 'admin'
+                return f(*args, **kwargs)
+            # Allow project owner (user is in owner team)
+            if project and project.owner_team_id:
+                owner_team_id = project.owner_team_id
+                is_owner = TeamMember.query.filter_by(team_id=owner_team_id, user_id=user_id).first() is not None
+                if is_owner:
+                    print(f"[RBAC] User {user_id} is in owner team {owner_team_id} for project {project_id}")
+                    request.project_role = 'owner'
+                    return f(*args, **kwargs)
             if not member:
                 print(f"[RBAC] User {user_id} is not a member of project {project_id}")
                 return jsonify({"error": "Forbidden: Not a project member."}), 403

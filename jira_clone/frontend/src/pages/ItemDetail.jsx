@@ -67,7 +67,7 @@ const TaskDetail = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
       try {
-        const res = await fetch(`http://localhost:5000/items/${itemId}`, {
+        const res = await fetch(`http://localhost:5000/items/items/${itemId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
@@ -109,7 +109,7 @@ const TaskDetail = () => {
         due_date: values.due_date?.format('YYYY-MM-DD')
       };
       console.log('[ItemDetail] handleUpdateTask - payload:', payload);
-      const res = await fetch(`http://localhost:5000/items/${itemId}`, {
+      const res = await fetch(`http://localhost:5000/items/items/${itemId}`, {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json', 
@@ -133,7 +133,7 @@ const TaskDetail = () => {
     if (!commentInput.trim()) return;
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`http://localhost:5000/items/${task.id}/comments`, {
+      const res = await fetch(`http://localhost:5000/items/items/${task.id}/comments`, {
       method: 'POST',
         headers: { 
           'Content-Type': 'application/json', 

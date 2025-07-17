@@ -69,7 +69,7 @@ function ProjectTasks() {
   const fetchTasks = async () => {
     setLoading(true);
     const token = localStorage.getItem('token');
-    let url = `http://localhost:5000/projects/${selectedProject.id}/items`;
+    let url = `http://localhost:5000/items/projects/${selectedProject.id}/items`;
     if (typeFilter !== 'all') url += `?type=${typeFilter}`;
     const res = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }
@@ -101,7 +101,7 @@ function ProjectTasks() {
 
   const fetchEpics = async () => {
     const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/items`, {
+    const res = await fetch(`http://localhost:5000/items/projects/${selectedProject.id}/items`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (res.ok) {

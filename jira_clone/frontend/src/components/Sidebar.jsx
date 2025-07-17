@@ -121,11 +121,6 @@ function Sidebar({ setIsAuthenticated }) {
             label: <Link to="/dashboard">Dashboard</Link>,
           },
           {
-            key: '/boards',
-            icon: <AppstoreOutlined />,
-            label: <Link to="/boards">Boards</Link>,
-          },
-          {
             key: '/teams',
             icon: <TeamOutlined />, // Use Team icon for Teams
             label: <Link to="/teams">Teams</Link>,

@@ -85,7 +85,7 @@ function ProjectsReview() {
     }
     // Tasks
     let tasks = [];
-    const resTasks = await fetch(`http://localhost:5000/projects/${project.id}/items`, {
+    const resTasks = await fetch(`http://localhost:5000/items/projects/${project.id}/items`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (resTasks.ok) {

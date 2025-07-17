@@ -127,7 +127,7 @@ function ProjectBoard() {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/items`, {
+      const res = await fetch(`http://localhost:5000/items/projects/${selectedProject.id}/items`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -158,7 +158,7 @@ function ProjectBoard() {
     const type = 'task';
     const project_id = selectedProject.id;
     const reporter_id = userId;
-    const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/items`, {
+    const res = await fetch(`http://localhost:5000/items/projects/${selectedProject.id}/items`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ title: newTask, status, column_id, type, project_id, reporter_id })

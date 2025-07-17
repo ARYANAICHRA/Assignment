@@ -42,7 +42,7 @@ function ProjectPage() {
     const fetchTasks = async () => {
       setTasksLoading(true);
       const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/projects/${id}/items`, {
+      const res = await fetch(`http://localhost:5000/items/projects/${id}/items`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
