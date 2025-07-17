@@ -1,31 +1,32 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { ProjectContext } from '../context/ProjectContext';
-import { Menu, Button, Select, Divider, Typography, message } from 'antd';
+import { Menu, Button, Divider, Typography, Input, List, Avatar } from 'antd';
 import {
   DashboardOutlined,
-  AppstoreOutlined,
   UserOutlined,
   LogoutOutlined,
-  MoreOutlined,
-  TeamOutlined
+  TeamOutlined,
+  DownOutlined,
+  UpOutlined,
+  PlusOutlined,
+  FolderOpenOutlined
 } from '@ant-design/icons';
 import CreateProjectModal from './CreateProjectModal';
 import { jwtDecode } from "jwt-decode";
-import { Dropdown, Menu as AntMenu } from 'antd';
 
-const { Option } = Select;
-const { Title } = Typography;
+const { Text } = Typography;
 
 function Sidebar({ setIsAuthenticated }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [projectsOpen, setProjectsOpen] = useState(true);
+  const [search, setSearch] = useState('');
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
     fetchProjects();
-    // eslint-disable-next-line
   }, []);
 
   const fetchProjects = async () => {
@@ -43,104 +44,118 @@ function Sidebar({ setIsAuthenticated }) {
     navigate('/login');
   };
 
-  const token = localStorage.getItem('token');
-  let userRole = null;
-  if (token) {
-    try {
-      const decoded = jwtDecode(token);
-      userRole = decoded.role;
-    } catch (e) {
-      userRole = null;
-    }
-  }
+  const filteredProjects = projects.filter(p =>
+    p.name.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <div style={{ height: '100vh', background: '#001529', color: '#fff', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ padding: '24px 16px 8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-        <Title level={4} style={{ color: '#fff', margin: 0, fontWeight: 700, letterSpacing: 1 }}>Jira Clone</Title>
-        {/* Removed admin three-dot menu from header area */}
+    <div style={{ background: '#f7f9fb', color: '#222', minHeight: '100%', borderRight: '1px solid #e6e8ec', boxShadow: '2px 0 8px #f0f1f2', width: 240, display: 'flex', flexDirection: 'column', position: 'relative' }}>
+      {/* Projects Section Header */}
+      <div style={{ padding: '18px 16px 8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Text style={{ color: '#888', fontWeight: 700, fontSize: 13, letterSpacing: 1 }}>PROJECTS</Text>
+        <Button
+          type="text"
+          icon={projectsOpen ? <UpOutlined /> : <DownOutlined />}
+          size="small"
+          onClick={() => setProjectsOpen(!projectsOpen)}
+          style={{ color: '#888', fontSize: 16 }}
+        />
       </div>
-      <div style={{ padding: '0 16px 0 16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-          <span style={{ color: '#bfbfbf', fontSize: 12 }}>Projects</span>
-          {userRole === 'admin' && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Button type="link" size="small" style={{ color: '#1677ff', fontWeight: 700, padding: 0 }} onClick={() => setShowCreateModal(true)}>
-                +
-              </Button>
-              <Dropdown
-                overlay={
-                  <AntMenu>
-                    <AntMenu.Item key="project-management" onClick={() => navigate('/project-management')}>
-                      Project Management
-                    </AntMenu.Item>
-                  </AntMenu>
-                }
-                trigger={["click"]}
-                placement="bottomRight"
+      {/* Create Project Button */}
+      <div style={{ padding: '0 16px 8px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          size="small"
+          style={{ borderRadius: 6, fontWeight: 600, width: '100%' }}
+          onClick={() => setShowCreateModal(true)}
+        >
+          Create project
+        </Button>
+      </div>
+      {/* Project List */}
+      {projectsOpen && (
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 8px 0 8px' }}>
+          <List
+            itemLayout="horizontal"
+            dataSource={projects}
+            locale={{ emptyText: <span style={{ color: '#bbb' }}>No projects found</span> }}
+            renderItem={project => (
+              <List.Item
+                key={project.id}
+                style={{
+                  padding: '6px 8px',
+                  borderRadius: 6,
+                  background: location.pathname === `/projects/${project.id}` ? '#e0e7ff' : '#fff',
+                  color: location.pathname === `/projects/${project.id}` ? '#1677ff' : '#222',
+                  fontWeight: location.pathname === `/projects/${project.id}` ? 700 : 500,
+                  cursor: 'pointer',
+                  marginBottom: 2,
+                  border: location.pathname === `/projects/${project.id}` ? '1.5px solid #a5b4fc' : '1px solid #e6e8ec',
+                  boxShadow: location.pathname === `/projects/${project.id}` ? '0 2px 8px #e0e7ff' : '0 1px 2px #f0f1f2',
+                  transition: 'all 0.18s',
+                  outline: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                }}
+                onClick={() => navigate(`/projects/${project.id}`)}
+                onMouseEnter={e => e.currentTarget.style.background = '#f0f5ff'}
+                onMouseLeave={e => e.currentTarget.style.background = location.pathname === `/projects/${project.id}` ? '#e0e7ff' : '#fff'}
+                tabIndex={0}
               >
-                <Button
-                  type="text"
-                  icon={<MoreOutlined style={{ fontSize: 16, color: '#bfbfbf' }} />}
-                  style={{ padding: 0, height: 20 }}
+                <List.Item.Meta
+                  avatar={<Avatar style={{ backgroundColor: '#1677ff', fontWeight: 700 }}>{project.name[0]?.toUpperCase() || <FolderOpenOutlined />}</Avatar>}
+                  title={<span style={{ fontWeight: 600 }}>{project.name}</span>}
                 />
-              </Dropdown>
-            </div>
-          )}
-        </div>
-        <div style={{ maxHeight: 220, overflowY: 'auto', marginBottom: 8 }}>
-          {projects.map(project => (
-            <div
-              key={project.id}
-              style={{
-                padding: '6px 0 6px 8px',
-                borderRadius: 4,
-                background: location.pathname === `/projects/${project.id}` ? '#1677ff' : 'transparent',
-                color: location.pathname === `/projects/${project.id}` ? '#fff' : '#bfbfbf',
-                fontWeight: location.pathname === `/projects/${project.id}` ? 600 : 400,
-                cursor: 'pointer',
-                marginBottom: 2
-              }}
-              onClick={() => navigate(`/projects/${project.id}`)}
+              </List.Item>
+            )}
+          />
+          {/* Manage projects link */}
+          <div style={{ padding: '8px 8px 0 8px', textAlign: 'center' }}>
+            <Button
+              type="link"
+              style={{ color: '#1677ff', fontWeight: 600, fontSize: 13, padding: 0 }}
+              icon={<FolderOpenOutlined />}
+              onClick={() => navigate('/project-management')}
             >
-              {project.name}
-            </div>
-          ))}
+              Manage projects
+            </Button>
+          </div>
         </div>
-      </div>
-      <Divider style={{ margin: '8px 0', borderColor: '#222' }} />
+      )}
+      <Divider style={{ margin: '8px 0', borderColor: '#e6e8ec' }} />
       <Menu
-        theme="dark"
+        theme="light"
         mode="inline"
         selectedKeys={[location.pathname.startsWith('/projects/') ? '/projects' : location.pathname]}
         style={{ borderRight: 0, background: 'transparent', flex: 1 }}
         items={[
           {
             key: '/dashboard',
-            icon: <DashboardOutlined />,
+            icon: <DashboardOutlined style={{ color: '#1677ff' }} />,
             label: <Link to="/dashboard">Dashboard</Link>,
           },
           {
             key: '/teams',
-            icon: <TeamOutlined />, // Use Team icon for Teams
+            icon: <TeamOutlined style={{ color: '#1677ff' }} />, 
             label: <Link to="/teams">Teams</Link>,
           },
           {
             key: '/profile',
-            icon: <UserOutlined />, // Keep User icon for Profile
+            icon: <UserOutlined style={{ color: '#1677ff' }} />, 
             label: <Link to="/profile">Profile</Link>,
           },
         ]}
       />
-      <Divider style={{ margin: '8px 0', borderColor: '#222' }} />
-      <div style={{ padding: '0 16px 24px 16px', marginTop: 'auto' }}>
+      <Divider style={{ margin: '8px 0', borderColor: '#e6e8ec' }} />
+      <div style={{ padding: '0 12px 20px 12px', marginTop: 'auto' }}>
         <Button
           type="text"
           icon={<LogoutOutlined />}
           danger
           block
           onClick={handleLogout}
-          style={{ textAlign: 'left' }}
+          style={{ textAlign: 'left', color: '#ff7875', fontWeight: 600 }}
         >
           Logout
         </Button>

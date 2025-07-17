@@ -21,6 +21,9 @@ function getBreadcrumbs(location, selectedProject) {
   if (path[0] === 'profile') {
     crumbs.push({ label: 'Profile', to: '/profile' });
   }
+  if (path[0] === 'teams') {
+    crumbs.push({ label: 'Teams', to: '/teams' });
+  }
   return crumbs;
 }
 
@@ -71,21 +74,15 @@ function Header({ setIsAuthenticated, isAuthenticated, selectedProject }) {
   );
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64, padding: '0 24px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        <Text strong style={{ fontSize: 22, color: '#1677ff', letterSpacing: 1 }}>Jira Clone</Text>
-        {isAuthenticated && selectedProject && (
-          <span style={{ marginLeft: 8, padding: '2px 8px', background: '#e6f4ff', color: '#1677ff', borderRadius: 4, fontWeight: 500, fontSize: 14 }}>{selectedProject.name}</span>
-        )}
-        {isAuthenticated && (
-          <Breadcrumb style={{ marginLeft: 24 }}>
-            {crumbs.map((crumb, idx) => (
-              <Breadcrumb.Item key={idx}>
-                {crumb.to !== '#' ? <Link to={crumb.to}>{crumb.label}</Link> : crumb.label}
-              </Breadcrumb.Item>
-            ))}
-          </Breadcrumb>
-        )}
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 44, padding: '0 32px', background: '#fff', boxShadow: '0 1px 4px #f0f1f2', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, flex: 1 }}>
+        <Breadcrumb style={{ fontSize: 15, color: '#888', fontWeight: 500, letterSpacing: 0.5 }}>
+          {crumbs.map((crumb, idx) => (
+            <Breadcrumb.Item key={idx} style={{ color: '#888' }}>
+              {crumb.to !== '#' ? <Link to={crumb.to} style={{ color: '#1677ff' }}>{crumb.label}</Link> : <span style={{ color: '#222', fontWeight: 600 }}>{crumb.label}</span>}
+            </Breadcrumb.Item>
+          ))}
+        </Breadcrumb>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         {isAuthenticated && (

@@ -32,15 +32,13 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
     '/profile'
   ].some(path => location.pathname === path);
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Sider width={220} style={{ background: '#001529', position: 'fixed', left: 0, top: 0, bottom: 0, height: '100vh', zIndex: 100 }}>
-        <Sidebar setIsAuthenticated={setIsAuthenticated} />
-      </Sider>
-      <Layout style={{ marginLeft: 220 }}>
-        <AntHeader style={{ background: '#fff', padding: 0, boxShadow: '0 2px 8px #f0f1f2', position: 'sticky', top: 0, zIndex: 101 }}>
-          <Header setIsAuthenticated={setIsAuthenticated} isAuthenticated={isAuthenticated} selectedProject={selectedProject} />
-        </AntHeader>
-        <Content style={{ margin: '24px 16px 0', overflow: 'initial', minHeight: 'calc(100vh - 64px - 70px)' }}>
+    <div style={{ minHeight: '100vh', background: '#f7f9fb' }}>
+      <Header setIsAuthenticated={setIsAuthenticated} isAuthenticated={isAuthenticated} selectedProject={selectedProject} />
+      <div style={{ display: 'flex', flexDirection: 'row', minHeight: 'calc(100vh - 44px)' }}>
+        <div style={{ width: 220, flexShrink: 0 }}>
+          <Sidebar setIsAuthenticated={setIsAuthenticated} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0, padding: '32px 16px 0 16px', marginTop: 0 }}>
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
@@ -51,14 +49,14 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
             <Route path="/teams" element={<Teams />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
-        </Content>
-        {showFooter && (
-          <AntFooter style={{ textAlign: 'center', background: '#fff', position: 'sticky', bottom: 0, zIndex: 99 }}>
-            <Footer />
-          </AntFooter>
-        )}
-      </Layout>
-    </Layout>
+          {showFooter && (
+            <div style={{ textAlign: 'center', background: '#fff', position: 'sticky', bottom: 0, zIndex: 99 }}>
+              <Footer />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
