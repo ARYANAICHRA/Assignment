@@ -27,7 +27,7 @@ app.config['JWT_HEADER_TYPE'] = 'Bearer'
 app.register_blueprint(auth_bp)
 app.register_blueprint(projects_bp)
 app.register_blueprint(project_member_bp)
-app.register_blueprint(item_bp)
+app.register_blueprint(item_bp, url_prefix='/items')
 app.register_blueprint(column_bp)
 app.register_blueprint(user_bp)
 app.register_blueprint(teams_bp)

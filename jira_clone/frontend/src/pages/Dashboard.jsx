@@ -37,7 +37,7 @@ function Dashboard() {
           setStats(data);
         }
         // Fetch activity log
-        const activityRes = await fetch('http://localhost:5000/activity', {
+        const activityRes = await fetch('http://localhost:5000/items/activity', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (activityRes.ok) {
@@ -45,7 +45,7 @@ function Dashboard() {
           setActivity(data.activity || []);
         }
         // Fetch my tasks
-        const myTasksRes = await fetch('http://localhost:5000/my-tasks', {
+        const myTasksRes = await fetch('http://localhost:5000/items/my-tasks', {
           headers: { 'Authorization': `Bearer ${token}` }
         });
         if (myTasksRes.ok) {

@@ -101,7 +101,7 @@ export default function TaskDetailModal({ isOpen, onRequestClose, taskId }) {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (res.ok) {
-      const data = await res.json();
+    const data = await res.json();
       setSelectedProject(data.project);
     }
   };
@@ -306,7 +306,7 @@ export default function TaskDetailModal({ isOpen, onRequestClose, taskId }) {
                     type="primary" 
                     onClick={handleAddComment}
                     disabled={!commentInput.trim()}
-                  >
+                    >
                     Comment
                   </Button>
                 </div>
@@ -325,7 +325,7 @@ export default function TaskDetailModal({ isOpen, onRequestClose, taskId }) {
               ))}
               {(!task.comments || task.comments.length === 0) && <div style={{ color: '#bbb', textAlign: 'center' }}>No comments yet</div>}
             </div>
-          </Card>
+            </Card>
         </Col>
         <Col xs={24} md={8}>
           {/* Parent Epic if this is a child */}
@@ -338,7 +338,7 @@ export default function TaskDetailModal({ isOpen, onRequestClose, taskId }) {
               <div style={{ display: 'flex', gap: 8 }}>
                 <Tag color={getStatusColor(task.parent_epic.status)}>{task.parent_epic.status}</Tag>
                 <Tag color={getPriorityColor(task.parent_epic.priority)}>{task.parent_epic.priority || 'No priority'}</Tag>
-              </div>
+                    </div>
             </Card>
           )}
           {/* Metadata */}

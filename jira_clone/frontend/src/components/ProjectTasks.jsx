@@ -317,7 +317,7 @@ function ProjectTasks() {
           );
         }
         return (
-          <Tag color={text === 'bug' ? 'red' : text === 'feature' ? 'blue' : text === 'epic' ? '#722ed1' : 'green'}>{text}</Tag>
+        <Tag color={text === 'bug' ? 'red' : text === 'feature' ? 'blue' : text === 'epic' ? '#722ed1' : 'green'}>{text}</Tag>
         );
       }
     },

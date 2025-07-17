@@ -7,7 +7,7 @@ from models.user import User
 from models.activity_log import ActivityLog
 from datetime import datetime
 from controllers.rbac import require_project_role
-from controllers.jwt_utils import jwt_required
+from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.comment import Comment
 from sqlalchemy.orm import joinedload
 
@@ -22,9 +22,12 @@ def log_activity(item_id, user_id, action, details=None):
     db.session.add(log)
     db.session.commit()
 
-@jwt_required
+@jwt_required()
 def get_recent_activity():
-    user = getattr(request, 'user', None)
+    user_id = get_jwt_identity()
+    if not user_id:
+        return jsonify({'error': 'User not found'}), 401
+    user = User.query.get(user_id)
     if not user:
         return jsonify({'error': 'User not found'}), 401
     # Get recent activity logs for items the user is involved with (reporter or assignee)
@@ -325,31 +328,39 @@ def get_activity_logs(item_id):
     } for log in logs]
     return jsonify({'activity_logs': result})
 
-@jwt_required
+@jwt_required()
 def get_my_tasks():
-    user = getattr(request, 'user', None)
-    if not user:
+    print('[get_my_tasks] Called')
+    user_id = get_jwt_identity()
+    print(f'[get_my_tasks] user_id: {user_id}')
+    if not user_id:
+        print('[get_my_tasks] No user_id found')
         return jsonify({'error': 'User not found'}), 401
-    tasks = Item.query.filter(
-        (Item.assignee_id == user.id) | (Item.reporter_id == user.id)
-    ).order_by(Item.created_at.desc()).all()
-    result = []
-    for task in tasks:
-        result.append({
-            'id': task.id,
-            'title': task.title,
-            'description': task.description,
-            'status': task.status,
-            'type': task.type,
-            'priority': task.priority,
-            'due_date': task.due_date.isoformat() if task.due_date else None,
-            'project_id': task.project_id,
-            'assignee_id': task.assignee_id,
-            'reporter_id': task.reporter_id,
-            'created_at': task.created_at.isoformat(),
-            'updated_at': task.updated_at.isoformat() if task.updated_at else None,
-        })
-    return jsonify({'tasks': result})
+    try:
+        tasks = Item.query.filter(
+            (Item.assignee_id == user_id) | (Item.reporter_id == user_id)
+        ).order_by(Item.created_at.desc()).all()
+        result = []
+        for task in tasks:
+            result.append({
+                'id': task.id,
+                'title': task.title,
+                'description': task.description,
+                'status': task.status,
+                'type': task.type,
+                'priority': task.priority,
+                'due_date': task.due_date.isoformat() if task.due_date else None,
+                'project_id': task.project_id,
+                'assignee_id': task.assignee_id,
+                'reporter_id': task.reporter_id,
+                'created_at': task.created_at.isoformat(),
+                'updated_at': task.updated_at.isoformat() if task.updated_at else None,
+            })
+        print(f'[get_my_tasks] Returning {len(result)} tasks')
+        return jsonify({'tasks': result})
+    except Exception as e:
+        print(f'[get_my_tasks] Exception: {e}')
+        return jsonify({'error': 'Internal server error'}), 500
 
 @jwt_required
 def add_comment(item_id):

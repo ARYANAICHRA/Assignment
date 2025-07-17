@@ -150,3 +150,24 @@ def remove_team_member(team_id, user_id):
     db.session.delete(tm)
     db.session.commit()
     return jsonify({'message': 'Member removed'}) 
+
+@teams_bp.route('/teams/my-teams', methods=['GET'])
+@jwt_required()
+def get_my_teams():
+    user_id = get_jwt_identity()
+    if not user_id:
+        return jsonify({'error': 'User not found'}), 401
+    team_ids = [tm.team_id for tm in TeamMember.query.filter_by(user_id=user_id)]
+    teams = Team.query.filter(Team.id.in_(team_ids)).all()
+    result = [
+        {
+            'id': t.id,
+            'name': t.name,
+            'description': t.description,
+            'admin_id': t.admin_id,
+            'created_at': t.created_at.isoformat() if t.created_at else None,
+            'updated_at': t.updated_at.isoformat() if t.updated_at else None
+        }
+        for t in teams
+    ]
+    return jsonify({'teams': result}) 

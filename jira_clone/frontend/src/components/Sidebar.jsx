@@ -7,7 +7,8 @@ import {
   AppstoreOutlined,
   UserOutlined,
   LogoutOutlined,
-  MoreOutlined
+  MoreOutlined,
+  TeamOutlined
 } from '@ant-design/icons';
 import CreateProjectModal from './CreateProjectModal';
 import { jwtDecode } from "jwt-decode";
@@ -126,12 +127,12 @@ function Sidebar({ setIsAuthenticated }) {
           },
           {
             key: '/teams',
-            icon: <UserOutlined />, // You can replace with Team icon if you have one
+            icon: <TeamOutlined />, // Use Team icon for Teams
             label: <Link to="/teams">Teams</Link>,
           },
           {
             key: '/profile',
-            icon: <UserOutlined />,
+            icon: <UserOutlined />, // Keep User icon for Profile
             label: <Link to="/profile">Profile</Link>,
           },
         ]}

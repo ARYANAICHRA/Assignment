@@ -64,13 +64,13 @@ const TaskDetail = () => {
   }, [itemId]);
 
   const fetchTask = async () => {
-    setLoading(true);
-    const token = localStorage.getItem('token');
-    try {
-      const res = await fetch(`http://localhost:5000/items/${itemId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      try {
+        const res = await fetch(`http://localhost:5000/items/${itemId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
       console.log('[ItemDetail] fetchTask - data:', data);
       setTask(data.item);
       if (data.item?.project_id) {
@@ -85,12 +85,12 @@ const TaskDetail = () => {
   };
 
   const fetchMembers = async (projectId) => {
-    const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token');
     try {
       const res = await fetch(`http://localhost:5000/projects/${projectId}/members`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
-      const data = await res.json();
+        const data = await res.json();
       console.log('[ItemDetail] fetchMembers - data:', data);
       setMembers(data.members);
     } catch (error) {
@@ -103,7 +103,7 @@ const TaskDetail = () => {
     try {
       const values = await form.validateFields();
       console.log('[ItemDetail] handleUpdateTask - form values:', values);
-      const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token');
       const payload = {
         ...values,
         due_date: values.due_date?.format('YYYY-MM-DD')
@@ -134,19 +134,19 @@ const TaskDetail = () => {
     const token = localStorage.getItem('token');
     try {
       const res = await fetch(`http://localhost:5000/items/${task.id}/comments`, {
-        method: 'POST',
+      method: 'POST',
         headers: { 
           'Content-Type': 'application/json', 
           'Authorization': `Bearer ${token}` 
         },
-        body: JSON.stringify({ content: commentInput })
-      });
+      body: JSON.stringify({ content: commentInput })
+    });
       console.log('[ItemDetail] handleAddComment - response status:', res.status);
-      if (res.ok) {
-        setCommentInput('');
+    if (res.ok) {
+      setCommentInput('');
         fetchTask();
         message.success('Comment added');
-      }
+    }
     } catch (error) {
       console.error('[ItemDetail] handleAddComment error:', error);
       message.error('Failed to add comment');
@@ -248,13 +248,13 @@ const TaskDetail = () => {
                       {/* Assignee */}
                       <div style={{ minWidth: 100, display: 'flex', alignItems: 'center', gap: 6 }}>
                         {subtask.assignee_name ? (
-                          <>
+                        <>
                             <Avatar size={20} style={{ background: '#eee', color: '#555', fontSize: 12 }} icon={<UserOutlined />} />
                             <span style={{ fontSize: 14 }}>{subtask.assignee_name}</span>
                           </>
                         ) : (
                           <span style={{ color: '#bbb', fontSize: 14 }}>Unassigned</span>
-                        )}
+                      )}
                       </div>
                     </div>
                   </Card>
@@ -285,7 +285,7 @@ const TaskDetail = () => {
                     Comment
                   </Button>
                 </div>
-              </div>
+            </div>
             </div>
             {/* Comments List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -296,8 +296,8 @@ const TaskDetail = () => {
                     <div style={{ fontWeight: 500, color: '#222' }}>{comment.author_name}</div>
                     <div style={{ color: '#888', fontSize: 13, marginBottom: 4 }}>{dayjs(comment.created_at).format('MMM D, YYYY [at] h:mm A')}</div>
                     <div style={{ fontSize: 15 }}>{comment.content}</div>
-                  </div>
-                </div>
+            </div>
+            </div>
               ))}
               {(!task.comments || task.comments.length === 0) && <div style={{ color: '#bbb', textAlign: 'center' }}>No comments yet</div>}
             </div>
