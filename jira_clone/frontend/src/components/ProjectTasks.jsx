@@ -112,10 +112,7 @@ function ProjectTasks() {
   const handleEdit = (task) => {
     setEditTaskId(task.id);
     editForm.setFieldsValue({
-      type: task.type,
-      parent_id: task.parent_id || undefined,
       title: task.title,
-      description: task.description || '',
       priority: task.priority || undefined,
       status: task.status,
       assignee_id: task.assignee_id || undefined,
@@ -127,6 +124,9 @@ function ProjectTasks() {
   const handleEditSave = async () => {
     const token = localStorage.getItem('token');
     const values = await editForm.validateFields();
+    if (values.due_date && typeof values.due_date === 'object' && values.due_date.format) {
+      values.due_date = values.due_date.format('YYYY-MM-DD');
+    }
     await fetch(`http://localhost:5000/items/${editTaskId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -296,35 +296,29 @@ function ProjectTasks() {
       title: 'Type',
       dataIndex: 'type',
       key: 'type',
-      render: (type, record) => {
-        if (record.isEpic) {
-          const expanded = expandedEpics.includes(record.id);
-          return (
-            <span style={{ display: 'flex', alignItems: 'center' }}>
-              <span style={{ cursor: 'pointer', marginRight: 4 }} onClick={() => toggleEpic(record.id)}>
-                {expanded ? <CaretDownOutlined /> : <CaretRightOutlined />}
-              </span>
-              <Tag color="#722ed1" style={{ fontWeight: 700 }}>Epic</Tag>
-            </span>
-          );
-        }
-        if (type === 'bug') return <Tag color="red" icon={<BugOutlined />}>Bug</Tag>;
-        if (type === 'feature') return <Tag color="blue">Feature</Tag>;
-        return <Tag color="green">Task</Tag>;
-      },
+      render: (text, record) => (
+        <Tag color={text === 'bug' ? 'red' : text === 'feature' ? 'blue' : text === 'epic' ? '#722ed1' : 'green'}>{text}</Tag>
+      )
     },
     {
       title: 'Title',
       dataIndex: 'title',
       key: 'title',
       render: (text, record) => {
-        if (record.isEpic) return <span style={{ fontWeight: 700, color: '#722ed1' }}>{text}</span>;
+        if (record.isEpic) return (
+          <span
+            style={{ fontWeight: 700, color: '#722ed1', cursor: 'pointer' }}
+            onClick={e => { e.stopPropagation(); navigate(`/items/${record.id}`); }}
+          >
+            {text}
+          </span>
+        );
         if (record.isChild) return <span style={{ marginLeft: 32, display: 'inline-block' }}>{text}</span>;
         return (
           <AntdTooltip title="Click to view details">
             <span
               style={{ color: '#1677ff', cursor: 'pointer' }}
-              onClick={e => { e.stopPropagation(); navigate(`/item/${record.id}`); }}
+              onClick={e => { e.stopPropagation(); navigate(`/items/${record.id}`); }}
             >
               {text}
             </span>
@@ -379,19 +373,14 @@ function ProjectTasks() {
       key: 'actions',
       render: (_, record) => (
         <Space>
-          {canEditOrDelete(record) && (
-            <Tooltip title="Edit">
-              <Button type="text" icon={<EditOutlined />} onClick={() => handleEdit(record)} />
-            </Tooltip>
-          )}
+          <Tooltip title="View Details">
+            <Button type="text" icon={<ExclamationCircleOutlined />} onClick={() => { setSelectedTaskId(record.id); setEditTaskId(null); }} />
+          </Tooltip>
           {canEditOrDelete(record) && (
             <Tooltip title="Delete">
               <Button type="text" icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
             </Tooltip>
           )}
-          <Tooltip title="View Details">
-            <Button type="text" icon={<ExclamationCircleOutlined />} onClick={() => setSelectedTaskId(record.id)} />
-          </Tooltip>
         </Space>
       ),
     },
@@ -537,69 +526,7 @@ function ProjectTasks() {
           {taskError && <Alert message={taskError} type="error" showIcon style={{ marginBottom: 12 }} />}
         </Form>
       </Modal>
-      <Modal
-        open={!!editTaskId}
-        title="Edit Task"
-        onCancel={() => setEditTaskId(null)}
-        onOk={handleEditSave}
-        destroyOnClose
-        okButtonProps={{ disabled: !canEditOrDelete(tasks.find(t => t.id === editTaskId)) }}
-      >
-        <Form form={editForm} layout="vertical">
-          <Form.Item label="Type" name="type" rules={[{ required: true, message: 'Please select a type' }]}> 
-            <Select disabled>
-              <Option value="epic">Epic</Option>
-              <Option value="task">Task</Option>
-              <Option value="bug">Bug</Option>
-              <Option value="feature">Feature</Option>
-            </Select>
-          </Form.Item>
-          {editForm.getFieldValue('type') !== 'epic' && (
-            <Form.Item label="Parent Epic" name="parent_id">
-              <Select allowClear placeholder="Select an epic" disabled={!canEditOrDelete(tasks.find(t => t.id === editTaskId))}>
-                {epics.map(e => (
-                  <Option key={e.id} value={e.id}>{e.title}</Option>
-                ))}
-              </Select>
-            </Form.Item>
-          )}
-          <Form.Item label="Title" name="title" rules={[{ required: true, message: 'Title is required' }]}> 
-            <Input disabled={!canEditOrDelete(tasks.find(t => t.id === editTaskId))} />
-          </Form.Item>
-          <Form.Item label="Description" name="description">
-            <Input.TextArea autoSize={{ minRows: 2, maxRows: 4 }} disabled={!canEditOrDelete(tasks.find(t => t.id === editTaskId))} />
-          </Form.Item>
-          <Form.Item label="Priority" name="priority">
-            <Select allowClear disabled={!canEditOrDelete(tasks.find(t => t.id === editTaskId))}>
-              <Option value="High">High</Option>
-              <Option value="Medium">Medium</Option>
-              <Option value="Low">Low</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item label="Status" name="status" rules={[{ required: true, message: 'Status is required' }]}> 
-            <Select disabled={!canEditOrDelete(tasks.find(t => t.id === editTaskId))}>
-              <Option value="todo">To Do</Option>
-              <Option value="inprogress">In Progress</Option>
-              <Option value="inreview">In Review</Option>
-              <Option value="done">Done</Option>
-            </Select>
-          </Form.Item>
-          <Form.Item label="Assignee" name="assignee_id">
-            <Select allowClear showSearch optionFilterProp="children" placeholder="Assign to..." disabled={!canEditOrDelete(tasks.find(t => t.id === editTaskId))}>
-              {currentUser.id && (
-                <Option value={currentUser.id} key="me">Assign to me ({currentUser.username || currentUser.email || 'Me'})</Option>
-              )}
-              {users.filter(m => m.user_id !== currentUser.id).map(m => (
-                <Option key={m.user_id} value={m.user_id}>{m.username || m.email}</Option>
-              ))}
-            </Select>
-          </Form.Item>
-          <Form.Item label="Due Date" name="due_date">
-            <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" disabled={!canEditOrDelete(tasks.find(t => t.id === editTaskId))} />
-          </Form.Item>
-        </Form>
-      </Modal>
-      <TaskDetailModal isOpen={!!selectedTaskId} onRequestClose={() => setSelectedTaskId(null)} taskId={selectedTaskId} userRole={userRole} canEditOrDelete={canEditOrDelete} currentUser={currentUser} />
+      <TaskDetailModal isOpen={!!selectedTaskId} onRequestClose={() => setSelectedTaskId(null)} taskId={selectedTaskId} />
       <style>{`
         .child-task-row td {
           border-left: 4px solid #d3adf7 !important;

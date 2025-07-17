@@ -1,346 +1,340 @@
-import React, { useEffect, useState } from 'react';
-import { Modal, Descriptions, List, Button, Input, Tag, Typography, Space, Form, Alert, Spin, Select, Avatar, Tooltip, DatePicker, Popconfirm } from 'antd';
-import { BugOutlined, EditOutlined, DeleteOutlined, PlusOutlined, UserOutlined } from '@ant-design/icons';
+import React, { useEffect, useState, useContext } from 'react';
+import { Modal, Descriptions, Button, Form, Input, Select, DatePicker, Tag, Spin, Alert, List, Avatar, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useContext } from 'react';
+import { EditOutlined, SaveOutlined, CloseOutlined, UserOutlined } from '@ant-design/icons';
 import { ProjectContext } from '../context/ProjectContext';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
-function TaskDetailModal({ isOpen, onRequestClose, taskId, userRole, canEditOrDelete, currentUser }) {
-  const { selectedProject } = useContext(ProjectContext);
+const statusOptions = [
+  { value: 'todo', label: 'To Do' },
+  { value: 'inprogress', label: 'In Progress' },
+  { value: 'inreview', label: 'In Review' },
+  { value: 'done', label: 'Done' },
+];
+const typeOptions = [
+  { value: 'task', label: 'Task' },
+  { value: 'bug', label: 'Bug' },
+  { value: 'epic', label: 'Epic' },
+  { value: 'story', label: 'Story' },
+];
+const priorityOptions = [
+  { value: 'Low', label: 'Low' },
+  { value: 'Medium', label: 'Medium' },
+  { value: 'High', label: 'High' },
+  { value: 'Critical', label: 'Critical' },
+];
+
+function canEditTask(user, userRole, task) {
+  if (!user || !userRole || !task) return false;
+  if (userRole === 'admin' || userRole === 'manager') return true;
+  if (userRole === 'member' && (user.id === task.reporter_id || user.id === task.assignee_id)) return true;
+  return false;
+}
+
+export default function TaskDetailModal({ isOpen, onRequestClose, taskId }) {
+  const { selectedProject, setSelectedProject } = useContext(ProjectContext);
   const [task, setTask] = useState(null);
-  const [subtasks, setSubtasks] = useState([]);
-  const [activityLogs, setActivityLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState([]);
+  const [editing, setEditing] = useState(false);
+  const [form] = Form.useForm();
+  const [saving, setSaving] = useState(false);
+  const [commentInput, setCommentInput] = useState('');
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingCommentValue, setEditingCommentValue] = useState('');
+  // Set currentUser synchronously from localStorage
+  const [currentUser] = useState(() => {
+    return JSON.parse(localStorage.getItem('user')) || null;
+  });
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
-    if (isOpen && taskId) {
-      fetchTaskDetails();
-      fetchSubtasks();
-      fetchActivityLogs();
-      if (selectedProject) fetchMembers();
-    }
+    if (!isOpen) return;
+    setLoading(true);
+    fetchTask();
     // eslint-disable-next-line
   }, [isOpen, taskId, selectedProject]);
 
-  const fetchTaskDetails = async () => {
+  const fetchTask = async () => {
     setLoading(true);
     const token = localStorage.getItem('token');
     const res = await fetch(`http://localhost:5000/items/${taskId}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
+    if (!res.ok) {
+      setTask(null);
+      setLoading(false);
+      return;
+    }
     const data = await res.json();
-    if (res.ok) setTask(data.item);
+    setTask(data.item);
+    console.log('Fetched task (modal):', data.item); // <-- LOGGING
     setLoading(false);
+    // Fetch members for assignee select
+    if (data.item && data.item.project_id) fetchMembers(data.item.project_id);
+    // Set selectedProject if not set or mismatched
+    if (data.item && data.item.project_id && (!selectedProject || selectedProject.id !== data.item.project_id)) {
+      fetchAndSetProject(data.item.project_id);
+    }
   };
 
-  const fetchSubtasks = async () => {
+  // Set userRole when currentUser and task are available
+  useEffect(() => {
+    if (!currentUser || !task) return;
+    if (selectedProject && selectedProject.admin_id === currentUser.id) setUserRole('admin');
+    else if (task.assignee_id === currentUser.id) setUserRole('member');
+    else if (task.reporter_id === currentUser.id) setUserRole('member');
+    else setUserRole(currentUser.role);
+    console.log('Current user (modal):', currentUser); // <-- LOGGING
+    console.log('User role (modal):', userRole); // <-- LOGGING
+  }, [currentUser, task, selectedProject]);
+
+  // Helper to fetch and set project in context
+  const fetchAndSetProject = async (projectId) => {
     const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:5000/items/${taskId}/subtasks`, {
+    const res = await fetch(`http://localhost:5000/projects/${projectId}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    const data = await res.json();
-    if (res.ok) setSubtasks(data.subtasks);
+    if (res.ok) {
+      const data = await res.json();
+      setSelectedProject(data.project);
+    }
   };
 
-  const fetchActivityLogs = async () => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:5000/items/${taskId}/activity`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await res.json();
-    if (res.ok) setActivityLogs(data.activity_logs);
-  };
+  // Set form fields when entering edit mode or when task changes and editing is true
+  useEffect(() => {
+    if (editing && task) {
+      const values = {
+        title: task.title,
+        description: task.description,
+        status: task.status,
+        type: task.type,
+        priority: task.priority,
+        assignee_id: task.assignee_id,
+        due_date: task.due_date ? dayjs(task.due_date) : null,
+      };
+      console.log('useEffect setting form values (modal):', values); // <-- LOGGING
+      form.setFieldsValue(values);
+    }
+  }, [editing, task, form]);
 
-  const fetchMembers = async () => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/members`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await res.json();
-    if (res.ok) setMembers(data.members);
-  };
+  // Reset form fields when exiting edit mode or when task changes and not editing
+  useEffect(() => {
+    if (!editing && task) {
+      form.resetFields();
+    }
+  }, [editing, task, form]);
 
-  const handleFieldChange = async (field, value) => {
-    if (!task) return;
+  const handleSave = async (values) => {
+    setSaving(true);
     const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:5000/items/${task.id}`, {
+    const payload = { ...values };
+    if (payload.due_date && payload.due_date.format) {
+      payload.due_date = payload.due_date.format('YYYY-MM-DD');
+    }
+    const res = await fetch(`http://localhost:5000/items/${taskId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ [field]: value })
+      body: JSON.stringify(payload)
     });
-    if (res.ok) fetchTaskDetails();
+    if (res.ok) {
+      fetchTask();
+      setEditing(false);
+    }
+    setSaving(false);
+  };
+
+  const handleAddComment = async () => {
+    if (!commentInput.trim()) return;
+    const token = localStorage.getItem('token');
+    const res = await fetch(`http://localhost:5000/items/${task.id}/comments`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ content: commentInput })
+    });
+    if (res.ok) {
+      setCommentInput('');
+      fetchTask();
+    }
+  };
+
+  const handleEditComment = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditingCommentValue(comment.content);
+  };
+
+  const handleSaveEditComment = async (comment) => {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`http://localhost:5000/comments/${comment.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ content: editingCommentValue })
+    });
+    if (res.ok) {
+      setEditingCommentId(null);
+      setEditingCommentValue('');
+      fetchTask();
+    }
+  };
+
+  const handleCancelEditComment = () => {
+    setEditingCommentId(null);
+    setEditingCommentValue('');
   };
 
   if (!isOpen) return null;
+  if (loading || !task) return <Modal open={isOpen} onCancel={onRequestClose} footer={null}><Spin style={{ margin: 40 }} /></Modal>;
+  // If task is loaded, render modal content. Edit button will only show if canEdit is true (requires currentUser and userRole)
 
-  const isBug = task && task.type === 'bug';
-  // Determine if the user can edit this task
-  const canEdit = task && canEditOrDelete && currentUser && canEditOrDelete(task);
+  const canEdit = canEditTask(currentUser, userRole, task);
 
   return (
-    <Modal
-      open={isOpen}
-      onCancel={onRequestClose}
-      title={<span>{isBug && <BugOutlined style={{ color: 'red', marginRight: 8 }} />}Task Details</span>}
-      footer={null}
-      width={700}
-      destroyOnClose
-    >
-      {loading || !task ? (
-        <div style={{ textAlign: 'center', padding: 32 }}><Spin size="large" /></div>
-      ) : (
-        <div>
-          <Title level={4} style={{ marginBottom: 16 }}>{task.title}</Title>
+    <Modal open={isOpen} onCancel={onRequestClose} footer={null} title="Task Details" width={700}>
+      {!editing ? (
+        <>
+          {/* Parent Epic if this is a child */}
+          {task.parent_epic && (
+            <div style={{ marginBottom: 24 }}>
+              <h3>Parent Epic</h3>
+              <Descriptions bordered size="small">
+                <Descriptions.Item label="Title">{task.parent_epic.title}</Descriptions.Item>
+                <Descriptions.Item label="Status">{task.parent_epic.status}</Descriptions.Item>
+                <Descriptions.Item label="Priority">{task.parent_epic.priority}</Descriptions.Item>
+                <Descriptions.Item label="Due Date">{task.parent_epic.due_date || '-'}</Descriptions.Item>
+              </Descriptions>
+            </div>
+          )}
           <Descriptions bordered column={2} size="small">
-            <Descriptions.Item label="Status">
-              <Tag color={task.status === 'done' ? 'green' : task.status === 'inprogress' ? 'gold' : task.status === 'inreview' ? 'blue' : 'default'}>{task.status}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Priority">
-              <Select
-                value={task.priority || undefined}
-                style={{ minWidth: 120 }}
-                onChange={val => canEdit && handleFieldChange('priority', val)}
-                placeholder="Select priority"
-                allowClear
-                disabled={!canEdit}
-              >
-                <Select.Option value="High">High</Select.Option>
-                <Select.Option value="Medium">Medium</Select.Option>
-                <Select.Option value="Low">Low</Select.Option>
-              </Select>
-            </Descriptions.Item>
-            <Descriptions.Item label="Due Date">{task.due_date ? <Tag color="purple">{task.due_date}</Tag> : '\u2014'}</Descriptions.Item>
-            <Descriptions.Item label="Assignee">
-              <Select
-                value={task.assignee_id || undefined}
-                style={{ minWidth: 120 }}
-                onChange={val => canEdit && handleFieldChange('assignee_id', val)}
-                placeholder="Assign to..."
-                allowClear
-                showSearch
-                optionFilterProp="children"
-                disabled={!canEdit}
-              >
-                {members.map(m => (
-                  <Select.Option key={m.user_id} value={m.user_id}>{m.username || m.email}</Select.Option>
-                ))}
-              </Select>
-            </Descriptions.Item>
-            {isBug && <Descriptions.Item label="Severity" span={2}>
-              <Select
-                value={task.severity || undefined}
-                style={{ minWidth: 120 }}
-                onChange={val => canEdit && handleFieldChange('severity', val)}
-                placeholder="Select severity"
-                disabled={!canEdit}
-              >
-                <Select.Option value="Critical">Critical</Select.Option>
-                <Select.Option value="Major">Major</Select.Option>
-                <Select.Option value="Minor">Minor</Select.Option>
-                <Select.Option value="Trivial">Trivial</Select.Option>
-              </Select>
-            </Descriptions.Item>}
-            {isBug && <Descriptions.Item label="Steps to Reproduce" span={2}>{task.steps_to_reproduce || '\u2014'}</Descriptions.Item>}
-            <Descriptions.Item label="Description" span={2}>
-              <Input.TextArea value={task.description || ''} autoSize={{ minRows: 2, maxRows: 4 }}
-                onChange={e => canEdit && handleFieldChange('description', e.target.value)}
-                disabled={!canEdit}
-              />
-            </Descriptions.Item>
+            <Descriptions.Item label="Title" span={2}>{task.title}</Descriptions.Item>
+            <Descriptions.Item label="Description" span={2}>{task.description}</Descriptions.Item>
+            <Descriptions.Item label="Status"><Tag>{task.status}</Tag></Descriptions.Item>
+            <Descriptions.Item label="Type"><Tag>{task.type}</Tag></Descriptions.Item>
+            <Descriptions.Item label="Priority"><Tag>{task.priority}</Tag></Descriptions.Item>
+            <Descriptions.Item label="Assignee">{task.assignee_name || <Tag>Unassigned</Tag>}</Descriptions.Item>
+            <Descriptions.Item label="Reporter">{task.reporter_name || <Tag>Unknown</Tag>}</Descriptions.Item>
+            <Descriptions.Item label="Due Date">{task.due_date || '-'}</Descriptions.Item>
+            <Descriptions.Item label="Created At">{task.created_at || '-'}</Descriptions.Item>
+            <Descriptions.Item label="Updated At">{task.updated_at || '-'}</Descriptions.Item>
+            <Descriptions.Item label="Task ID">{task.id}</Descriptions.Item>
           </Descriptions>
-          <SubtasksSection subtasks={subtasks} parentId={taskId} refresh={fetchSubtasks} userRole={userRole} />
-          <ActivityLogSection logs={activityLogs} />
-        </div>
+          {/* Subtasks if this is an epic */}
+          {task.type === 'epic' && task.subtasks && task.subtasks.length > 0 && (
+            <div style={{ marginTop: 24 }}>
+              <h3>Subtasks</h3>
+              <List
+                dataSource={task.subtasks}
+                renderItem={subtask => (
+                  <List.Item>
+                    <span style={{ fontWeight: 500 }}>{subtask.title}</span>
+                    <Tag color={subtask.status === 'done' ? 'green' : subtask.status === 'inprogress' ? 'orange' : subtask.status === 'inreview' ? 'purple' : 'blue'}>{subtask.status}</Tag>
+                    <Tag color={subtask.priority === 'High' ? 'red' : subtask.priority === 'Medium' ? 'orange' : subtask.priority === 'Critical' ? 'volcano' : 'blue'}>{subtask.priority || 'None'}</Tag>
+                    <span style={{ marginLeft: 12, color: '#888' }}>{subtask.due_date ? dayjs(subtask.due_date).format('YYYY-MM-DD') : 'No due date'}</span>
+                  </List.Item>
+                )}
+                locale={{ emptyText: <span style={{ color: '#bbb' }}>No subtasks</span> }}
+              />
+            </div>
+          )}
+          {canEdit && (
+            <Button type="primary" style={{ marginTop: 16 }} onClick={() => {
+              setEditing(true);
+              if (task) {
+                const values = {
+                  title: task.title,
+                  description: task.description,
+                  status: task.status,
+                  type: task.type,
+                  priority: task.priority,
+                  assignee_id: task.assignee_id,
+                  due_date: task.due_date ? dayjs(task.due_date) : null,
+                };
+                console.log('Setting form values on edit (modal):', values); // <-- LOGGING
+                form.setFieldsValue(values);
+              }
+            }} icon={<EditOutlined />}>Edit</Button>
+          )}
+        </>
+      ) : (
+        canEdit && task ? (
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleSave}
+          >
+            <Form.Item name="title" label="Title" rules={[{ required: true, message: 'Title is required' }]}> 
+              <Input /> 
+            </Form.Item>
+            <Form.Item name="description" label="Description"> 
+              <Input.TextArea rows={3} /> 
+            </Form.Item>
+            <Form.Item name="status" label="Status" rules={[{ required: true }]}> 
+              <Select options={statusOptions} /> 
+            </Form.Item>
+            <Form.Item name="type" label="Type" rules={[{ required: true }]}> 
+              <Select options={typeOptions} /> 
+            </Form.Item>
+            <Form.Item name="priority" label="Priority"> 
+              <Select allowClear options={priorityOptions} /> 
+            </Form.Item>
+            <Form.Item name="assignee_id" label="Assignee"> 
+              <Select allowClear options={members.map(m => ({ value: m.user_id, label: m.username || m.email }))} /> 
+            </Form.Item>
+            <Form.Item name="due_date" label="Due Date"> 
+              <DatePicker /> 
+            </Form.Item>
+            <div style={{ marginTop: 16 }}>
+              <Button type="primary" htmlType="submit" loading={saving} icon={<SaveOutlined />}>Save</Button>
+              <Button style={{ marginLeft: 8 }} onClick={() => setEditing(false)} icon={<CloseOutlined />}>Cancel</Button>
+            </div>
+          </Form>
+        ) : (
+          <Alert type="error" message="You do not have permission to edit this item." showIcon style={{ marginTop: 16 }} />
+        )
       )}
+      {/* Comments Section */}
+      <div style={{ marginTop: 32 }}>
+        <h3>Comments</h3>
+        <List
+          dataSource={task.comments || []}
+          renderItem={comment => (
+            <List.Item
+              actions={currentUser && comment.user_id === currentUser.id ? [
+                editingCommentId === comment.id ? (
+                  <>
+                    <Button icon={<SaveOutlined />} size="small" onClick={() => handleSaveEditComment(comment)} />
+                    <Button icon={<CloseOutlined />} size="small" onClick={handleCancelEditComment} />
+                  </>
+                ) : (
+                  <Button icon={<EditOutlined />} size="small" onClick={() => handleEditComment(comment)} />
+                )
+              ] : []}
+            >
+              <Avatar icon={<UserOutlined />} style={{ marginRight: 8 }} />
+              <div>
+                <Text strong>{comment.author_name}:</Text> {editingCommentId === comment.id ? (
+                  <Input.TextArea
+                    value={editingCommentValue}
+                    onChange={e => setEditingCommentValue(e.target.value)}
+                    autoSize={{ minRows: 1, maxRows: 4 }}
+                  />
+                ) : (
+                  comment.content
+                )}
+                <Text type="secondary"> ({comment.created_at})</Text>
+              </div>
+            </List.Item>
+          )}
+        />
+        <Input.TextArea
+          value={commentInput}
+          onChange={e => setCommentInput(e.target.value)}
+          placeholder="Add a comment..."
+          autoSize={{ minRows: 1, maxRows: 4 }}
+          style={{ marginTop: 12 }}
+        />
+        <Button type="primary" onClick={handleAddComment} style={{ marginTop: 8 }}>Add Comment</Button>
+      </div>
     </Modal>
   );
 }
-
-function SubtasksSection({ subtasks, parentId, refresh, userRole }) {
-  const [showForm, setShowForm] = useState(false);
-  const [form] = Form.useForm();
-  const [editId, setEditId] = useState(null);
-  const [editForm] = Form.useForm();
-  const [error, setError] = useState('');
-  const canManage = ["admin", "project_manager", "developer", "reporter"].includes(userRole);
-
-  const handleSubmit = async (values) => {
-    setError('');
-    const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:5000/items/${parentId}/subtasks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(values)
-    });
-    if (res.ok) {
-      form.resetFields();
-      setShowForm(false);
-      refresh();
-    } else {
-      const data = await res.json();
-      setError(data.error || 'Failed to add subtask');
-    }
-  };
-
-  const handleEdit = (subtask) => {
-    setEditId(subtask.id);
-    editForm.setFieldsValue({
-      title: subtask.title,
-      status: subtask.status,
-      priority: subtask.priority || '',
-      due_date: subtask.due_date ? dayjs(subtask.due_date) : null
-    });
-  };
-
-  const handleEditSave = async () => {
-    const token = localStorage.getItem('token');
-    const values = await editForm.validateFields();
-    if (values.due_date) values.due_date = values.due_date.format('YYYY-MM-DD');
-    const res = await fetch(`http://localhost:5000/subtasks/${editId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(values)
-    });
-    if (res.ok) {
-      setEditId(null);
-      refresh();
-    } else {
-      const data = await res.json();
-      setError(data.error || 'Failed to update subtask');
-    }
-  };
-
-  const handleDelete = async (id) => {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:5000/subtasks/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (res.ok) {
-      refresh();
-    } else {
-      const data = await res.json();
-      setError(data.error || 'Failed to delete subtask');
-    }
-  };
-
-  return (
-    <div style={{ marginTop: 32 }}>
-      <Title level={5}>Subtasks</Title>
-      <List
-        dataSource={subtasks}
-        renderItem={st => (
-          <List.Item
-            actions={editId === st.id ? [
-              <Button type="primary" size="small" icon={<EditOutlined />} onClick={handleEditSave}>Save</Button>,
-              <Button size="small" onClick={() => setEditId(null)}>Cancel</Button>
-            ] : canManage ? [
-              <Tooltip title="Edit Subtask"><Button type="link" size="small" onClick={() => handleEdit(st)} icon={<EditOutlined />} /></Tooltip>,
-              <Popconfirm title="Delete this subtask?" onConfirm={() => handleDelete(st.id)} okText="Yes" cancelText="No">
-                <Tooltip title="Delete Subtask"><Button type="link" danger size="small" icon={<DeleteOutlined />} /></Tooltip>
-              </Popconfirm>
-            ] : []}
-          >
-            {editId === st.id ? (
-              <Form form={editForm} layout="inline" style={{ margin: 0 }}>
-                <Form.Item name="title" style={{ margin: 0, width: 120 }} rules={[{ required: true, message: 'Title required' }]}> 
-                  <Input />
-                </Form.Item>
-                <Form.Item name="status" style={{ margin: 0, width: 120 }} rules={[{ required: true }]}> 
-                  <Select>
-                    <Select.Option value="todo">To Do</Select.Option>
-                    <Select.Option value="inprogress">In Progress</Select.Option>
-                    <Select.Option value="inreview">In Review</Select.Option>
-                    <Select.Option value="done">Done</Select.Option>
-                  </Select>
-                </Form.Item>
-                <Form.Item name="priority" style={{ margin: 0, width: 100 }}>
-                  <Select allowClear placeholder="Priority">
-                    <Select.Option value="High">High</Select.Option>
-                    <Select.Option value="Medium">Medium</Select.Option>
-                    <Select.Option value="Low">Low</Select.Option>
-                  </Select>
-                </Form.Item>
-                <Form.Item name="due_date" style={{ margin: 0, width: 140 }}>
-                  <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
-                </Form.Item>
-              </Form>
-            ) : (
-              <Space>
-                <Text strong>{st.title}</Text>
-                <Tag color={st.status === 'done' ? 'green' : st.status === 'inprogress' ? 'gold' : st.status === 'inreview' ? 'blue' : 'default'}>{st.status}</Tag>
-                {st.priority && <Tag color={st.priority === 'High' ? 'red' : st.priority === 'Medium' ? 'orange' : 'blue'}>{st.priority}</Tag>}
-                {st.due_date && <Tag color="purple">{st.due_date}</Tag>}
-              </Space>
-            )}
-          </List.Item>
-        )}
-        locale={{ emptyText: 'No subtasks.' }}
-      />
-      {canManage && (
-        <div style={{ marginTop: 12 }}>
-          {!showForm ? (
-            <Button type="dashed" icon={<PlusOutlined />} onClick={() => setShowForm(true)}>Add Subtask</Button>
-          ) : (
-            <Form form={form} layout="inline" onFinish={async (values) => {
-              if (values.due_date) values.due_date = values.due_date.format('YYYY-MM-DD');
-              await handleSubmit(values);
-            }} style={{ marginTop: 8 }}>
-              <Form.Item name="title" rules={[{ required: true, message: 'Title required' }]}> 
-                <Input placeholder="Subtask title" />
-              </Form.Item>
-              <Form.Item name="status" initialValue="todo">
-                <Select style={{ width: 120 }}>
-                  <Select.Option value="todo">To Do</Select.Option>
-                  <Select.Option value="inprogress">In Progress</Select.Option>
-                  <Select.Option value="inreview">In Review</Select.Option>
-                  <Select.Option value="done">Done</Select.Option>
-                </Select>
-              </Form.Item>
-              <Form.Item name="priority">
-                <Select allowClear placeholder="Priority">
-                  <Select.Option value="High">High</Select.Option>
-                  <Select.Option value="Medium">Medium</Select.Option>
-                  <Select.Option value="Low">Low</Select.Option>
-                </Select>
-              </Form.Item>
-              <Form.Item name="due_date">
-                <DatePicker style={{ width: 140 }} format="YYYY-MM-DD" />
-              </Form.Item>
-              <Form.Item>
-                <Button type="primary" htmlType="submit">Add</Button>
-              </Form.Item>
-              <Form.Item>
-                <Button onClick={() => setShowForm(false)}>Cancel</Button>
-              </Form.Item>
-              {error && <Alert message={error} type="error" showIcon style={{ marginLeft: 8 }} />}
-            </Form>
-          )}
-        </div>
-      )}
-      {error && <Alert message={error} type="error" showIcon style={{ marginTop: 8 }} />}
-    </div>
-  );
-}
-
-function ActivityLogSection({ logs }) {
-  return (
-    <div style={{ marginTop: 32 }}>
-      <Title level={5}>Activity Log</Title>
-      <List
-        dataSource={logs}
-        renderItem={log => (
-          <List.Item>
-            <Text type="secondary" style={{ fontFamily: 'monospace' }}>[{log.created_at}]</Text> <Text strong>User {log.user_id}</Text> {log.action} {log.details && <span>- {log.details}</span>}
-          </List.Item>
-        )}
-        locale={{ emptyText: 'No activity yet.' }}
-      />
-    </div>
-  );
-}
-
-export default TaskDetailModal;

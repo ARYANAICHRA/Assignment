@@ -1,3 +1,4 @@
+import logging
 from flask import request, jsonify
 from models.db import db
 from models.item import Item
@@ -7,10 +8,15 @@ from models.activity_log import ActivityLog
 from datetime import datetime
 from controllers.rbac import require_project_role
 from controllers.jwt_utils import jwt_required
+from models.comment import Comment
+from sqlalchemy.orm import joinedload
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def log_activity(item_id, user_id, action, details=None):
     if item_id is None:
-        print("Warning: Tried to log activity with null item_id. Skipping log entry.")
+        logger.warning("Tried to log activity with null item_id. Skipping log entry.")
         return
     log = ActivityLog(item_id=item_id, user_id=user_id, action=action, details=details)
     db.session.add(log)
@@ -51,8 +57,20 @@ def create_item(project_id):
     priority = data.get('priority')
     parent_id = data.get('parent_id')
     severity = data.get('severity')
+    # --- Field validation ---
+    allowed_status = {'todo', 'inprogress', 'done', 'inreview'}
+    allowed_types = {'task', 'bug', 'epic', 'story'}
+    allowed_priority = {'Low', 'Medium', 'High', 'Critical', None}
     if not title or not column_id:
         return jsonify({'error': 'Title and column_id required'}), 400
+    if len(title) > 120:
+        return jsonify({'error': 'Title too long (max 120 chars)'}), 400
+    if status not in allowed_status:
+        return jsonify({'error': f'Invalid status: {status}'}), 400
+    if type not in allowed_types:
+        return jsonify({'error': f'Invalid type: {type}'}), 400
+    if priority not in allowed_priority:
+        return jsonify({'error': f'Invalid priority: {priority}'}), 400
     item = Item(
         title=title,
         description=description,
@@ -78,10 +96,13 @@ def create_item(project_id):
 @require_project_role('view_tasks')
 def get_items(project_id=None, **kwargs):
     item_type = request.args.get('type')
+    limit = int(request.args.get('limit', 50))
+    offset = int(request.args.get('offset', 0))
     query = Item.query.filter_by(project_id=project_id)
     if item_type:
         query = query.filter_by(type=item_type)
-    items = query.all()
+    total = query.count()
+    items = query.offset(offset).limit(limit).all()
     result = [{
         'id': i.id,
         'title': i.title,
@@ -92,13 +113,16 @@ def get_items(project_id=None, **kwargs):
         'parent_id': i.parent_id,
         'type': i.type
     } for i in items]
-    return jsonify({'items': result})
+    return jsonify({'items': result, 'total': total, 'limit': limit, 'offset': offset})
 
 @require_project_role('view_tasks')
 def get_item(item_id):
-    item = Item.query.get(item_id)
+    item = Item.query.options(
+        joinedload(Item.comments),
+        joinedload(Item.subtasks)
+    ).get(item_id)
     if not item:
-        return jsonify({'error': 'Item not found'}), 404
+        return jsonify({'error': f'Item not found: {item_id}'}), 404
     # Fetch assignee and reporter names
     assignee = User.query.get(item.assignee_id) if item.assignee_id else None
     reporter = User.query.get(item.reporter_id) if item.reporter_id else None
@@ -110,16 +134,32 @@ def get_item(item_id):
             'id': c.id,
             'author_name': author.username if author else None,
             'content': c.content,
+            'user_id': c.user_id,
             'created_at': c.created_at.isoformat() if hasattr(c, 'created_at') and c.created_at else None
         })
-    # Fetch attachments
-    attachments = []
-    for a in item.attachments.all() if hasattr(item, 'attachments') else []:
-        attachments.append({
-            'id': a.id,
-            'filename': getattr(a, 'filename', None),
-            'url': getattr(a, 'url', None)
-        })
+    # Fetch subtasks (children)
+    subtasks = []
+    if hasattr(item, 'subtasks'):
+        for s in item.subtasks:
+            subtasks.append({
+                'id': s.id,
+                'title': s.title,
+                'status': s.status,
+                'priority': s.priority,
+                'due_date': s.due_date.isoformat() if s.due_date else None
+            })
+    # Fetch parent epic (if any)
+    parent_epic = None
+    if item.parent_id:
+        parent = Item.query.get(item.parent_id)
+        if parent:
+            parent_epic = {
+                'id': parent.id,
+                'title': parent.title,
+                'status': parent.status,
+                'priority': parent.priority,
+                'due_date': parent.due_date.isoformat() if parent.due_date else None
+            }
     return jsonify({'item': {
         'id': item.id,
         'title': item.title,
@@ -137,23 +177,31 @@ def get_item(item_id):
         'created_at': item.created_at.isoformat() if item.created_at else None,
         'updated_at': item.updated_at.isoformat() if item.updated_at else None,
         'comments': comments,
-        'attachments': attachments
+        'subtasks': subtasks,
+        'parent_epic': parent_epic
     }})
 
 @require_project_role('edit_any_task', allow_own='edit_own_task')
 def update_item(item_id):
     item = Item.query.get(item_id)
     if not item:
-        return jsonify({'error': 'Item not found'}), 404
-    user = getattr(request, 'user', None)
-    # Only allow if user is admin/manager, or is reporter/assignee
-    if user.role == 'member' and user.id not in [item.reporter_id, item.assignee_id]:
-        return jsonify({'error': 'Forbidden: You can only edit tasks you reported or are assigned to.'}), 403
+        return jsonify({'error': f'Item not found: {item_id}'}), 404
     data = request.get_json()
     changes = []
-    old_assignee = item.assignee_id
+    # --- Field validation ---
+    allowed_status = {'todo', 'inprogress', 'done', 'inreview'}
+    allowed_types = {'task', 'bug', 'epic', 'story'}
+    allowed_priority = {'Low', 'Medium', 'High', 'Critical', None}
     for field in ['title', 'description', 'status', 'assignee_id', 'column_id', 'priority', 'parent_id', 'type', 'severity']:
         if field in data:
+            if field == 'title' and len(data['title']) > 120:
+                return jsonify({'error': 'Title too long (max 120 chars)'}), 400
+            if field == 'status' and data['status'] not in allowed_status:
+                return jsonify({'error': f'Invalid status: {data["status"]}'}), 400
+            if field == 'type' and data['type'] not in allowed_types:
+                return jsonify({'error': f'Invalid type: {data["type"]}'}), 400
+            if field == 'priority' and data['priority'] not in allowed_priority:
+                return jsonify({'error': f'Invalid priority: {data["priority"]}'}), 400
             old = getattr(item, field)
             new = data[field]
             if old != new:
@@ -168,29 +216,16 @@ def update_item(item_id):
     db.session.commit()
     if changes:
         log_activity(item.id, getattr(request.user, 'id', None), 'updated', '; '.join(changes))
-    # Notify new assignee if changed
-    if 'assignee_id' in data and data['assignee_id'] and data['assignee_id'] != old_assignee:
-        pass # Removed notification logic
-    # Notify previous assignee if unassigned
-    if 'assignee_id' in data and not data['assignee_id'] and old_assignee:
-        pass # Removed notification logic
     return jsonify({'message': 'Item updated'})
 
 @require_project_role('delete_any_task', allow_own='delete_own_task')
 def delete_item(item_id):
     item = Item.query.get(item_id)
     if not item:
-        return jsonify({'error': 'Item not found'}), 404
-    user = getattr(request, 'user', None)
-    # Only allow if user is admin/manager, or is reporter/assignee
-    if user.role == 'member' and user.id not in [item.reporter_id, item.assignee_id]:
-        return jsonify({'error': 'Forbidden: You can only delete tasks you reported or are assigned to.'}), 403
+        return jsonify({'error': f'Item not found: {item_id}'}), 404
     db.session.delete(item)
     db.session.commit()
     log_activity(item_id, getattr(request.user, 'id', None), 'deleted', 'Task deleted')
-    # Notify assignee if task deleted
-    if item.assignee_id:
-        pass # Removed notification logic
     return jsonify({'message': 'Item deleted'})
 
 # --- Subtask Endpoints ---
@@ -199,15 +234,18 @@ def get_subtasks(item_id):
     parent = Item.query.get(item_id)
     if not parent:
         return jsonify({'error': 'Parent task not found'}), 404
-    subtasks = parent.subtasks.all()
+    limit = int(request.args.get('limit', 50))
+    offset = int(request.args.get('offset', 0))
+    subtasks_query = parent.subtasks.offset(offset).limit(limit)
     result = [{
         'id': s.id,
         'title': s.title,
         'status': s.status,
         'priority': s.priority,
         'due_date': s.due_date.isoformat() if s.due_date else None
-    } for s in subtasks]
-    return jsonify({'subtasks': result})
+    } for s in subtasks_query]
+    total = parent.subtasks.count()
+    return jsonify({'subtasks': result, 'total': total, 'limit': limit, 'offset': offset})
 
 @require_project_role('create_task')
 def create_subtask(item_id):
@@ -309,3 +347,35 @@ def get_my_tasks():
             'updated_at': task.updated_at.isoformat() if task.updated_at else None,
         })
     return jsonify({'tasks': result})
+
+@jwt_required
+def add_comment(item_id):
+    user = getattr(request, 'user', None)
+    if not user:
+        return jsonify({'error': 'User not found'}), 401
+    data = request.get_json()
+    content = data.get('content')
+    if not content:
+        return jsonify({'error': 'Content required'}), 400
+    comment = Comment(item_id=item_id, user_id=user.id, content=content)
+    db.session.add(comment)
+    db.session.commit()
+    return jsonify({'message': 'Comment added', 'comment': {'id': comment.id, 'content': comment.content, 'user_id': comment.user_id, 'author_name': user.username, 'created_at': comment.created_at.isoformat()}}), 201
+
+@jwt_required
+def edit_comment(comment_id):
+    user = getattr(request, 'user', None)
+    if not user:
+        return jsonify({'error': 'User not found'}), 401
+    comment = Comment.query.get(comment_id)
+    if not comment:
+        return jsonify({'error': 'Comment not found'}), 404
+    if comment.user_id != user.id:
+        return jsonify({'error': 'You can only edit your own comments'}), 403
+    data = request.get_json()
+    content = data.get('content')
+    if not content:
+        return jsonify({'error': 'Content required'}), 400
+    comment.content = content
+    db.session.commit()
+    return jsonify({'message': 'Comment updated', 'comment': {'id': comment.id, 'content': comment.content, 'user_id': comment.user_id, 'created_at': comment.created_at}})

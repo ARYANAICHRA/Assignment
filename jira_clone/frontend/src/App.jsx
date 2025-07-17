@@ -46,7 +46,7 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/projects/:id" element={<ProjectPage />} />
-            <Route path="/item/:itemId" element={<ItemDetail />} />
+            <Route path="/items/:itemId" element={<ItemDetail />} />
             <Route path="/project-management" element={<ProjectManagement />} />
             <Route path="/teams" element={<Teams />} />
             <Route path="*" element={<Navigate to="/" />} />

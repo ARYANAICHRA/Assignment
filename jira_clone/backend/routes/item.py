@@ -1,5 +1,5 @@
 from flask import Blueprint
-from controllers.item_controller import create_item, get_items, get_item, update_item, delete_item, get_subtasks, create_subtask, update_subtask, delete_subtask, get_activity_logs, get_recent_activity, get_my_tasks
+from controllers.item_controller import create_item, get_items, get_item, update_item, delete_item, get_subtasks, create_subtask, update_subtask, delete_subtask, get_activity_logs, get_recent_activity, get_my_tasks, add_comment, edit_comment
 # from controllers.jwt_utils import jwt_required  # Remove this import
 
 item_bp = Blueprint('item', __name__)
@@ -20,3 +20,5 @@ item_bp.route('/subtasks/<int:subtask_id>', methods=['DELETE'])(delete_subtask)
 item_bp.route('/items/<int:item_id>/activity', methods=['GET'])(get_activity_logs)
 item_bp.route('/activity', methods=['GET'])(get_recent_activity)
 item_bp.route('/my-tasks', methods=['GET'])(get_my_tasks)
+item_bp.route('/items/<int:item_id>/comments', methods=['POST'])(add_comment)
+item_bp.route('/comments/<int:comment_id>', methods=['PATCH'])(edit_comment)
