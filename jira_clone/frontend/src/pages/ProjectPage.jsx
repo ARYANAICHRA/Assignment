@@ -9,6 +9,7 @@ import { Pie } from '@ant-design/plots';
 import { UserOutlined as UserIcon } from '@ant-design/icons';
 import { Card as AntCard } from 'antd';
 import { CheckCircleTwoTone, ClockCircleTwoTone, UserOutlined, ExclamationCircleTwoTone, TeamOutlined, PieChartTwoTone } from '@ant-design/icons';
+import Reports from './Reports';
 
 const { TabPane } = Tabs;
 const { Title, Paragraph } = Typography;
@@ -142,6 +143,18 @@ function ProjectPage() {
     },
   };
 
+  // Get user role from JWT
+  let userRole = null;
+  const token = localStorage.getItem('token');
+  if (token) {
+    try {
+      const decoded = JSON.parse(atob(token.split('.')[1]));
+      userRole = decoded.role;
+    } catch (e) {
+      userRole = null;
+    }
+  }
+
   return (
     <Card style={{ minHeight: 600, margin: '0 auto', maxWidth: 1200 }}>
       {/* Project name and description in vertical layout */}
@@ -232,6 +245,11 @@ function ProjectPage() {
             </Row>
           </div>
         </TabPane>
+        {(userRole === 'admin' || userRole === 'manager') && (
+          <TabPane tab="Reports" key="reports">
+            <Reports projectId={id} />
+          </TabPane>
+        )}
       </Tabs>
     </Card>
   );

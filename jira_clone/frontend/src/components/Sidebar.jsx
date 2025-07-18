@@ -145,6 +145,11 @@ function Sidebar({ setIsAuthenticated }) {
             icon: <UserOutlined style={{ color: '#1677ff' }} />, 
             label: <Link to="/profile">Profile</Link>,
           },
+          {
+            key: '/reports',
+            icon: <FolderOpenOutlined style={{ color: '#1677ff' }} />, 
+            label: <Link to="/reports/project/1">Reports</Link>, // Example: project 1, can be dynamic later
+          },
         ]}
       />
       <Divider style={{ margin: '8px 0', borderColor: '#e6e8ec' }} />

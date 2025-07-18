@@ -17,6 +17,7 @@ import './index.css';
 import ItemDetail from './pages/ItemDetail';
 import ProjectManagement from './pages/ProjectManagement';
 import Teams from './pages/Teams';
+import Reports from './pages/Reports';
 
 const { Sider, Content, Header: AntHeader, Footer: AntFooter } = Layout;
 
@@ -47,6 +48,7 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
             <Route path="/items/:itemId" element={<ItemDetail />} />
             <Route path="/project-management" element={<ProjectManagement />} />
             <Route path="/teams" element={<Teams />} />
+            <Route path="/reports/project/:projectId" element={<Reports />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
           {showFooter && (
