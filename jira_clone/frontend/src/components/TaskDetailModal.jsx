@@ -63,7 +63,7 @@ export default function TaskDetailModal({ isOpen, onRequestClose, taskId }) {
   const fetchTask = async () => {
     setLoading(true);
     const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:5000/items/items/${taskId}`, {
+    const res = await fetch(`http://localhost:5000/items/${taskId}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) {
@@ -137,7 +137,7 @@ export default function TaskDetailModal({ isOpen, onRequestClose, taskId }) {
     if (payload.due_date && payload.due_date.format) {
       payload.due_date = payload.due_date.format('YYYY-MM-DD');
     }
-    const res = await fetch(`http://localhost:5000/items/items/${taskId}`, {
+    const res = await fetch(`http://localhost:5000/items/${taskId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(payload)
@@ -152,7 +152,7 @@ export default function TaskDetailModal({ isOpen, onRequestClose, taskId }) {
   const handleAddComment = async () => {
     if (!commentInput.trim()) return;
     const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:5000/items/items/${task.id}/comments`, {
+    const res = await fetch(`http://localhost:5000/items/${task.id}/comments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ content: commentInput })

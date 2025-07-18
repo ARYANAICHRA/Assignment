@@ -7,7 +7,6 @@ from .comment import Comment
 from .team import Team
 from .team_member import TeamMember
 from .project_team import ProjectTeam
-# Import new models for registration
 from .attachment import Attachment
 from .activity_log import ActivityLog
 from .notification import Notification
