@@ -109,7 +109,7 @@ function Dashboard() {
         setUsers(data.members || []);
       }
       // Fetch epics
-      const epicsRes = await fetch(`http://localhost:5000/projects/${selectedTaskProject}/items`, {
+      const epicsRes = await fetch(`http://localhost:5000/items/projects/${selectedTaskProject}/items`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (epicsRes.ok) {
@@ -163,7 +163,7 @@ function Dashboard() {
     if (taskType !== 'epic' && values.parent_id) {
       payload.parent_id = values.parent_id;
     }
-    const res = await fetch(`http://localhost:5000/projects/${selectedTaskProject}/items`, {
+    const res = await fetch(`http://localhost:5000/items/projects/${selectedTaskProject}/items`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify(payload)
