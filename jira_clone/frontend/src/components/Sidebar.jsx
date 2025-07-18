@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, Button, Divider, Typography, Input, List, Avatar } from 'antd';
+import { Menu, Button, Divider, Typography, Input, List, Avatar, Space } from 'antd';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -9,10 +9,10 @@ import {
   DownOutlined,
   UpOutlined,
   PlusOutlined,
-  FolderOpenOutlined
+  FolderOpenOutlined,
+  SearchOutlined
 } from '@ant-design/icons';
 import CreateProjectModal from './CreateProjectModal';
-import { jwtDecode } from "jwt-decode";
 
 const { Text } = Typography;
 
@@ -49,122 +49,224 @@ function Sidebar({ setIsAuthenticated }) {
   );
 
   return (
-    <div style={{ background: '#f7f9fb', color: '#222', minHeight: '100%', borderRight: '1px solid #e6e8ec', boxShadow: '2px 0 8px #f0f1f2', width: 240, display: 'flex', flexDirection: 'column', position: 'relative' }}>
-      {/* Projects Section Header */}
-      <div style={{ padding: '18px 16px 8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Text style={{ color: '#888', fontWeight: 700, fontSize: 13, letterSpacing: 1 }}>PROJECTS</Text>
-        <Button
-          type="text"
-          icon={projectsOpen ? <UpOutlined /> : <DownOutlined />}
-          size="small"
-          onClick={() => setProjectsOpen(!projectsOpen)}
-          style={{ color: '#888', fontSize: 16 }}
-        />
-      </div>
-      {/* Create Project Button */}
-      <div style={{ padding: '0 16px 8px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          size="small"
-          style={{ borderRadius: 6, fontWeight: 600, width: '100%' }}
-          onClick={() => setShowCreateModal(true)}
-        >
-          Create project
-        </Button>
-      </div>
-      {/* Project List */}
-      {projectsOpen && (
-        <div style={{ flex: 1, overflowY: 'auto', padding: '0 8px 0 8px' }}>
-          <List
-            itemLayout="horizontal"
-            dataSource={projects}
-            locale={{ emptyText: <span style={{ color: '#bbb' }}>No projects found</span> }}
-            renderItem={project => (
-              <List.Item
-                key={project.id}
-                style={{
-                  padding: '6px 8px',
-                  borderRadius: 6,
-                  background: location.pathname === `/projects/${project.id}` ? '#e0e7ff' : '#fff',
-                  color: location.pathname === `/projects/${project.id}` ? '#1677ff' : '#222',
-                  fontWeight: location.pathname === `/projects/${project.id}` ? 700 : 500,
-                  cursor: 'pointer',
-                  marginBottom: 2,
-                  border: location.pathname === `/projects/${project.id}` ? '1.5px solid #a5b4fc' : '1px solid #e6e8ec',
-                  boxShadow: location.pathname === `/projects/${project.id}` ? '0 2px 8px #e0e7ff' : '0 1px 2px #f0f1f2',
-                  transition: 'all 0.18s',
-                  outline: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                }}
-                onClick={() => navigate(`/projects/${project.id}`)}
-                onMouseEnter={e => e.currentTarget.style.background = '#f0f5ff'}
-                onMouseLeave={e => e.currentTarget.style.background = location.pathname === `/projects/${project.id}` ? '#e0e7ff' : '#fff'}
-                tabIndex={0}
-              >
-                <List.Item.Meta
-                  avatar={<Avatar style={{ backgroundColor: '#1677ff', fontWeight: 700 }}>{project.name[0]?.toUpperCase() || <FolderOpenOutlined />}</Avatar>}
-                  title={<span style={{ fontWeight: 600 }}>{project.name}</span>}
-                />
-              </List.Item>
-            )}
+    <div style={{
+      background: '#ffffff',
+      minHeight: '100vh',
+      width: 240,
+      display: 'flex',
+      flexDirection: 'column',
+      position: 'relative',
+      borderRight: '1px solid rgba(0, 0, 0, 0.05)',
+      boxShadow: '1px 0 4px rgba(0, 0, 0, 0.02)'
+    }}>
+      {/* Projects Section */}
+      <div style={{ padding: '16px 16px 0', flex: 1 }}>
+        {/* Projects Header */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'space-between',
+          marginBottom: 12
+        }}>
+          <Text style={{ 
+            color: '#6b7280', 
+            fontWeight: 600, 
+            fontSize: 12, 
+            textTransform: 'uppercase',
+            letterSpacing: 0.5
+          }}>
+            Projects
+          </Text>
+          <Button
+            type="text"
+            icon={projectsOpen ? <UpOutlined style={{ fontSize: 12 }} /> : <DownOutlined style={{ fontSize: 12 }} />}
+            size="small"
+            onClick={() => setProjectsOpen(!projectsOpen)}
+            style={{ 
+              color: '#9ca3af',
+              width: 24,
+              height: 24,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
           />
-          {/* Manage projects link */}
-          <div style={{ padding: '8px 8px 0 8px', textAlign: 'center' }}>
+        </div>
+
+        {/* Search and Create Project */}
+        {projectsOpen && (
+          <>
+            <Space direction="vertical" style={{ width: '100%', marginBottom: 12 }}>
+              <Input
+                placeholder="Search projects..."
+                prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
+                size="small"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                style={{ borderRadius: 6 }}
+                allowClear
+              />
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                size="small"
+                style={{ 
+                  borderRadius: 6,
+                  width: '100%',
+                  backgroundColor: '#4f46e5',
+                  fontWeight: 500
+                }}
+                onClick={() => setShowCreateModal(true)}
+              >
+                New Project
+              </Button>
+            </Space>
+
+            {/* Project List */}
+            <List
+              itemLayout="horizontal"
+              dataSource={filteredProjects}
+              locale={{ emptyText: <span style={{ color: '#9ca3af', fontSize: 13 }}>No projects found</span> }}
+              style={{ marginBottom: 8 }}
+              renderItem={project => (
+                <List.Item
+                  key={project.id}
+                  style={{
+                    padding: '4px 8px',
+                    borderRadius: 6,
+                    background: location.pathname === `/projects/${project.id}` ? '#eef2ff' : 'transparent',
+                    cursor: 'pointer',
+                    marginBottom: 4,
+                    transition: 'all 0.15s ease',
+                  }}
+                  onClick={() => navigate(`/projects/${project.id}`)}
+                >
+                  <List.Item.Meta
+                    avatar={
+                      <Avatar 
+                        size="small" 
+                        style={{ 
+                          backgroundColor: location.pathname === `/projects/${project.id}` ? '#4f46e5' : '#e5e7eb',
+                          color: location.pathname === `/projects/${project.id}` ? 'white' : '#4b5563',
+                          fontWeight: 600
+                        }}
+                      >
+                        {project.name[0]?.toUpperCase()}
+                      </Avatar>
+                    }
+                    title={
+                      <Text 
+                        style={{ 
+                          fontSize: 13,
+                          color: location.pathname === `/projects/${project.id}` ? '#4f46e5' : '#111827',
+                          fontWeight: location.pathname === `/projects/${project.id}` ? 600 : 500
+                        }}
+                        ellipsis
+                      >
+                        {project.name}
+                      </Text>
+                    }
+                  />
+                </List.Item>
+              )}
+            />
+
+            {/* Manage projects link */}
             <Button
-              type="link"
-              style={{ color: '#1677ff', fontWeight: 600, fontSize: 13, padding: 0 }}
-              icon={<FolderOpenOutlined />}
+              type="text"
+              size="small"
+              style={{ 
+                color: '#4f46e5',
+                fontWeight: 500,
+                fontSize: 12,
+                padding: '4px 8px',
+                width: '100%',
+                textAlign: 'left'
+              }}
+              icon={<FolderOpenOutlined style={{ fontSize: 12 }} />}
               onClick={() => navigate('/project-management')}
             >
               Manage projects
             </Button>
-          </div>
-        </div>
-      )}
-      <Divider style={{ margin: '8px 0', borderColor: '#e6e8ec' }} />
+          </>
+        )}
+      </div>
+
+      {/* Main Navigation */}
       <Menu
         theme="light"
         mode="inline"
         selectedKeys={[location.pathname.startsWith('/projects/') ? '/projects' : location.pathname]}
-        style={{ borderRight: 0, background: 'transparent', flex: 1 }}
+        style={{ 
+          borderRight: 0,
+          background: 'transparent',
+          padding: '0 8px'
+        }}
         items={[
           {
             key: '/dashboard',
-            icon: <DashboardOutlined style={{ color: '#1677ff' }} />,
-            label: <Link to="/dashboard">Dashboard</Link>,
+            icon: <DashboardOutlined style={{ fontSize: 14 }} />,
+            label: <Link to="/dashboard" style={{ fontSize: 13 }}>Dashboard</Link>,
+            style: { borderRadius: 6, height: 36, marginBottom: 4 }
           },
           {
             key: '/teams',
-            icon: <TeamOutlined style={{ color: '#1677ff' }} />, 
-            label: <Link to="/teams">Teams</Link>,
+            icon: <TeamOutlined style={{ fontSize: 14 }} />,
+            label: <Link to="/teams" style={{ fontSize: 13 }}>Teams</Link>,
+            style: { borderRadius: 6, height: 36, marginBottom: 4 }
           },
           {
             key: '/profile',
-            icon: <UserOutlined style={{ color: '#1677ff' }} />, 
-            label: <Link to="/profile">Profile</Link>,
-          },
-          {
-            key: '/reports',
-            icon: <FolderOpenOutlined style={{ color: '#1677ff' }} />, 
-            label: <Link to="/reports/project/1">Reports</Link>, // Example: project 1, can be dynamic later
+            icon: <UserOutlined style={{ fontSize: 14 }} />,
+            label: <Link to="/profile" style={{ fontSize: 13 }}>Profile</Link>,
+            style: { borderRadius: 6, height: 36, marginBottom: 4 }
           },
         ]}
       />
-      <Divider style={{ margin: '8px 0', borderColor: '#e6e8ec' }} />
-      <div style={{ padding: '0 12px 20px 12px', marginTop: 'auto' }}>
+
+      {/* User & Logout */}
+      <div style={{ 
+        padding: '16px',
+        borderTop: '1px solid rgba(0, 0, 0, 0.05)',
+        marginTop: 'auto'
+      }}>
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          marginBottom: 16
+        }}>
+          <Avatar 
+            size="small" 
+            style={{ 
+              backgroundColor: '#4f46e5',
+              color: 'white',
+              marginRight: 8
+            }}
+          >
+            {user.name?.[0]?.toUpperCase() || <UserOutlined />}
+          </Avatar>
+          <Text style={{ fontSize: 13, fontWeight: 500 }} ellipsis>
+            {user.name || 'User'}
+          </Text>
+        </div>
         <Button
           type="text"
-          icon={<LogoutOutlined />}
+          size="small"
+          icon={<LogoutOutlined style={{ fontSize: 14 }} />}
           danger
           block
           onClick={handleLogout}
-          style={{ textAlign: 'left', color: '#ff7875', fontWeight: 600 }}
+          style={{ 
+            textAlign: 'left',
+            fontSize: 13,
+            height: 32,
+            color: '#ef4444'
+          }}
         >
-          Logout
+          Log out
         </Button>
       </div>
+
       <CreateProjectModal
         visible={showCreateModal}
         onProjectCreated={() => {
