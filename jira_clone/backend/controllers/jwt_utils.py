@@ -23,6 +23,7 @@ def decode_jwt(token):
     except jwt.ExpiredSignatureError:
         return None
     except jwt.InvalidTokenError as e:
+        
         return None
 
 def jwt_required(f):

@@ -20,6 +20,5 @@ class Item(db.Model):
     start_date = db.Column(db.DateTime)
     parent_id = db.Column(db.Integer, db.ForeignKey('item.id'))  # For subtasks
     subtasks = db.relationship('Item', backref=db.backref('parent', remote_side=[id]), lazy='dynamic')
-    attachments = db.relationship('Attachment', backref='item', lazy='dynamic')
     activity_logs = db.relationship('ActivityLog', backref='item', lazy='dynamic')
     comments = db.relationship('Comment', backref='item', lazy='dynamic')
