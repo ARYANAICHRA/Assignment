@@ -6,8 +6,7 @@ from models.project import Project
 from models.user import User
 from models.activity_log import ActivityLog
 from datetime import datetime
-from controllers.rbac import require_project_role
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from controllers.rbac import require_project_permission
 from models.comment import Comment
 from sqlalchemy.orm import joinedload
 from controllers.notification_controller import create_notification
@@ -23,17 +22,14 @@ def log_activity(item_id, user_id, action, details=None):
     db.session.add(log)
     db.session.commit()
 
-@jwt_required()
 def get_recent_activity():
-    user_id = get_jwt_identity()
-    if not user_id:
-        return jsonify({'error': 'User not found'}), 401
-    user = User.query.get(user_id)
+    user = getattr(request, 'user', None)
     if not user:
         return jsonify({'error': 'User not found'}), 401
+    user_id = user.id
     # Get recent activity logs for items the user is involved with (reporter or assignee)
     logs = ActivityLog.query.join(Item, ActivityLog.item_id == Item.id)
-    logs = logs.filter((Item.reporter_id == user.id) | (Item.assignee_id == user.id))
+    logs = logs.filter((Item.reporter_id == user_id) | (Item.assignee_id == user_id))
     logs = logs.order_by(ActivityLog.created_at.desc()).limit(20).all()
     result = []
     for log in logs:
@@ -47,7 +43,7 @@ def get_recent_activity():
         })
     return jsonify({'activity': result})
 
-@require_project_role('create_task')
+@require_project_permission('create_task')
 def create_item(project_id):
     data = request.get_json()
     title = data.get('title')
@@ -99,7 +95,7 @@ def create_item(project_id):
             create_notification(assignee_id, f"You have been assigned to task '{title}'")
     return jsonify({'message': 'Item created', 'item': {'id': item.id, 'title': item.title}}), 201
 
-@require_project_role('view_tasks')
+@require_project_permission('view_tasks')
 def get_items(project_id=None, **kwargs):
     item_type = request.args.get('type')
     limit = int(request.args.get('limit', 50))
@@ -121,7 +117,7 @@ def get_items(project_id=None, **kwargs):
     } for i in items]
     return jsonify({'items': result, 'total': total, 'limit': limit, 'offset': offset})
 
-@require_project_role('view_tasks')
+@require_project_permission('view_tasks')
 def get_item(item_id):
     item = Item.query.options(
         joinedload(Item.comments),
@@ -187,7 +183,7 @@ def get_item(item_id):
         'parent_epic': parent_epic
     }})
 
-@require_project_role('edit_any_task', allow_own='edit_own_task')
+@require_project_permission('edit_any_task', allow_own='edit_own_task')
 def update_item(item_id):
     item = Item.query.get(item_id)
     if not item:
@@ -234,7 +230,7 @@ def update_item(item_id):
                         create_notification(new_assignee, f"You have been assigned to task '{item.title}'")
     return jsonify({'message': 'Item updated'})
 
-@require_project_role('delete_any_task', allow_own='delete_own_task')
+@require_project_permission('delete_any_task', allow_own='delete_own_task')
 def delete_item(item_id):
     item = Item.query.get(item_id)
     if not item:
@@ -248,7 +244,7 @@ def delete_item(item_id):
     return jsonify({'message': 'Item deleted'})
 
 # --- Subtask Endpoints ---
-@require_project_role('view_tasks')
+@require_project_permission('view_tasks')
 def get_subtasks(item_id):
     parent = Item.query.get(item_id)
     if not parent:
@@ -266,7 +262,7 @@ def get_subtasks(item_id):
     total = parent.subtasks.count()
     return jsonify({'subtasks': result, 'total': total, 'limit': limit, 'offset': offset})
 
-@require_project_role('create_task')
+@require_project_permission('create_task')
 def create_subtask(item_id):
     parent = Item.query.get(item_id)
     if not parent:
@@ -298,7 +294,7 @@ def create_subtask(item_id):
             create_notification(data.get('assignee_id'), f"You have been assigned to subtask '{title}'")
     return jsonify({'message': 'Subtask created', 'subtask': {'id': subtask.id, 'title': subtask.title}}), 201
 
-@require_project_role('edit_any_task')
+@require_project_permission('edit_any_task')
 def update_subtask(subtask_id):
     subtask = Item.query.get(subtask_id)
     if not subtask or not subtask.parent_id:
@@ -329,7 +325,7 @@ def update_subtask(subtask_id):
         log_activity(subtask.id, getattr(request.user, 'id', None), 'updated', '; '.join(changes))
     return jsonify({'message': 'Subtask updated'})
 
-@require_project_role('delete_any_task')
+@require_project_permission('delete_any_task')
 def delete_subtask(subtask_id):
     subtask = Item.query.get(subtask_id)
     if not subtask or not subtask.parent_id:
@@ -340,7 +336,7 @@ def delete_subtask(subtask_id):
     return jsonify({'message': 'Subtask deleted'})
 
 # --- Activity Log Endpoint ---
-@require_project_role('view_tasks')
+@require_project_permission('view_tasks')
 def get_activity_logs(item_id):
     logs = ActivityLog.query.filter_by(item_id=item_id).order_by(ActivityLog.created_at.asc()).all()
     result = [{
@@ -352,14 +348,13 @@ def get_activity_logs(item_id):
     } for log in logs]
     return jsonify({'activity_logs': result})
 
-@jwt_required()
 def get_my_tasks():
     print('[get_my_tasks] Called')
-    user_id = get_jwt_identity()
-    print(f'[get_my_tasks] user_id: {user_id}')
-    if not user_id:
-        print('[get_my_tasks] No user_id found')
+    user = getattr(request, 'user', None)
+    if not user:
+        print('[get_my_tasks] No user found')
         return jsonify({'error': 'User not found'}), 401
+    user_id = user.id
     try:
         tasks = Item.query.filter(
             (Item.assignee_id == user_id) | (Item.reporter_id == user_id)
@@ -386,7 +381,6 @@ def get_my_tasks():
         print(f'[get_my_tasks] Exception: {e}')
         return jsonify({'error': 'Internal server error'}), 500
 
-@jwt_required
 def add_comment(item_id):
     user = getattr(request, 'user', None)
     if not user:
@@ -409,20 +403,24 @@ def add_comment(item_id):
             create_notification(item.reporter_id, f"New comment on task '{item.title}'")
     return jsonify({'message': 'Comment added', 'comment': {'id': comment.id, 'content': comment.content, 'user_id': comment.user_id, 'author_name': user.username, 'created_at': comment.created_at.isoformat()}}), 201
 
-@jwt_required
-def edit_comment(comment_id):
+@require_project_permission('edit_any_comment', allow_own='edit_own_comment')
+def edit_comment(item_id, comment_id): # The route will need item_id for the decorator to find the project
     user = getattr(request, 'user', None)
     if not user:
         return jsonify({'error': 'User not found'}), 401
+        
     comment = Comment.query.get(comment_id)
     if not comment:
         return jsonify({'error': 'Comment not found'}), 404
-    if comment.user_id != user.id:
-        return jsonify({'error': 'You can only edit your own comments'}), 403
+        
+    # The hardcoded check "if comment.user_id != user.id:" is now gone.
+    # The decorator handles this logic perfectly.
+    
     data = request.get_json()
     content = data.get('content')
     if not content:
         return jsonify({'error': 'Content required'}), 400
+        
     comment.content = content
     db.session.commit()
-    return jsonify({'message': 'Comment updated', 'comment': {'id': comment.id, 'content': comment.content, 'user_id': comment.user_id, 'created_at': comment.created_at}})
+    return jsonify({'message': 'Comment updated', 'comment': {'id': comment.id, 'content': comment.content, 'user_id': comment.user_id, 'created_at': comment.created_at.isoformat()}})

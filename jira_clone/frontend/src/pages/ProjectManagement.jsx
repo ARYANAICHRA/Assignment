@@ -1,85 +1,44 @@
 import React, { useEffect, useState } from 'react';
-import { Table, Button, message, Typography, Modal, List, Form, Input, Select, Alert, Avatar, Popconfirm, Space, Tag, Tabs, Spin, Empty, Tooltip } from 'antd';
-import { jwtDecode } from 'jwt-decode';
-import { UserOutlined, DeleteOutlined, TeamOutlined, ProjectOutlined } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
+import { Table, Button, message, Typography, Modal, List, Form, Input, Select, Alert, Avatar, Popconfirm, Space, Tag, Tabs, Spin, Empty } from 'antd';
+import { UserOutlined, DeleteOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
-const ProjectManagement = () => {
+function ProjectManagement() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [memberModalOpen, setMemberModalOpen] = useState(false);
   const [memberProject, setMemberProject] = useState(null);
   const [members, setMembers] = useState([]);
-  const [admin, setAdmin] = useState(null);
   const [form] = Form.useForm();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [memberLoading, setMemberLoading] = useState(false);
-  const [teams, setTeams] = useState([]);
-  const [teamDetail, setTeamDetail] = useState(null);
-  const [teamModalVisible, setTeamModalVisible] = useState(false);
-  const [currentProjectId, setCurrentProjectId] = useState(null);
-  const [settingOwner, setSettingOwner] = useState(false);
-  const [projectOwnerTeamId, setProjectOwnerTeamId] = useState(null);
 
-  // Get user role from JWT
-  let userRole = null;
-  const token = localStorage.getItem('token');
-  if (token) {
-    try {
-      const decoded = jwtDecode(token);
-      userRole = decoded.role;
-    } catch (e) {
-      userRole = null;
-    }
-  }
-
-  const fetchProjects = async () => {
-    setLoading(true);
-    const token = localStorage.getItem('token');
-    let userId = null;
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        userId = decoded.user_id || decoded.sub;
-      } catch (e) {}
-    }
-    const res = await fetch('http://localhost:5000/projects', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setProjects(data.projects.filter(p => p.admin_id === userId));
-    }
-    setLoading(false);
-  };
+  // --- FIX: Remove reliance on JWT decoding for user info ---
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
     fetchProjects();
   }, []);
 
-  useEffect(() => {
-    fetchTeams();
-    // Fetch current project owner team id
-    if (projects && projects.length > 0) {
-      const currentProject = projects.find(p => p.id === currentProjectId);
-      if (currentProject && currentProject.owner_team_id) {
-        setProjectOwnerTeamId(currentProject.owner_team_id);
-      }
-    }
-  }, [projects, currentProjectId]);
-
-  const fetchTeams = async () => {
+  const fetchProjects = async () => {
+    setLoading(true);
     const token = localStorage.getItem('token');
     try {
-      const res = await fetch('http://localhost:5000/teams', {
+      const res = await fetch('http://localhost:5000/projects', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
-      if (res.ok) setTeams(data.teams);
-    } catch {}
+      if (res.ok) {
+        // The endpoint now returns projects the user is a member of.
+        // We can filter here if we only want to show projects they ADMINISTER.
+        // For now, showing all their projects is fine.
+        setProjects(data.projects);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleDelete = async (projectId) => {
@@ -89,111 +48,37 @@ const ProjectManagement = () => {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (res.ok) {
-      message.success('Project deleted');
+      message.success('Project deleted successfully.');
       fetchProjects();
     } else {
-      message.error('Failed to delete project');
-    }
-  };
-
-  const handleViewTeam = async (team) => {
-    setTeamModalVisible(true);
-    const token = localStorage.getItem('token');
-    try {
-      const res = await fetch(`http://localhost:5000/teams/${team.id}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
       const data = await res.json();
-      if (res.ok) setTeamDetail(data);
-      else message.error(data.error || 'Failed to fetch team details');
-    } catch (err) {
-      message.error('Failed to fetch team details');
+      message.error(data.error || 'Failed to delete project. You may not have permission.');
     }
   };
 
-  const handleAddProjectToTeam = async (teamId, projectId) => {
-    const token = localStorage.getItem('token');
-    try {
-      const res = await fetch(`http://localhost:5000/teams/${teamId}/projects`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ project_id: projectId })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        message.success('Project associated with team');
-        fetchTeams();
-      } else {
-        message.error(data.error || 'Failed to associate project');
-      }
-    } catch {
-      message.error('Failed to associate project');
-    }
-  };
-
-  const handleRemoveProjectFromTeam = async (teamId, projectId) => {
-    const token = localStorage.getItem('token');
-    try {
-      const res = await fetch(`http://localhost:5000/teams/${teamId}/projects/${projectId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (res.ok) {
-        message.success('Project disassociated from team');
-        fetchTeams();
-      } else {
-        message.error(data.error || 'Failed to disassociate project');
-      }
-    } catch {
-      message.error('Failed to disassociate project');
-    }
-  };
-
-  // --- Member Management ---
+  // --- Member Management Functions ---
   const openMemberModal = (project) => {
     setMemberProject(project);
     setMemberModalOpen(true);
     fetchMembers(project.id);
-    fetchAdmin(project.admin_id);
   };
+  
   const closeMemberModal = () => {
     setMemberModalOpen(false);
-    setMemberProject(null);
-    setMembers([]);
-    setAdmin(null);
-    setError('');
-    setSuccess('');
+    form.resetFields();
   };
+
   const fetchMembers = async (projectId) => {
     setMemberLoading(true);
-    setError('');
-    setSuccess('');
     const token = localStorage.getItem('token');
     const res = await fetch(`http://localhost:5000/projects/${projectId}/members`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const data = await res.json();
-    if (res.ok) setMembers(data.members);
-    else setError(data.error || 'Failed to fetch members');
+    setMembers(data.members || []);
     setMemberLoading(false);
   };
-  const fetchAdmin = async (adminId) => {
-    if (!adminId) return;
-    const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:5000/users/${adminId}`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      setAdmin(data.user);
-    } else {
-      setAdmin(null);
-    }
-  };
+
   const handleAddMember = async (values) => {
     setError(''); setSuccess('');
     const token = localStorage.getItem('token');
@@ -207,12 +92,15 @@ const ProjectManagement = () => {
       setSuccess('Member added');
       form.resetFields();
       fetchMembers(memberProject.id);
-    } else setError(data.error || 'Failed to add member');
+    } else {
+      setError(data.error || 'Failed to add member. You may not have permission.');
+    }
   };
-  const handleRemoveMember = async (uid) => {
+
+  const handleRemoveMember = async (userId) => {
     setError(''); setSuccess('');
     const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:5000/projects/${memberProject.id}/members/${uid}`, {
+    const res = await fetch(`http://localhost:5000/projects/${memberProject.id}/members/${userId}`, {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -220,43 +108,19 @@ const ProjectManagement = () => {
     if (res.ok) {
       setSuccess('Member removed');
       fetchMembers(memberProject.id);
-    } else setError(data.error || 'Failed to remove member');
+    } else {
+      setError(data.error || 'Failed to remove member. You may not have permission.');
+    }
   };
-  const getRoleTag = (role, isAdmin) => {
-    if (isAdmin) return <Tag color="gold">Admin</Tag>;
+
+  const getRoleTag = (role) => {
     if (role === 'admin') return <Tag color="volcano">Admin</Tag>;
     if (role === 'manager') return <Tag color="blue">Manager</Tag>;
-    if (role === 'viewer') return <Tag color="default">Viewer</Tag>;
-    return <Tag color="blue">Member</Tag>;
+    if (role === 'visitor') return <Tag color="default">Visitor</Tag>;
+    return <Tag color="cyan">Member</Tag>;
   };
-
-  const handleSetOwnerTeam = async (teamId) => {
-    setSettingOwner(true);
-    const token = localStorage.getItem('token');
-    try {
-      const res = await fetch(`http://localhost:5000/projects/${currentProjectId}/owner_team`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ team_id: teamId })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        message.success('Owner team set for project');
-        setProjectOwnerTeamId(teamId);
-        fetchProjects();
-      } else {
-        message.error(data.error || 'Failed to set owner team');
-      }
-    } catch {
-      message.error('Failed to set owner team');
-    }
-    setSettingOwner(false);
-  };
-
-  const columns = [
+  
+  const projectColumns = [
     { title: 'Project Name', dataIndex: 'name', key: 'name' },
     { title: 'Description', dataIndex: 'description', key: 'description' },
     {
@@ -264,10 +128,8 @@ const ProjectManagement = () => {
       key: 'action',
       render: (_, record) => (
         <Space>
-          <Button icon={<TeamOutlined />} onClick={() => openMemberModal(record)}>
-            Manage Members
-          </Button>
-          <Popconfirm title="Are you sure to delete this project?" onConfirm={() => handleDelete(record.id)} okText="Yes" cancelText="No">
+          <Button onClick={() => openMemberModal(record)}>Manage Members</Button>
+          <Popconfirm title="Are you sure you want to delete this project?" onConfirm={() => handleDelete(record.id)}>
             <Button danger>Delete</Button>
           </Popconfirm>
         </Space>
@@ -275,187 +137,79 @@ const ProjectManagement = () => {
     }
   ];
 
+  // --- FIX: Use the 'items' prop for Ant Design Tabs ---
+  const tabItems = [
+    {
+        key: 'projects',
+        label: 'My Projects',
+        children: (
+            <Table
+                dataSource={projects}
+                columns={projectColumns}
+                rowKey="id"
+                loading={loading}
+            />
+        )
+    },
+    // You can add more tabs here in the future, like for Teams management
+  ];
+
   return (
     <div style={{ padding: 32 }}>
       <Title level={3}>Project Management</Title>
-      <Tabs defaultActiveKey="projects">
-        <Tabs.TabPane tab="Projects" key="projects">
-          <Table
-            dataSource={projects}
-            columns={columns}
-            rowKey="id"
-            loading={loading}
-            pagination={false}
-          />
-          <Modal
-            open={memberModalOpen}
-            onCancel={closeMemberModal}
-            title={memberProject ? `Manage Members: ${memberProject.name}` : 'Manage Members'}
-            footer={null}
-            width={520}
-            destroyOnClose
-          >
-            {userRole === 'admin' && (
-              <Form form={form} layout="inline" onFinish={handleAddMember} style={{ marginBottom: 16, flexWrap: 'wrap' }}>
-                <Form.Item name="email" rules={[{ required: true, message: 'Enter user email' }]}> 
-                  <Input placeholder="User Email" style={{ width: 180 }} />
-                </Form.Item>
-                <Form.Item name="role" initialValue="member" rules={[{ required: true }]}> 
-                  <Select style={{ width: 120 }}>
-                    <Select.Option value="manager">Manager</Select.Option>
-                    <Select.Option value="member">Member</Select.Option>
-                    <Select.Option value="viewer">Viewer</Select.Option>
-                  </Select>
-                </Form.Item>
-                <Form.Item>
-                  <Button type="primary" htmlType="submit">Add</Button>
-                </Form.Item>
-              </Form>
-            )}
-            {error && <Alert message={error} type="error" showIcon style={{ marginBottom: 12 }} />}
-            {success && <Alert message={success} type="success" showIcon style={{ marginBottom: 12 }} />}
-            <List
-              loading={memberLoading}
-              bordered
-              locale={{ emptyText: memberLoading ? <Spin /> : <Empty description="No members" /> }}
-              dataSource={[
-                ...(admin ? [{ ...admin, isAdmin: true }] : []),
-                ...members.filter(m => !admin || m.user_id !== admin.id)
+      
+      <Tabs defaultActiveKey="projects" items={tabItems} />
+
+      <Modal
+        open={memberModalOpen}
+        onCancel={closeMemberModal}
+        title={memberProject ? `Manage Members: ${memberProject.name}` : 'Manage Members'}
+        footer={null}
+        width={520}
+        destroyOnHidden
+      >
+        <Form form={form} layout="inline" onFinish={handleAddMember} style={{ marginBottom: 16 }}>
+          <Form.Item name="email" rules={[{ required: true }]}> 
+            <Input placeholder="User Email" />
+          </Form.Item>
+          <Form.Item name="role" initialValue="member" rules={[{ required: true }]}> 
+            <Select style={{ width: 120 }}>
+              <Select.Option value="manager">Manager</Select.Option>
+              <Select.Option value="member">Member</Select.Option>
+              <Select.Option value="visitor">Visitor</Select.Option>
+            </Select>
+          </Form.Item>
+          <Button type="primary" htmlType="submit">Add</Button>
+        </Form>
+        
+        {error && <Alert message={error} type="error" showIcon style={{ marginBottom: 12 }} />}
+        {success && <Alert message={success} type="success" showIcon style={{ marginBottom: 12 }} />}
+        
+        <List
+          loading={memberLoading}
+          bordered
+          dataSource={members}
+          renderItem={m => (
+            <List.Item
+              actions={[
+                m.role !== 'admin' && (
+                  <Popconfirm title="Remove member?" onConfirm={() => handleRemoveMember(m.user_id)}>
+                    <Button type="link" icon={<DeleteOutlined />} danger size="small">Remove</Button>
+                  </Popconfirm>
+                )
               ]}
-              renderItem={m => (
-                <List.Item
-                  actions={m.isAdmin ? [getRoleTag(null, true)] : [
-                    userRole === 'admin' && (
-                      <Popconfirm title="Remove member?" onConfirm={() => handleRemoveMember(m.user_id)} okText="Remove" cancelText="Cancel">
-                        <Button type="link" icon={<DeleteOutlined />} danger size="small">Remove</Button>
-                      </Popconfirm>
-                    )
-                  ]}
-                  avatar={<Avatar style={{ backgroundColor: m.isAdmin ? '#faad14' : '#1890ff' }} icon={<UserOutlined />} />}
-                >
-                  <Space direction="vertical" size={0}>
-                    <Text strong>{m.username || m.email}</Text>
-                    <span style={{ fontSize: 12, color: '#888' }}>{getRoleTag(m.role, m.isAdmin)}</span>
-                  </Space>
-                </List.Item>
-              )}
-            />
-          </Modal>
-        </Tabs.TabPane>
-        <Tabs.TabPane tab="Teams" key="teams">
-          <Table
-            columns={[
-              {
-                title: 'Name',
-                dataIndex: 'name',
-                key: 'name',
-                render: (text, record) => (
-                  <Space>
-                    <TeamOutlined />
-                    <Tooltip title="View team details">
-                      <span
-                        onClick={e => { e.preventDefault(); handleViewTeam(record); }}
-                        style={{ fontWeight: 500, textDecoration: 'underline', color: '#1677ff', cursor: 'pointer' }}
-                      >
-                        {text}
-                      </span>
-                    </Tooltip>
-                  </Space>
-                )
-              },
-              {
-                title: 'Description',
-                dataIndex: 'description',
-                key: 'description',
-                render: (text) => text || <span style={{ color: '#aaa' }}>No description</span>
-              },
-              {
-                title: 'Associated',
-                key: 'associated',
-                render: (_, record) => (
-                  record.projects && record.projects.some(p => p.id === currentProjectId) ?
-                    <Tag color="green">Associated</Tag> :
-                    <Tag color="red">Not Associated</Tag>
-                )
-              },
-              {
-                title: 'Actions',
-                key: 'actions',
-                render: (_, record) => (
-                  <Space>
-                    <Tooltip title="View team details">
-                      <Button type="link" onClick={() => handleViewTeam(record)}>View</Button>
-                    </Tooltip>
-                    {userRole === 'admin' && (
-                      record.projects && record.projects.some(p => p.id === currentProjectId) ? (
-                        <Tooltip title="Remove this project from team">
-                          <Popconfirm
-                            title="Remove this project from team?"
-                            onConfirm={() => handleRemoveProjectFromTeam(record.id, currentProjectId)}
-                            okText="Remove"
-                            cancelText="Cancel"
-                          >
-                            <Button type="link" icon={<DeleteOutlined />} danger>Remove</Button>
-                          </Popconfirm>
-                        </Tooltip>
-                      ) : (
-                        <Tooltip title="Add this project to team">
-                          <Button type="link" onClick={() => handleAddProjectToTeam(record.id, currentProjectId)}>Add</Button>
-                        </Tooltip>
-                      )
-                    )}
-                  </Space>
-                )
-              }
-            ]}
-            dataSource={teams}
-            rowKey="id"
-            bordered
-            pagination={false}
-            locale={{ emptyText: loading ? <Spin /> : <Empty description="No teams found" /> }}
-          />
-          <Modal
-            title={teamDetail ? teamDetail.name : 'Team Detail'}
-            open={teamModalVisible}
-            onCancel={() => { setTeamModalVisible(false); setTeamDetail(null); }}
-            footer={null}
-            width={600}
-          >
-            {teamDetail ? (
-              <div>
-                <p><b>Description:</b> {teamDetail.description || <span style={{ color: '#aaa' }}>No description</span>}</p>
-                <b>Members:</b>
-                <ul>
-                  {(teamDetail.members || []).map(member => (
-                    <li key={member.id}>{member.username} ({member.email})</li>
-                  ))}
-                </ul>
-                <b>Projects:</b>
-                <ul>
-                  {(teamDetail.projects || []).map(project => (
-                    <li key={project.id}>{project.name}</li>
-                  ))}
-                </ul>
-                <div style={{ marginTop: 16 }}>
-                  {projectOwnerTeamId === teamDetail.id ? (
-                    <Tag color="blue">Owner Team</Tag>
-                  ) : (
-                    userRole === 'admin' && (
-                      <Button type="primary" loading={settingOwner} onClick={() => handleSetOwnerTeam(teamDetail.id)}>
-                        Set as Owner Team for this Project
-                      </Button>
-                    )
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div style={{ textAlign: 'center', color: '#888' }}><Spin /></div>
-            )}
-          </Modal>
-        </Tabs.TabPane>
-      </Tabs>
+            >
+              <List.Item.Meta
+                avatar={<Avatar icon={<UserOutlined />} />}
+                title={<Text strong>{m.username || m.email}</Text>}
+                description={getRoleTag(m.role)}
+              />
+            </List.Item>
+          )}
+        />
+      </Modal>
     </div>
   );
 };
 
-export default ProjectManagement; 
+export default ProjectManagement;

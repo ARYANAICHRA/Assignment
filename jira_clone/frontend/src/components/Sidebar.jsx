@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, Button, Divider, Typography, Input, List, Avatar, Space } from 'antd';
 import {
@@ -13,6 +13,7 @@ import {
   SearchOutlined
 } from '@ant-design/icons';
 import CreateProjectModal from './CreateProjectModal';
+import { ProjectContext } from '../context/ProjectContext'; // Import context
 
 const { Text } = Typography;
 
@@ -23,11 +24,16 @@ function Sidebar({ setIsAuthenticated }) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [projectsOpen, setProjectsOpen] = useState(true);
   const [search, setSearch] = useState('');
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  
+  // --- FIX: Get the current user from the context ---
+  const { currentUser } = useContext(ProjectContext);
 
   useEffect(() => {
-    fetchProjects();
-  }, []);
+    // Only fetch projects if a user is logged in
+    if (currentUser) {
+        fetchProjects();
+    }
+  }, [currentUser]);
 
   const fetchProjects = async () => {
     const token = localStorage.getItem('token');
@@ -38,15 +44,16 @@ function Sidebar({ setIsAuthenticated }) {
     if (res.ok) setProjects(data.projects);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
-    navigate('/login');
-  };
-
   const filteredProjects = projects.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setIsAuthenticated(false);
+    navigate('/login');
+  };
 
   return (
     <div style={{
@@ -61,7 +68,6 @@ function Sidebar({ setIsAuthenticated }) {
     }}>
       {/* Projects Section */}
       <div style={{ padding: '16px 16px 0', flex: 1 }}>
-        {/* Projects Header */}
         <div style={{ 
           display: 'flex', 
           alignItems: 'center', 
@@ -82,18 +88,9 @@ function Sidebar({ setIsAuthenticated }) {
             icon={projectsOpen ? <UpOutlined style={{ fontSize: 12 }} /> : <DownOutlined style={{ fontSize: 12 }} />}
             size="small"
             onClick={() => setProjectsOpen(!projectsOpen)}
-            style={{ 
-              color: '#9ca3af',
-              width: 24,
-              height: 24,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
           />
         </div>
 
-        {/* Search and Create Project */}
         {projectsOpen && (
           <>
             <Space direction="vertical" style={{ width: '100%', marginBottom: 12 }}>
@@ -106,23 +103,19 @@ function Sidebar({ setIsAuthenticated }) {
                 style={{ borderRadius: 6 }}
                 allowClear
               />
+              {/* --- FIX: Removed 'user.role === admin' check --- */}
+              {/* Any authenticated user can now create a project. */}
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
                 size="small"
-                style={{ 
-                  borderRadius: 6,
-                  width: '100%',
-                  backgroundColor: '#4f46e5',
-                  fontWeight: 500
-                }}
+                style={{ borderRadius: 6, width: '100%', backgroundColor: '#4f46e5', fontWeight: 500 }}
                 onClick={() => setShowCreateModal(true)}
               >
                 New Project
               </Button>
             </Space>
 
-            {/* Project List */}
             <List
               itemLayout="horizontal"
               dataSource={filteredProjects}
@@ -137,7 +130,6 @@ function Sidebar({ setIsAuthenticated }) {
                     background: location.pathname === `/projects/${project.id}` ? '#eef2ff' : 'transparent',
                     cursor: 'pointer',
                     marginBottom: 4,
-                    transition: 'all 0.15s ease',
                   }}
                   onClick={() => navigate(`/projects/${project.id}`)}
                 >
@@ -171,18 +163,12 @@ function Sidebar({ setIsAuthenticated }) {
               )}
             />
 
-            {/* Manage projects link */}
+            {/* --- FIX: Removed 'user.role === admin' check --- */}
+            {/* The management page enforces its own permissions. */}
             <Button
               type="text"
               size="small"
-              style={{ 
-                color: '#4f46e5',
-                fontWeight: 500,
-                fontSize: 12,
-                padding: '4px 8px',
-                width: '100%',
-                textAlign: 'left'
-              }}
+              style={{ color: '#4f46e5', fontWeight: 500, fontSize: 12, padding: '4px 8px', width: '100%', textAlign: 'left' }}
               icon={<FolderOpenOutlined style={{ fontSize: 12 }} />}
               onClick={() => navigate('/project-management')}
             >
@@ -192,7 +178,6 @@ function Sidebar({ setIsAuthenticated }) {
         )}
       </div>
 
-      {/* Main Navigation */}
       <Menu
         theme="light"
         mode="inline"
@@ -224,7 +209,6 @@ function Sidebar({ setIsAuthenticated }) {
         ]}
       />
 
-      {/* User & Logout */}
       <div style={{ 
         padding: '16px',
         borderTop: '1px solid rgba(0, 0, 0, 0.05)',
@@ -242,11 +226,12 @@ function Sidebar({ setIsAuthenticated }) {
               color: 'white',
               marginRight: 8
             }}
+            icon={<UserOutlined />}
           >
-            {user.name?.[0]?.toUpperCase() || <UserOutlined />}
+            {currentUser?.username?.[0]?.toUpperCase()}
           </Avatar>
           <Text style={{ fontSize: 13, fontWeight: 500 }} ellipsis>
-            {user.name || 'User'}
+            {currentUser?.username || 'User'}
           </Text>
         </div>
         <Button

@@ -26,7 +26,7 @@ const columnsDefault = [
 ];
 
 function Board() {
-  const { selectedProject } = useContext(ProjectContext);
+  const { selectedProject, projectMembers, myProjectRole, membersLoading, membersError } = useContext(ProjectContext);
   const [tasks, setTasks] = useState({ todo: [], inprogress: [], inreview: [], done: [] });
   const [columns, setColumns] = useState(columnsDefault);
   const [activeId, setActiveId] = useState(null);
@@ -40,6 +40,7 @@ function Board() {
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [taskModalCol, setTaskModalCol] = useState('todo');
   const sensors = useSensors(useSensor(PointerSensor));
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -235,12 +236,26 @@ function Board() {
   const canEditOrMove = (task) => {
     if (!userId) return false;
     if (selectedProject && selectedProject.admin_id === userId) return true;
-    // TODO: fetch project members/roles if needed
     if (task.assignee_id === userId) return true;
     if (task.reporter_id === userId) return true;
-    // Optionally, check for manager role if available
+    // Use centralized project role
+    if (myProjectRole === 'admin' || myProjectRole === 'manager' || myProjectRole === 'member') return true;
     return false;
   };
+
+  // Use centralized project role for permission
+  const canEdit = myProjectRole === 'admin' || myProjectRole === 'manager' || myProjectRole === 'member';
+
+  // Show loading or error for members fetch
+  if (membersLoading) {
+    return <Spin style={{ display: 'block', margin: '80px auto' }} tip="Loading project members..." />;
+  }
+  if (membersError) {
+    return <div style={{ padding: 32, color: '#ff4d4f' }}>{membersError}</div>;
+  }
+  if (!myProjectRole) {
+    return <div style={{ padding: 32, color: '#faad14', fontWeight: 500 }}>You are not a member of this project.</div>;
+  }
 
   const displayTasks = optimisticTasks || tasks;
 
@@ -273,15 +288,17 @@ function Board() {
                   bordered={false}
                   style={{ minHeight: 350, background: isOver ? '#e6f4ff' : '#fff', marginBottom: 16, transition: 'background 0.2s' }}
                 >
-                  <Button
-                    type="dashed"
-                    icon={<PlusOutlined />}
-                    block
-                    style={{ marginBottom: 12 }}
-                    onClick={() => { setShowTaskModal(true); setTaskModalCol(col.key); }}
-                  >
-                    Add Task
-                  </Button>
+                  {canEdit && (
+                    <Button
+                      type="dashed"
+                      icon={<PlusOutlined />}
+                      block
+                      style={{ marginBottom: 12 }}
+                      onClick={() => { setShowTaskModal(true); setTaskModalCol(col.key); }}
+                    >
+                      Add Task
+                    </Button>
+                  )}
                   <SortableContext items={displayTasks[col.key].map(t => t.id)} strategy={verticalListSortingStrategy}>
                     {displayTasks[col.key].length === 0 && (
                       <div style={{ minHeight: 60, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontStyle: 'italic', border: '1px dashed #eee', borderRadius: 6, marginBottom: 8 }}>

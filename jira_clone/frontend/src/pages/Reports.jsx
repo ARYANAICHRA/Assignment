@@ -13,9 +13,29 @@ const statusColors = {
 function Reports({ projectId }) {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [members, setMembers] = useState([]);
+  const [membersLoading, setMembersLoading] = useState(true);
+  const [membersError, setMembersError] = useState(null);
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
+    if (projectId) {
+      fetchMembers();
+    }
+    // eslint-disable-next-line
+  }, [projectId]);
+
+  // ✅ MOVED THIS HOOK TO THE TOP, BEFORE ANY CONDITIONAL RETURNS
+  useEffect(() => {
     if (!projectId) return;
+    // Only run this if the user has the correct permissions
+    const myMemberInfo = members.find(m => m.user_id === user.id);
+    const userRole = myMemberInfo?.role;
+    if (userRole !== 'admin' && userRole !== 'manager') {
+      setLoading(false);
+      return;
+    }
+
     const fetchReport = async () => {
       setLoading(true);
       const token = localStorage.getItem('token');
@@ -32,7 +52,43 @@ function Reports({ projectId }) {
       setLoading(false);
     };
     fetchReport();
-  }, [projectId]);
+    // eslint-disable-next-line
+  }, [projectId, members]); // Added members dependency
+
+  const fetchMembers = async () => {
+    setMembersLoading(true);
+    setMembersError(null);
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`http://localhost:5000/projects/${projectId}/members`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (res.ok) setMembers(data.members || []);
+      else setMembersError(data.error || 'Failed to fetch members');
+    } catch (err) {
+      setMembersError('Failed to fetch members');
+    }
+    setMembersLoading(false);
+  };
+
+  // Find the current user's project role
+  const myMember = members.find(m => m.user_id === user.id);
+  const myProjectRole = myMember?.role;
+
+  // Show loading or error for members fetch
+  if (membersLoading) {
+    return <Spin style={{ display: 'block', margin: '80px auto' }} tip="Loading members..." />;
+  }
+  if (membersError) {
+    return <div style={{ padding: 32, color: '#ff4d4f' }}>{membersError}</div>;
+  }
+  if (!myProjectRole) {
+    return <div style={{ padding: 32, color: '#faad14', fontWeight: 500 }}>You are not a member of this project.</div>;
+  }
+  if (myProjectRole !== 'admin' && myProjectRole !== 'manager') {
+    return <div style={{ padding: 32, color: '#faad14', fontWeight: 500 }}>You do not have permission to view this report.<br/>Your role: <Tag>{myProjectRole}</Tag></div>;
+  }
 
   if (loading) return <Spin style={{ display: 'block', margin: '80px auto' }} />;
   if (!report) return <div style={{ padding: 32 }}>No report data found.</div>;
@@ -41,6 +97,9 @@ function Reports({ projectId }) {
     <Card style={{ maxWidth: 1000, margin: '32px auto', minHeight: 600 }}>
       <Title level={2}>Project Report: {report.project.name}</Title>
       <Paragraph type="secondary">{report.project.description || 'No description provided.'}</Paragraph>
+      <div style={{ marginBottom: 16 }}>
+        <Tag color="blue">Your Role: {myProjectRole}</Tag>
+      </div>
       <Row gutter={24} style={{ marginBottom: 32 }}>
         <Col xs={24} sm={12} md={6}><Statistic title="Total Tasks" value={report.stats.total} /></Col>
         <Col xs={24} sm={12} md={6}><Statistic title="Done" value={report.stats.done} valueStyle={{ color: '#52c41a' }} /></Col>
@@ -76,4 +135,4 @@ function Reports({ projectId }) {
   );
 }
 
-export default Reports; 
+export default Reports;

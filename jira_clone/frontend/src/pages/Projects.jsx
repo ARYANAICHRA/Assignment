@@ -9,6 +9,7 @@ function Projects() {
   const [projects, setProjects] = useState([]);
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
     fetchProjects();
@@ -41,7 +42,9 @@ function Projects() {
     <div style={{ padding: 32 }}>
       <Space style={{ width: '100%', justifyContent: 'space-between', marginBottom: 24 }}>
         <Title level={3} style={{ margin: 0 }}>Projects</Title>
-        <Button type="primary" onClick={() => setShowModal(true)}>Create Project</Button>
+        {user.role === 'admin' && (
+          <Button type="primary" onClick={() => setShowModal(true)}>Create Project</Button>
+        )}
       </Space>
       <Input.Search
         placeholder="Search projects..."

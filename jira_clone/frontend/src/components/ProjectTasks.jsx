@@ -122,11 +122,27 @@ function ProjectTasks() {
     fetchUsers();
   };
 
+  // Add a mapping from display status to backend status
+  const statusMap = {
+    'To Do': 'todo',
+    'In Progress': 'inprogress',
+    'In Review': 'inreview',
+    'Done': 'done',
+    'todo': 'todo',
+    'inprogress': 'inprogress',
+    'inreview': 'inreview',
+    'done': 'done',
+  };
+
   const handleEditSave = async () => {
     const token = localStorage.getItem('token');
     const values = await editForm.validateFields();
     if (values.due_date && typeof values.due_date === 'object' && values.due_date.format) {
       values.due_date = values.due_date.format('YYYY-MM-DD');
+    }
+    // Map status to backend value
+    if (values.status) {
+      values.status = statusMap[values.status] || values.status;
     }
     await fetch(`http://localhost:5000/items/${editTaskId}`, {
       method: 'PATCH',
@@ -193,6 +209,9 @@ function ProjectTasks() {
     if (payload.due_date && typeof payload.due_date === 'object' && payload.due_date.format) {
       payload.due_date = payload.due_date.format('YYYY-MM-DD');
     }
+    if (payload.status) {
+      payload.status = statusMap[payload.status] || payload.status;
+    }
     const res = await fetch(`http://localhost:5000/items/projects/${selectedProject.id}/items`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -245,6 +264,9 @@ function ProjectTasks() {
     const payload = { ...values, type: taskType, column_id: columnId };
     if (payload.due_date && typeof payload.due_date === 'object' && payload.due_date.format) {
       payload.due_date = payload.due_date.format('YYYY-MM-DD');
+    }
+    if (payload.status) {
+      payload.status = statusMap[payload.status] || payload.status;
     }
     if (taskType !== 'epic' && values.parent_id) {
       payload.parent_id = values.parent_id;
@@ -432,33 +454,30 @@ function ProjectTasks() {
   );
 
   // Get current user from localStorage
-  const currentUser = (() => {
-    try {
-      return JSON.parse(localStorage.getItem('user')) || {};
-    } catch {
-      return {};
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const [projectMembers, setProjectMembers] = useState([]);
+
+  useEffect(() => {
+    if (selectedProject) {
+      fetchProjectMembers();
     }
-  })();
+  }, [selectedProject]);
 
-  // Helper: get user role in project
-  const getUserRole = () => {
-    if (!selectedProject || !currentUser.id) return null;
-    if (selectedProject.admin_id === currentUser.id) return 'admin';
-    const member = users.find(u => u.user_id === currentUser.id);
-    return member ? (member.role || 'member') : null;
+  const fetchProjectMembers = async () => {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/members`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setProjectMembers(data.members || []);
+    }
   };
-  const userRole = getUserRole();
 
-  // Helper: can edit/delete this item?
+  const myProjectRole = projectMembers.find(m => m.user_id === user.id)?.role;
+  const canAddTask = myProjectRole === 'admin' || myProjectRole === 'manager' || myProjectRole === 'member';
   const canEditOrDelete = (item) => {
-    if (!item) return false;
-    if (!currentUser.id) return false;
-    if (selectedProject.admin_id === currentUser.id) return true;
-    const member = users.find(u => u.user_id === currentUser.id);
-    if (member && member.role === 'manager') return true;
-    if (item.assignee_id === currentUser.id) return true;
-    if (item.reporter_id === currentUser.id) return true;
-    return false;
+    return myProjectRole === 'admin' || myProjectRole === 'manager' || myProjectRole === 'member' || item.assignee_id === user.id || item.reporter_id === user.id;
   };
 
   return (
@@ -476,9 +495,11 @@ function ProjectTasks() {
           {sortField && (
             <Button size="small" onClick={() => setSortDir(d => d === 'asc' ? 'desc' : 'asc')}>{sortDir === 'asc' ? 'Asc' : 'Desc'}</Button>
           )}
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setShowTaskModal(true)}>
-            Create
-          </Button>
+          {canAddTask && (
+            <Button type="primary" icon={<PlusOutlined />} onClick={() => setShowTaskModal(true)} style={{ marginBottom: 16 }}>
+              Add Task
+            </Button>
+          )}
         </Space>
       </div>
       {alert && <Alert message={alert} type="success" showIcon style={{ marginBottom: 12 }} />}
@@ -533,10 +554,10 @@ function ProjectTasks() {
           </Form.Item>
           <Form.Item label="Assignee" name="assignee_id">
             <Select allowClear showSearch optionFilterProp="children" placeholder="Assign to...">
-              {currentUser.id && (
-                <Option value={currentUser.id} key="me">Assign to me ({currentUser.username || currentUser.email || 'Me'})</Option>
+              {user.id && (
+                <Option value={user.id} key="me">Assign to me ({user.username || user.email || 'Me'})</Option>
               )}
-              {users.filter(m => m.user_id !== currentUser.id).map(m => (
+              {users.filter(m => m.user_id !== user.id).map(m => (
                 <Option key={m.user_id} value={m.user_id}>{m.username || m.email}</Option>
               ))}
             </Select>

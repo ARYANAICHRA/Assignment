@@ -22,6 +22,11 @@ function Dashboard() {
   const [selectedTaskProject, setSelectedTaskProject] = useState(null);
   const [taskType, setTaskType] = useState('task');
   const [epics, setEpics] = useState([]);
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const [projectMembers, setProjectMembers] = useState([]);
+  const [invitations, setInvitations] = useState([]);
+  const [invLoading, setInvLoading] = useState(false);
+  const [invActionLoading, setInvActionLoading] = useState({});
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -84,8 +89,50 @@ function Dashboard() {
     if (selectedProject) {
       fetchUsers();
       fetchColumns();
+      fetchProjectMembers();
     }
   }, [selectedProject]);
+
+  useEffect(() => {
+    fetchInvitations();
+  }, []);
+
+  const fetchInvitations = async () => {
+    setInvLoading(true);
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch('http://localhost:5000/my-invitations', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setInvitations(data.invitations || []);
+      }
+    } catch {
+      setInvitations([]);
+    }
+    setInvLoading(false);
+  };
+
+  const handleInvitationAction = async (inviteId, projectId, action) => {
+    setInvActionLoading(l => ({ ...l, [inviteId]: true }));
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`http://localhost:5000/projects/${projectId}/invitation/${inviteId}/${action}`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setInvitations(inv => inv.filter(i => i.id !== inviteId));
+        message.success(`Invitation ${action}ed successfully.`);
+      } else {
+        message.error('Failed to update invitation');
+      }
+    } catch {
+      message.error('Network error');
+    }
+    setInvActionLoading(l => ({ ...l, [inviteId]: false }));
+  };
 
   // Fetch columns and users for the selected project in the Add Task modal
   useEffect(() => {
@@ -140,6 +187,20 @@ function Dashboard() {
     }
   };
 
+  const fetchProjectMembers = async () => {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/members`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setProjectMembers(data.members || []);
+    }
+  };
+
+  const myProjectRole = projectMembers.find(m => m.user_id === user.id)?.role;
+  const canAddTask = myProjectRole === 'admin' || myProjectRole === 'manager' || myProjectRole === 'member';
+
   const handleTaskSubmit = async (values) => {
     setTaskError('');
     const token = localStorage.getItem('token');
@@ -187,7 +248,42 @@ function Dashboard() {
 
   return (
     <div style={{ maxWidth: 1200, margin: '32px auto', padding: '0 16px' }}>
-      {selectedProject && (
+      {/* --- Pending Invitations --- */}
+      {invitations.length > 0 && (
+        <Card style={{ marginBottom: 24 }}>
+          <h3>Pending Project Invitations</h3>
+          {invLoading ? <Spin /> : (
+            <List
+              bordered
+              dataSource={invitations}
+              renderItem={inv => (
+                <List.Item
+                  actions={[
+                    <Button
+                      size="small"
+                      type="primary"
+                      loading={invActionLoading[inv.id]}
+                      onClick={() => handleInvitationAction(inv.id, inv.project_id, 'accept')}
+                    >Accept</Button>,
+                    <Button
+                      size="small"
+                      danger
+                      loading={invActionLoading[inv.id]}
+                      onClick={() => handleInvitationAction(inv.id, inv.project_id, 'reject')}
+                    >Reject</Button>
+                  ]}
+                >
+                  <List.Item.Meta
+                    title={<span>Project ID: {inv.project_id}</span>}
+                    description={`Invited at ${new Date(inv.created_at).toLocaleString()}`}
+                  />
+                </List.Item>
+              )}
+            />
+          )}
+        </Card>
+      )}
+      {selectedProject && canAddTask && (
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setShowTaskModal(true)}>
             Add Task

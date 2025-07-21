@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react'; // Import useContext
 import { useNavigate, Link } from 'react-router-dom';
 import { Form, Input, Button, Typography, Alert, Card } from 'antd';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import { ProjectContext } from '../context/ProjectContext'; // Import context
 
 const { Title } = Typography;
 
@@ -10,6 +11,7 @@ function Login({ setIsAuthenticated }) {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { setCurrentUser } = useContext(ProjectContext); // Use context
 
   const onFinish = async (values) => {
     setError('');
@@ -24,8 +26,12 @@ function Login({ setIsAuthenticated }) {
       if (res.ok) {
         setIsAuthenticated(true);
         localStorage.setItem('token', data.token);
-        // Optionally store user info for header
-        localStorage.setItem('user', JSON.stringify(data.user || {}));
+        
+        // --- FIX: Save user to localStorage AND context ---
+        // The user object from the login endpoint no longer has the global role
+        localStorage.setItem('user', JSON.stringify(data.user)); 
+        setCurrentUser(data.user); // Set in context for immediate use
+
         navigate('/dashboard');
       } else {
         setError(data.error || 'Login failed');
@@ -37,6 +43,7 @@ function Login({ setIsAuthenticated }) {
   };
 
   return (
+    // The JSX for this component remains the same
     <>
       <Header />
       <div style={{ maxWidth: 400, margin: '48px auto', padding: '0 16px' }}>

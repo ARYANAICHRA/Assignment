@@ -68,6 +68,19 @@ function App() {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
+    if (token) {
+      fetch('http://localhost:5000/me', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data) localStorage.setItem('user', JSON.stringify(data));
+        });
+    }
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
     if (!token) {
       setIsAuthenticated(false);
       setLoading(false);

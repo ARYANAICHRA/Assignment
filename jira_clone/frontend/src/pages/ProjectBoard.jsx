@@ -10,13 +10,12 @@ import {
   useDroppable,
 } from '@dnd-kit/core';
 import {
-  arrayMove,
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { SortableItem } from '../components/SortableItem';
 import { Row, Col, Card, Button, Input, Spin, Modal, message, Tag } from 'antd';
-import { PlusOutlined, DeleteOutlined } from '@ant-design/icons';
+import { PlusOutlined } from '@ant-design/icons';
 import TaskDetailModal from '../components/TaskDetailModal';
 
 const columnsDefault = [
@@ -25,6 +24,74 @@ const columnsDefault = [
   { key: 'inreview', label: 'In Review' },
   { key: 'done', label: 'Done' },
 ];
+
+// ✅ New Component: DroppableColumn
+// This isolates the useDroppable hook, fixing the error.
+function DroppableColumn({ col, colTasks, onAddTaskClick, onTaskClick }) {
+  const { setNodeRef, isOver } = useDroppable({ id: col.key });
+
+  return (
+    <Col xs={24} sm={12} md={6}>
+      <div ref={setNodeRef} style={{ height: '100%' }}>
+        <Card
+          title={col.label}
+          bordered={false}
+          style={{ minHeight: 420, background: isOver ? '#e6f4ff' : '#f9f9f9', marginBottom: 16, transition: 'background 0.2s' }}
+        >
+          <Button
+            type="dashed"
+            icon={<PlusOutlined />}
+            block
+            style={{ marginBottom: 12 }}
+            onClick={onAddTaskClick}
+          >
+            Add Task
+          </Button>
+          <SortableContext id={col.key} items={colTasks.length ? colTasks.map(t => t.id) : [col.key + '-placeholder']} strategy={verticalListSortingStrategy}>
+            {colTasks.length === 0 ? (
+              <SortableItem id={col.key + '-placeholder'}>
+                <div style={{ minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontStyle: 'italic', border: '1px dashed #eee', borderRadius: 6, marginBottom: 8, opacity: 0.5 }}>
+                  Drop tasks here
+                </div>
+              </SortableItem>
+            ) : (
+              colTasks.map(task => (
+                <SortableItem key={task.id} id={task.id}>
+                  <div style={{ position: 'relative', marginBottom: 8, maxWidth: 320, width: '100%', cursor: 'pointer' }} onClick={() => onTaskClick(task.id)}>
+                    <Card
+                      size="small"
+                      style={{
+                        borderLeft: task.status === 'done' ? '4px solid #52c41a' : '4px solid #1677ff',
+                        padding: '12px 16px',
+                        minHeight: 64,
+                        boxShadow: '0 1px 4px #f0f1f2',
+                        width: '100%',
+                        maxWidth: 320,
+                        margin: 0
+                      }}
+                      styles={{ body: { padding: 0, paddingRight: 32, position: 'relative' } }}
+                    >
+                      <div style={{ fontWeight: 500, fontSize: 15, padding: '8px 0 2px 0', wordBreak: 'break-word' }}>{task.title}</div>
+                      {task.priority && (
+                        <Tag
+                          color={task.priority === 'High' ? 'red' : task.priority === 'Medium' ? 'orange' : task.priority === 'Low' ? 'blue' : 'default'}
+                          style={{ position: 'absolute', top: 8, right: 8 }}
+                        >
+                          {task.priority}
+                        </Tag>
+                      )}
+                    </Card>
+                  </div>
+                </SortableItem>
+              ))
+            )}
+          </SortableContext>
+        </Card>
+      </div>
+    </Col>
+  );
+}
+
 
 function ProjectBoard() {
   const { selectedProject } = useContext(ProjectContext);
@@ -75,22 +142,23 @@ function ProjectBoard() {
       });
       if (res.ok) {
         const data = await res.json();
-        let backendCols = data.columns.map(col => ({
-          key: col.status || col.name.toLowerCase().replace(/\s/g, ''),
-          label: col.name,
-          id: col.id
-        }));
-        const seen = new Set();
-        backendCols = backendCols.filter(col => {
-          if (seen.has(col.key)) return false;
-          seen.add(col.key);
-          return true;
+        let backendCols = data.columns.map(col => {
+          let key = col.name.toLowerCase().replace(/\s/g, '');
+          if (key === 'todo') key = 'todo';
+          else if (key === 'inprogress') key = 'inprogress';
+          else if (key === 'inreview') key = 'inreview';
+          else if (key === 'done') key = 'done';
+          return {
+            key,
+            id: col.id
+          };
         });
-        if (backendCols.length === 0) {
-          await createDefaultColumns(token);
-          return fetchColumns();
-        }
-        setColumns(backendCols);
+        // Merge with columnsDefault to ensure all four columns are present and in order
+        const mergedCols = columnsDefault.map(def => {
+          const found = backendCols.find(col => col.key === def.key);
+          return found ? { ...def, id: found.id } : def;
+        });
+        setColumns(mergedCols);
       }
     } catch (e) {
       setColumns(columnsDefault);
@@ -150,7 +218,7 @@ function ProjectBoard() {
   const handleAddTask = async (colKey) => {
     if (!newTask.trim()) return;
     const token = localStorage.getItem('token');
-    const col = columns.find(col => col.key === colKey);
+    const col = columns.find(c => c.key === colKey);
     if (!col) return message.error('No column found for this project.');
     if (!userId) return message.error('User not loaded.');
     const status = colKey;
@@ -194,18 +262,14 @@ function ProjectBoard() {
     setActiveId(null);
     if (!over) return;
 
-    console.log('active.id:', active.id, 'over.id:', over.id);
-
     const fromCol = Object.keys(tasks).find((key) => tasks[key].some((item) => item.id === active.id));
     let toCol = null;
-
-    // If dropped on a placeholder, extract the column key
+    
     if (over.id.endsWith && over.id.endsWith('-placeholder')) {
       toCol = over.id.replace('-placeholder', '');
     } else if (columns.some(col => col.key === over.id)) {
       toCol = over.id;
     } else {
-      // If dropped on a task, find its column
       toCol = Object.keys(tasks).find((key) => tasks[key].some((item) => item.id === over.id));
     }
 
@@ -246,6 +310,16 @@ function ProjectBoard() {
 
   const displayTasks = optimisticTasks || tasks;
 
+  if (!selectedProject) {
+    return <div style={{ padding: 32, textAlign: 'center' }}>No project selected.</div>;
+  }
+  if (!columns || !Array.isArray(columns)) {
+    return <div style={{ padding: 32, textAlign: 'center' }}>Loading board...</div>;
+  }
+  if (!displayTasks || typeof displayTasks !== 'object') {
+    return <div style={{ padding: 32, textAlign: 'center' }}>Loading tasks...</div>;
+  }
+
   return (
     <div style={{ maxWidth: 1200, margin: '32px auto', padding: '0 16px' }}>
       <DndContext
@@ -255,67 +329,20 @@ function ProjectBoard() {
         onDragEnd={handleDragEnd}
       >
         <Row gutter={24}>
+          {/* ✅ Updated map to use the new component */}
           {columns.map(col => {
-            const { setNodeRef, isOver } = useDroppable({ id: col.key });
+            const colTasks = (displayTasks && displayTasks[col.key]) || [];
             return (
-              <Col key={col.key} xs={24} sm={12} md={6}>
-                <div ref={setNodeRef} style={{ height: '100%' }}>
-                  <Card
-                    title={col.label}
-                    bordered={false}
-                    style={{ minHeight: 420, background: isOver ? '#e6f4ff' : '#fff', marginBottom: 16, transition: 'background 0.2s' }}
-                  >
-                    <Button
-                      type="dashed"
-                      icon={<PlusOutlined />}
-                      block
-                      style={{ marginBottom: 12 }}
-                      onClick={() => { setShowTaskModal(true); setTaskModalCol(col.key); }}
-                    >
-                      Add Task
-                    </Button>
-                    <SortableContext id={col.key} items={displayTasks[col.key].length ? displayTasks[col.key].map(t => t.id) : [col.key + '-placeholder']} strategy={verticalListSortingStrategy}>
-                      {displayTasks[col.key].length === 0 ? (
-                        <SortableItem id={col.key + '-placeholder'}>
-                          <div style={{ minHeight: 120, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#bbb', fontStyle: 'italic', border: '1px dashed #eee', borderRadius: 6, marginBottom: 8, opacity: 0.5 }}>
-                            Drop tasks here
-                          </div>
-                        </SortableItem>
-                      ) : (
-                        displayTasks[col.key].map(task => (
-                          <SortableItem key={task.id} id={task.id}>
-                            <div style={{ position: 'relative', marginBottom: 8, maxWidth: 320, width: '100%', cursor: 'pointer' }} onClick={() => setSelectedTaskId(task.id)}>
-                              <Card
-                                size="small"
-                                style={{
-                                  borderLeft: task.status === 'done' ? '4px solid #52c41a' : '4px solid #1677ff',
-                                  padding: '12px 16px 12px 16px',
-                                  minHeight: 64,
-                                  boxShadow: '0 1px 4px #f0f1f2',
-                                  width: '100%',
-                                  maxWidth: 320,
-                                  margin: 0
-                                }}
-                                styles={{ body: { padding: 0, paddingRight: 32, position: 'relative' } }}
-                              >
-                                <div style={{ fontWeight: 500, fontSize: 15, padding: '8px 0 2px 0', wordBreak: 'break-word' }}>{task.title}</div>
-                                {task.priority && (
-                                  <Tag
-                                    color={task.priority === 'High' ? 'red' : task.priority === 'Medium' ? 'orange' : task.priority === 'Low' ? 'blue' : 'default'}
-                                    style={{ position: 'absolute', top: 8, right: 8 }}
-                                  >
-                                    {task.priority}
-                                  </Tag>
-                                )}
-                              </Card>
-                            </div>
-                          </SortableItem>
-                        ))
-                      )}
-                    </SortableContext>
-                  </Card>
-                </div>
-              </Col>
+              <DroppableColumn
+                key={col.key}
+                col={col}
+                colTasks={colTasks}
+                onAddTaskClick={() => {
+                  setShowTaskModal(true);
+                  setTaskModalCol(col.key);
+                }}
+                onTaskClick={(taskId) => setSelectedTaskId(taskId)}
+              />
             );
           })}
         </Row>
@@ -349,4 +376,4 @@ function ProjectBoard() {
   );
 }
 
-export default ProjectBoard; 
+export default ProjectBoard;

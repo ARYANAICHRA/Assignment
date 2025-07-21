@@ -46,7 +46,8 @@ function CreateProjectModal({ visible, onProjectCreated, onCancel }) {
       onOk={() => form.submit()}
       okText="Create"
       confirmLoading={loading}
-      destroyOnClose
+      // --- FIX: Replaced deprecated prop 'destroyOnClose' ---
+      destroyOnHidden
     >
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
         <Form.Item label="Project Name" name="name" rules={[{ required: true, message: 'Please enter a project name' }]}> 
@@ -61,4 +62,4 @@ function CreateProjectModal({ visible, onProjectCreated, onCancel }) {
   );
 }
 
-export default CreateProjectModal; 
+export default CreateProjectModal;

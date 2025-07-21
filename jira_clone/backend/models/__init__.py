@@ -9,3 +9,5 @@ from .team_member import TeamMember
 from .project_team import ProjectTeam
 from .activity_log import ActivityLog
 from .notification import Notification
+from .role import Role
+from .permission import Permission
