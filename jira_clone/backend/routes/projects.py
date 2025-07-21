@@ -12,7 +12,6 @@ projects_bp.route('/projects/<int:project_id>', methods=['GET'])(jwt_required(ge
 projects_bp.route('/projects/<int:project_id>/progress', methods=['GET'])(jwt_required(get_project_progress))
 projects_bp.route('/all-projects', methods=['GET'])(get_all_projects)
 
-# --- FIX: Secure all sensitive endpoints ---
 projects_bp.route('/dashboard/stats', methods=['GET'])(jwt_required(get_dashboard_stats))
 projects_bp.route('/projects/<int:project_id>', methods=['PATCH'])(jwt_required(update_project))
 projects_bp.route('/projects/<int:project_id>', methods=['DELETE'])(jwt_required(delete_project))

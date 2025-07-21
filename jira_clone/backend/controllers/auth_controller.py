@@ -10,10 +10,7 @@ def register_user():
     email = data.get('email')
     password = data.get('password')
 
-    # --- FIX: Never trust user input for roles ---
-    # The line below is removed:
-    # role = data.get('role', 'visitor')
-    # Always assign a default, non-privileged role.
+
     role = 'visitor' #
 
     if not username or not email or not password:
@@ -22,7 +19,7 @@ def register_user():
         return jsonify({'error': 'User already exists'}), 409
     
     password_hash = generate_password_hash(password)
-    user = User(username=username, email=email, password_hash=password_hash, role=role) # Use the safe, hardcoded role
+    user = User(username=username, email=email, password_hash=password_hash, role=role) 
     db.session.add(user)
     db.session.commit()
     return jsonify({'message': 'User registered successfully'}), 201
@@ -41,8 +38,7 @@ def login_user():
         
     token = generate_jwt(user)
     
-    # --- FIX: Stop returning the confusing global role to the client ---
-    # The old response included 'role': user.role
+
     return jsonify({
         'message': 'Login successful', 
         'token': token, 
@@ -50,6 +46,5 @@ def login_user():
             'id': user.id, 
             'username': user.username, 
             'email': user.email
-            # The global 'role' is no longer sent to the frontend
         }
     }), 200

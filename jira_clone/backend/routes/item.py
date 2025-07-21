@@ -31,7 +31,6 @@ def update_item_route(item_id):
 def delete_item_route(item_id):
     return delete_item(item_id)
 
-# Add explicit OPTIONS handler for all item routes
 @item_bp.route('/<int:item_id>', methods=['OPTIONS'])
 def options_item(item_id):
     response = make_response('', 200)

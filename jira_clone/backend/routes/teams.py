@@ -39,7 +39,6 @@ def get_team(team_id):
     team = Team.query.get(team_id)
     if not team:
         return jsonify({'error': 'Team not found'}), 404
-    # ... (rest of function is unchanged)
     members = TeamMember.query.filter_by(team_id=team_id).all()
     member_list = []
     for m in members:
@@ -64,7 +63,6 @@ def get_team(team_id):
 @teams_bp.route('/teams/<int:team_id>/projects', methods=['POST'])
 @jwt_required()
 def add_team_project(team_id):
-    # --- FIX: Add ownership check ---
     team = Team.query.get_or_404(team_id)
     if team.admin_id != get_jwt_identity():
         return jsonify({'error': 'Forbidden: You are not the admin of this team.'}), 403
@@ -78,7 +76,6 @@ def add_team_project(team_id):
         return jsonify({'error': 'Project already associated'}), 409
     pt = ProjectTeam(team_id=team_id, project_id=project_id)
     db.session.add(pt)
-    # ... (rest of function is unchanged)
     team_members = TeamMember.query.filter_by(team_id=team_id).all()
     for tm in team_members:
         if not ProjectMember.query.filter_by(project_id=project_id, user_id=tm.user_id).first():
@@ -91,7 +88,6 @@ def add_team_project(team_id):
 @teams_bp.route('/teams/<int:team_id>/projects/<int:project_id>', methods=['DELETE'])
 @jwt_required()
 def remove_team_project(team_id, project_id):
-    # --- FIX: Add ownership check ---
     team = Team.query.get_or_404(team_id)
     if team.admin_id != get_jwt_identity():
         return jsonify({'error': 'Forbidden: You are not the admin of this team.'}), 403
@@ -99,7 +95,6 @@ def remove_team_project(team_id, project_id):
     pt = ProjectTeam.query.filter_by(team_id=team_id, project_id=project_id).first()
     if not pt:
         return jsonify({'error': 'Project association not found'}), 404
-    # ... (rest of function is unchanged)
     team_members = TeamMember.query.filter_by(team_id=team_id).all()
     for tm in team_members:
         other_teams = ProjectTeam.query.filter(ProjectTeam.project_id==project_id, ProjectTeam.team_id!=team_id).all()
@@ -114,7 +109,6 @@ def remove_team_project(team_id, project_id):
 @teams_bp.route('/teams/<int:team_id>/members', methods=['POST'])
 @jwt_required()
 def add_team_member(team_id):
-    # --- FIX: Add ownership check ---
     team = Team.query.get_or_404(team_id)
     if team.admin_id != get_jwt_identity():
         return jsonify({'error': 'Forbidden: You are not the admin of this team.'}), 403
@@ -130,11 +124,9 @@ def add_team_member(team_id):
         return jsonify({'error': 'User already a member'}), 409
     tm = TeamMember(team_id=team_id, user_id=user.id)
     db.session.add(tm)
-    # ... (rest of function is unchanged)
     project_links = ProjectTeam.query.filter_by(team_id=team_id).all()
     for pl in project_links:
         if not ProjectMember.query.filter_by(project_id=pl.project_id, user_id=user.id).first():
-            # This line also needs a full fix to map role name to role_id. Defaulting to a hardcoded string is not ideal.
             pm = ProjectMember(project_id=pl.project_id, user_id=user.id, role='member') 
             db.session.add(pm)
     db.session.commit()
@@ -143,7 +135,6 @@ def add_team_member(team_id):
 @teams_bp.route('/teams/<int:team_id>/members/<int:user_id>', methods=['DELETE'])
 @jwt_required()
 def remove_team_member(team_id, user_id):
-    # --- FIX: Add ownership check ---
     team = Team.query.get_or_404(team_id)
     if team.admin_id != get_jwt_identity():
         return jsonify({'error': 'Forbidden: You are not the admin of this team.'}), 403
@@ -151,7 +142,6 @@ def remove_team_member(team_id, user_id):
     tm = TeamMember.query.filter_by(team_id=team_id, user_id=user_id).first()
     if not tm:
         return jsonify({'error': 'Member not found'}), 404
-    # ... (rest of function is unchanged)
     project_links = ProjectTeam.query.filter_by(team_id=team_id).all()
     for pl in project_links:
         other_teams = ProjectTeam.query.filter(ProjectTeam.project_id==pl.project_id, ProjectTeam.team_id!=team_id).all()

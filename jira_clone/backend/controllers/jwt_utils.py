@@ -6,7 +6,7 @@ from models.user import User
 
 def generate_jwt(user):
     payload = {
-        'sub': str(user.id),  # Standard JWT subject claim as string
+        'sub': str(user.id),  
         'user_id': user.id,
         'username': user.username,
         'email': user.email,
@@ -30,7 +30,6 @@ def jwt_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if request.method == 'OPTIONS':
-            # Allow preflight CORS requests to pass through
             return '', 200
         auth_header = request.headers.get('Authorization', None)
         if not auth_header or not auth_header.startswith('Bearer '):
@@ -39,7 +38,7 @@ def jwt_required(f):
         payload = decode_jwt(token)
         if not payload:
             return jsonify({'error': 'Invalid or expired token'}), 401
-        user_id = payload.get('sub') or payload.get('user_id')  # Prefer 'sub', fallback to 'user_id'
+        user_id = payload.get('sub') or payload.get('user_id') 
         if not user_id:
             return jsonify({'error': 'Invalid token: missing user identifier'}), 401
         user = User.query.get(user_id)

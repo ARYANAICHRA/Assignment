@@ -3,17 +3,14 @@ from models.db import db
 from models.board_column import BoardColumn
 from controllers.rbac import require_project_permission
 
-# --- FIX: Add permission check for consistency and security ---
 @require_project_permission('view_tasks')
 def get_columns(project_id):
-    # The decorator now protects this function.
     columns = BoardColumn.query.filter_by(project_id=project_id).order_by(BoardColumn.order.asc()).all()
     result = [{'id': c.id, 'name': c.name, 'order': c.order} for c in columns]
     return jsonify({'columns': result})
 
 @require_project_permission('manage_project')
 def create_column(project_id):
-    # (This function is unchanged)
     data = request.get_json()
     name = data.get('name')
     order = data.get('order', 0)
@@ -26,7 +23,6 @@ def create_column(project_id):
 
 @require_project_permission('manage_project')
 def update_column(column_id):
-    # (This function is unchanged)
     column = BoardColumn.query.get(column_id)
     if not column:
         return jsonify({'error': 'Column not found'}), 404
@@ -40,7 +36,6 @@ def update_column(column_id):
 
 @require_project_permission('manage_project')
 def delete_column(column_id):
-    # (This function is unchanged)
     column = BoardColumn.query.get(column_id)
     if not column:
         return jsonify({'error': 'Column not found'}), 404

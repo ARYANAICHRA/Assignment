@@ -14,6 +14,6 @@ class ProjectJoinRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    type = db.Column(db.String(20), nullable=False)  # 'request' or 'invite'
-    status = db.Column(db.String(20), nullable=False, default='pending')  # 'pending', 'accepted', 'rejected'
+    type = db.Column(db.String(20), nullable=False) 
+    status = db.Column(db.String(20), nullable=False, default='pending')  
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

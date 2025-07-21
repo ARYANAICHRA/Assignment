@@ -27,7 +27,6 @@ def get_recent_activity():
     if not user:
         return jsonify({'error': 'User not found'}), 401
     user_id = user.id
-    # Get recent activity logs for items the user is involved with (reporter or assignee)
     logs = ActivityLog.query.join(Item, ActivityLog.item_id == Item.id)
     logs = logs.filter((Item.reporter_id == user_id) | (Item.assignee_id == user_id))
     logs = logs.order_by(ActivityLog.created_at.desc()).limit(20).all()
@@ -125,7 +124,6 @@ def get_item(item_id):
     ).get(item_id)
     if not item:
         return jsonify({'error': f'Item not found: {item_id}'}), 404
-    # Fetch assignee and reporter names
     assignee = User.query.get(item.assignee_id) if item.assignee_id else None
     reporter = User.query.get(item.reporter_id) if item.reporter_id else None
     # Fetch comments
@@ -190,7 +188,6 @@ def update_item(item_id):
         return jsonify({'error': f'Item not found: {item_id}'}), 404
     data = request.get_json()
     changes = []
-    # --- Field validation ---
     allowed_status = {'todo', 'inprogress', 'done', 'inreview'}
     allowed_types = {'task', 'bug', 'epic', 'story'}
     allowed_priority = {'Low', 'Medium', 'High', 'Critical', None}
@@ -218,7 +215,6 @@ def update_item(item_id):
     db.session.commit()
     if changes:
         log_activity(item.id, getattr(request.user, 'id', None), 'updated', '; '.join(changes))
-    # Notify new assignee if changed (task update)
     old_assignee = item.assignee_id
     for field in ['title', 'description', 'status', 'assignee_id', 'column_id', 'priority', 'parent_id', 'type', 'severity']:
         if field in data:
@@ -235,7 +231,6 @@ def delete_item(item_id):
     item = Item.query.get(item_id)
     if not item:
         return jsonify({'error': f'Item not found: {item_id}'}), 404
-    # Log the deletion before deleting the item and its logs
     log_activity(item_id, getattr(request.user, 'id', None), 'deleted', 'Task deleted')
     for log in item.activity_logs.all():
         db.session.delete(log)
@@ -243,7 +238,6 @@ def delete_item(item_id):
     db.session.commit()
     return jsonify({'message': 'Item deleted'})
 
-# --- Subtask Endpoints ---
 @require_project_permission('view_tasks')
 def get_subtasks(item_id):
     parent = Item.query.get(item_id)
@@ -287,7 +281,6 @@ def create_subtask(item_id):
     db.session.add(subtask)
     db.session.commit()
     log_activity(subtask.id, getattr(request.user, 'id', None), 'created', f'Subtask created: {title}')
-    # Notify assignee if assigned (subtask creation)
     if data.get('assignee_id'):
         assignee = User.query.get(data.get('assignee_id'))
         if assignee:
@@ -335,7 +328,6 @@ def delete_subtask(subtask_id):
     log_activity(subtask_id, getattr(request.user, 'id', None), 'deleted', 'Subtask deleted')
     return jsonify({'message': 'Subtask deleted'})
 
-# --- Activity Log Endpoint ---
 @require_project_permission('view_tasks')
 def get_activity_logs(item_id):
     logs = ActivityLog.query.filter_by(item_id=item_id).order_by(ActivityLog.created_at.asc()).all()
@@ -392,7 +384,6 @@ def add_comment(item_id):
     comment = Comment(item_id=item_id, user_id=user.id, content=content)
     db.session.add(comment)
     db.session.commit()
-    # Notify assignee and reporter when a comment is added
     item = Item.query.get(item_id)
     if item:
         notified_users = set()
@@ -404,7 +395,7 @@ def add_comment(item_id):
     return jsonify({'message': 'Comment added', 'comment': {'id': comment.id, 'content': comment.content, 'user_id': comment.user_id, 'author_name': user.username, 'created_at': comment.created_at.isoformat()}}), 201
 
 @require_project_permission('edit_any_comment', allow_own='edit_own_comment')
-def edit_comment(item_id, comment_id): # The route will need item_id for the decorator to find the project
+def edit_comment(item_id, comment_id): 
     user = getattr(request, 'user', None)
     if not user:
         return jsonify({'error': 'User not found'}), 401
@@ -413,8 +404,7 @@ def edit_comment(item_id, comment_id): # The route will need item_id for the dec
     if not comment:
         return jsonify({'error': 'Comment not found'}), 404
         
-    # The hardcoded check "if comment.user_id != user.id:" is now gone.
-    # The decorator handles this logic perfectly.
+
     
     data = request.get_json()
     content = data.get('content')

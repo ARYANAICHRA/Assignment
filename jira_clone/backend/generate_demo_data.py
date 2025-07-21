@@ -10,30 +10,26 @@ def create_roles_and_permissions(project=None):
         'admin': [
             'view_tasks', 'create_task', 'edit_any_task', 'edit_own_task', 'delete_any_task', 'delete_own_task',
             'manage_project', 'add_remove_members', 'change_roles', 'view_project_settings', 'delete_project', 'transfer_admin',
-            # New granular permissions for comments
             'add_comment', 'edit_any_comment', 'delete_any_comment'
         ],
         'manager': [
             'view_tasks', 'create_task', 'edit_any_task', 'edit_own_task', 'delete_any_task', 'delete_own_task',
             'manage_project', 'add_remove_members', 'change_roles', 'view_project_settings',
-            # New granular permissions for comments
             'add_comment', 'edit_any_comment', 'delete_any_comment'
         ],
         'member': [
             'view_tasks', 'create_task', 'edit_own_task', 'delete_own_task', 'view_project_settings',
-            # New granular permissions for comments
             'add_comment', 'edit_own_comment'
         ],
         'visitor': [
             'view_tasks', 'view_project_settings'
-            # Visitors can view but not add/edit comments
         ]
     }
     roles = {}
     for role_name, actions in role_defs.items():
         role = Role(name=role_name, project_id=project.id if project else None)
         db.session.add(role)
-        db.session.flush()  # get role.id
+        db.session.flush()  
         for action in actions:
             perm = Permission(action=action, role_id=role.id)
             db.session.add(perm)
@@ -46,7 +42,7 @@ def main():
         db.drop_all()
         db.create_all()
 
-        # Create demo users with a safe, non-admin default global role
+       
         users = [
             User(username='alice', email='alice@example.com', password_hash=generate_password_hash('password'), role='member'),
             User(username='bob', email='bob@example.com', password_hash=generate_password_hash('password'), role='member'),

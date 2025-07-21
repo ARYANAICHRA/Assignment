@@ -22,10 +22,8 @@ def add_member(project_id):
         return jsonify({'error': 'User not found'}), 404
     if ProjectMember.query.filter_by(project_id=project_id, user_id=user.id).first():
         return jsonify({'error': 'User already a member'}), 409
-    # Check for existing pending invitation
     if ProjectJoinRequest.query.filter_by(project_id=project_id, user_id=user.id, type='invite', status='pending').first():
         return jsonify({'error': 'Invitation already pending'}), 409
-    # Find role
     role = Role.query.filter_by(name=role_name, project_id=project_id).first()
     if not role:
         return jsonify({'error': f'Role {role_name} not found for this project'}), 400
@@ -37,7 +35,6 @@ def add_member(project_id):
     )
     db.session.add(invite)
     db.session.commit()
-    # Notify invited user
     create_notification(user.id, f"You have been invited to join project {project_id}.")
     return jsonify({'message': 'Invitation sent'})
 
@@ -82,10 +79,8 @@ def list_members(project_id):
     return jsonify({'members': result})
 
 def request_to_join_project(project_id, user_id):
-    # Check if already a member
     if ProjectMember.query.filter_by(project_id=project_id, user_id=user_id).first():
         return jsonify({'error': 'Already a member'}), 400
-    # Check for existing pending request
     if ProjectJoinRequest.query.filter_by(project_id=project_id, user_id=user_id, type='request', status='pending').first():
         return jsonify({'error': 'Join request already pending'}), 400
     join_request = ProjectJoinRequest(
@@ -96,7 +91,6 @@ def request_to_join_project(project_id, user_id):
     )
     db.session.add(join_request)
     db.session.commit()
-    # Notify all managers/admins
     managers = ProjectMember.query.filter(
         ProjectMember.project_id == project_id,
         ProjectMember.role.has(Role.name.in_(['admin', 'manager']))
@@ -126,12 +120,10 @@ def accept_join_request(project_id, request_id):
     req = ProjectJoinRequest.query.filter_by(id=request_id, project_id=project_id, type='request', status='pending').first()
     if not req:
         return jsonify({'error': 'Request not found'}), 404
-    # Add user to project as member (or default role)
     if ProjectMember.query.filter_by(project_id=project_id, user_id=req.user_id).first():
         req.status = 'accepted'
         db.session.commit()
         return jsonify({'message': 'User already a member, request marked accepted'})
-    # Find default role
     role = Role.query.filter_by(name='member', project_id=project_id).first()
     if not role:
         return jsonify({'error': 'Default role not found'}), 400
@@ -139,7 +131,6 @@ def accept_join_request(project_id, request_id):
     db.session.add(member)
     req.status = 'accepted'
     db.session.commit()
-    # Notify user
     create_notification(req.user_id, f"Your join request for project {project_id} was accepted.")
     return jsonify({'message': 'Request accepted, user added'})
 

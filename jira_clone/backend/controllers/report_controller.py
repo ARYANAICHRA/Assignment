@@ -3,17 +3,14 @@ from models.project import Project
 from models.item import Item
 from models.project_member import ProjectMember
 from models.user import User
-from controllers.rbac import require_project_permission # Import the decorator
+from controllers.rbac import require_project_permission 
 
-# --- FIX: Add authorization to ensure user is a project member ---
 @require_project_permission('view_tasks')
 def get_project_report(project_id):
-    # The decorator handles all permission checks.
-    # The rest of the function logic is unchanged.
+
     project = Project.query.get(project_id)
     if not project:
         return jsonify({'error': 'Project not found'}), 404
-    # ... (rest of the function is unchanged)
     items = Item.query.filter_by(project_id=project_id).all()
     members = ProjectMember.query.filter_by(project_id=project_id).all()
     member_details = []

@@ -22,7 +22,6 @@ def require_project_permission(action, allow_own=None):
                 return jsonify({"error": "Unauthorized: No user ID found."}), 401
             project_id = kwargs.get('project_id') or (getattr(request, 'view_args', {}) or {}).get('project_id')
             item_id = kwargs.get('item_id') or (getattr(request, 'view_args', {}) or {}).get('item_id')
-            # Try to resolve project_id from item if not present
             if not project_id and item_id:
                 item = Item.query.get(item_id)
                 if item:
