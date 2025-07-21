@@ -58,7 +58,7 @@ def create_item(project_id):
     severity = data.get('severity')
     # --- Field validation ---
     allowed_status = {'todo', 'inprogress', 'done', 'inreview'}
-    allowed_types = {'task', 'bug', 'epic', 'story'}
+    allowed_types = {'task', 'bug', 'epic', 'feature'}
     allowed_priority = {'Low', 'Medium', 'High', 'Critical', None}
     if not title or not column_id:
         return jsonify({'error': 'Title and column_id required'}), 400
