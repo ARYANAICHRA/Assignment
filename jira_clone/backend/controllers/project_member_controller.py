@@ -147,7 +147,7 @@ def accept_join_request(project_id, request_id):
         req.status = 'accepted'
         db.session.commit()
         return jsonify({'message': 'User already a member, request marked accepted'}), 200
-    role = Role.query.filter_by(name='member', scope='project').first()
+    role = Role.query.filter_by(name='Project Contributor', scope='project').first()
     if not role:
         return jsonify({'error': 'Default role not found'}), 400
     member = ProjectMember(project_id=project_id, user_id=req.user_id, role_id=role.id)
@@ -189,7 +189,7 @@ def accept_invitation(project_id, invite_id, user_id):
         inv.status = 'accepted'
         db.session.commit()
         return jsonify({'message': 'Already a member, invitation marked accepted'}), 200
-    role = Role.query.filter_by(name='member', scope='project').first()
+    role = Role.query.filter_by(name='Project Contributor', scope='project').first()
     if not role:
         return jsonify({'error': 'Default role not found'}), 400
     member = ProjectMember(project_id=project_id, user_id=user_id, role_id=role.id)

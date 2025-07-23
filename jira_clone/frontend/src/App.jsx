@@ -47,6 +47,7 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
             {/* Redirect admin away from dashboard and home */}
             {isAdmin && <Route path="/dashboard" element={<Navigate to="/admin" replace />} />}
             {isAdmin && <Route path="/" element={<Navigate to="/admin" replace />} />}
+            {!isAdmin && <Route path="/" element={<Navigate to="/dashboard" replace />} />}
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/projects/:id" element={<ProjectPage />} />

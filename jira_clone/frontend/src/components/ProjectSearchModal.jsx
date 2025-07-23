@@ -1,21 +1,27 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { Modal, Input, Card, Typography, Button, Spin, message } from 'antd';
 import { ProjectContext } from '../context/ProjectContext';
+import { useAuth } from '../context/AuthContext';
 
 const { Title, Paragraph } = Typography;
 
 export default function ProjectSearchModal({ visible, onClose }) {
   const { selectedProject, projectMembers, currentUser } = useContext(ProjectContext);
+  const { isAdmin } = useAuth();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [requesting, setRequesting] = useState({}); // { [projectId]: boolean }
   const [requested, setRequested] = useState({}); // { [projectId]: true }
   const [memberOf, setMemberOf] = useState({}); // { [projectId]: true }
+  const [userProjects, setUserProjects] = useState([]);
 
   useEffect(() => {
-    if (visible) fetchProjects();
-  }, [visible]);
+    if (visible && currentUser) {
+      fetchProjects();
+      fetchUserProjects();
+    }
+  }, [visible, currentUser]);
 
   const fetchProjects = async () => {
     setLoading(true);
@@ -31,6 +37,19 @@ export default function ProjectSearchModal({ visible, onClose }) {
       }
     } catch {}
     setLoading(false);
+  };
+
+  const fetchUserProjects = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      const res = await fetch(`http://localhost:5000/users/${currentUser.id}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUserProjects(data.user.projects || []);
+      }
+    } catch {}
   };
 
   const handleRequest = async (projectId) => {
@@ -56,10 +75,20 @@ export default function ProjectSearchModal({ visible, onClose }) {
 
   // Optionally, you could fetch user's pending requests and memberships to set requested/memberOf
 
-  const filtered = projects.filter(p =>
+  let filtered = projects.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
     (p.description && p.description.toLowerCase().includes(search.toLowerCase()))
   );
+
+  // If not admin, only show projects the user is not already a member of as owner or contributor
+  if (!isAdmin && currentUser) {
+    filtered = filtered.filter(project =>
+      !userProjects.some(p =>
+        p.id === project.id &&
+        (p.role === 'Project Owner' || p.role === 'Project Contributor')
+      )
+    );
+  }
 
   return (
     <Modal
@@ -82,15 +111,25 @@ export default function ProjectSearchModal({ visible, onClose }) {
             return (
               <Card key={project.id} title={project.name}>
                 <Paragraph type="secondary">{project.description || 'No description'}</Paragraph>
-                <Button
-                  type="primary"
-                  disabled={isMember || requested[project.id]}
-                  loading={requesting[project.id]}
-                  onClick={() => handleRequest(project.id)}
-                  style={{ marginTop: 12 }}
-                >
-                  {isMember ? 'Already a Member' : requested[project.id] ? 'Request Pending' : 'Request to Join'}
-                </Button>
+                {isAdmin ? (
+                  <Button
+                    type="primary"
+                    onClick={() => window.location.href = `/projects/${project.id}`}
+                    style={{ marginTop: 12 }}
+                  >
+                    Go to Project
+                  </Button>
+                ) : (
+                  <Button
+                    type="primary"
+                    disabled={isMember || requested[project.id]}
+                    loading={requesting[project.id]}
+                    onClick={() => handleRequest(project.id)}
+                    style={{ marginTop: 12 }}
+                  >
+                    {isMember ? 'Already a Member' : requested[project.id] ? 'Request Pending' : 'Request to Join'}
+                  </Button>
+                )}
               </Card>
             );
           })}
