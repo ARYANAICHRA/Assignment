@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Layout, Menu, Typography, Table, Button, Modal, Form, Input, Select, message, Popconfirm, Divider, Card, List, Avatar, Tag, Spin, Space } from 'antd';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../utils/api';
-import { TeamOutlined, PlusOutlined, UserOutlined, ProjectOutlined, DeleteOutlined } from '@ant-design/icons';
+import { TeamOutlined, PlusOutlined, UserOutlined, ProjectOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 
 const { Header, Content, Sider } = Layout;
 const { Title } = Typography;
@@ -43,6 +43,11 @@ function AdminPanel() {
   // Add state for user details modal
   const [userDetails, setUserDetails] = useState(null);
   const [showUserDetailsModal, setShowUserDetailsModal] = useState(false);
+
+  // Add state for visitor team modal
+  const [showVisitorTeamModal, setShowVisitorTeamModal] = useState(false);
+  const [visitorTeamProject, setVisitorTeamProject] = useState(null);
+  const [visitorTeamForm] = Form.useForm();
 
   // Effect to fetch all data on component mount or token change
   useEffect(() => {
@@ -538,6 +543,23 @@ function AdminPanel() {
   ];
 
   // Column definitions for the Projects table
+  const handleRemoveAllVisitors = async (projectId) => {
+    try {
+      const res = await apiFetch(`http://localhost:5000/admin/projects/${projectId}/remove-visitors`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (res.ok) {
+        message.success('All visitors removed from project');
+        fetchProjectMembers(projectId);
+      } else {
+        const data = await res.json();
+        message.error(data.error || 'Failed to remove visitors');
+      }
+    } catch {
+      message.error('Network error removing visitors');
+    }
+  };
   const projectColumns = [
     { title: 'Name', dataIndex: 'name', key: 'name' },
     { 
@@ -556,6 +578,10 @@ function AdminPanel() {
         <>
           <Button size="small" onClick={() => { setSelectedProject(record); fetchProjectMembers(record.id); setShowManageProjectModal(true); }}>Manage</Button>
           <Button size="small" style={{ marginLeft: 8 }} onClick={() => { setSelectedProject(record); setShowAssignOwnerModal(true); }}>Assign Owner</Button>
+          <Button size="small" style={{ marginLeft: 8 }} onClick={() => handleOpenVisitorTeamModal(record)}>Add Visitor Team</Button>
+          <Popconfirm title="Are you sure you want to remove all visitors from this project?" onConfirm={() => handleRemoveAllVisitors(record.id)} okText="Remove" cancelText="Cancel">
+            <Button size="small" icon={<EyeOutlined />} style={{ marginLeft: 8 }} danger>Remove All Visitors</Button>
+          </Popconfirm>
           <Popconfirm title="Delete this project?" onConfirm={() => handleDeleteProject(record.id)} okText="Yes" cancelText="No">
             <Button size="small" danger style={{ marginLeft: 8 }}>Delete</Button>
           </Popconfirm>
@@ -615,6 +641,35 @@ function AdminPanel() {
       }
     } catch {
       message.error('Network error fetching user details');
+    }
+  };
+
+  const handleOpenVisitorTeamModal = (project) => {
+    setVisitorTeamProject(project);
+    setShowVisitorTeamModal(true);
+    visitorTeamForm.resetFields();
+  };
+  const handleCloseVisitorTeamModal = () => {
+    setShowVisitorTeamModal(false);
+    setVisitorTeamProject(null);
+  };
+  const handleAddVisitorTeam = async (values) => {
+    try {
+      const res = await apiFetch(`http://localhost:5000/admin/projects/${visitorTeamProject.id}/visitor-team`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ team_id: values.team_id })
+      });
+      if (res.ok) {
+        message.success('Team added as visitors');
+        handleCloseVisitorTeamModal();
+        fetchProjects();
+      } else {
+        const data = await res.json();
+        message.error(data.error || 'Failed to add visitor team');
+      }
+    } catch {
+      message.error('Network error adding visitor team');
     }
   };
 
@@ -959,6 +1014,26 @@ function AdminPanel() {
                 </Form.Item>
               </Form>
             )}
+          </Modal>
+
+          {/* Visitor Team Modal */}
+          <Modal
+            title={`Add Visitor Team to Project: ${visitorTeamProject?.name || ''}`}
+            open={showVisitorTeamModal}
+            onCancel={handleCloseVisitorTeamModal}
+            onOk={() => visitorTeamForm.submit()}
+            okText="Add Visitor Team"
+            destroyOnClose
+          >
+            <Form form={visitorTeamForm} layout="vertical" onFinish={handleAddVisitorTeam}>
+              <Form.Item name="team_id" label="Select Team" rules={[{ required: true, message: 'Please select a team' }]}> 
+                <Select placeholder="Select a team">
+                  {teams.map(team => (
+                    <Option key={team.id} value={team.id}>{team.name} {team.description ? `(${team.description})` : ''}</Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Form>
           </Modal>
         </Content>
       </Layout>

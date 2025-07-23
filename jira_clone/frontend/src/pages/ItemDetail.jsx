@@ -28,13 +28,24 @@ function ItemDetail() {
   const { itemId } = useParams();
   const navigate = useNavigate();
   
-  const { selectedProject, setSelectedProject, hasPermission, currentUser, projectMembers } = useContext(ProjectContext);
+  const { selectedProject, setSelectedProject, hasProjectPermission, currentUser, projectMembers } = useContext(ProjectContext);
 
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [form] = Form.useForm();
   const [commentInput, setCommentInput] = useState('');
+
+  // Set form values when task changes and modal is open
+  useEffect(() => {
+    if (editModalVisible && task) {
+      form.setFieldsValue({
+        ...task,
+        due_date: task.due_date ? dayjs(task.due_date) : null,
+        assignee_id: task.assignee_id || null
+      });
+    }
+  }, [editModalVisible, task, form]);
 
   useEffect(() => {
     if (itemId) {
@@ -82,7 +93,7 @@ function ItemDetail() {
     // ... add comment logic
   };
 
-  const canEdit = hasPermission('edit_any_task') || (hasPermission('edit_own_task') && task && (currentUser?.id === task.reporter_id || currentUser?.id === task.assignee_id));
+  const canEdit = hasProjectPermission('edit_any_task') || (hasProjectPermission('edit_own_task') && task && (currentUser?.id === task.reporter_id || currentUser?.id === task.assignee_id));
 
   if (loading) return <Spin size="large" style={{ display: 'block', margin: '40vh auto' }} />;
   if (!task) return <div>Task not found.</div>;
@@ -131,7 +142,7 @@ function ItemDetail() {
           )}
           
           <Card title="Comments" bordered={false}>
-            {hasPermission('add_comment') && (
+            {hasProjectPermission('add_comment') && (
               <div style={{ display: 'flex', marginBottom: 24 }}>
                 <Avatar src={currentUser?.avatar} icon={<UserOutlined />} style={{ marginRight: 12 }} />
                 <div style={{ flex: 1 }}>
@@ -202,12 +213,17 @@ function ItemDetail() {
         <Form 
             form={form} 
             layout="vertical" 
-            initialValues={{ ...task, due_date: task.due_date ? dayjs(task.due_date) : null }}
         >
             <Form.Item name="title" label="Title" rules={[{ required: true }]}><Input /></Form.Item>
             <Form.Item name="description" label="Description"><TextArea rows={4} /></Form.Item>
             <Form.Item name="status" label="Status" rules={[{ required: true }]}><Select options={statusOptions} /></Form.Item>
-            <Form.Item name="assignee_id" label="Assignee"><Select allowClear options={projectMembers.map(m => ({ value: m.user_id, label: m.username }))} /></Form.Item>
+            <Form.Item name="assignee_id" label="Assignee">
+              <Select
+                allowClear
+                options={projectMembers.map(m => ({ value: m.user_id, label: m.username || m.email || m.user_id }))}
+                placeholder="Select assignee"
+              />
+            </Form.Item>
             <Form.Item name="due_date" label="Due Date"><DatePicker style={{ width: '100%' }} /></Form.Item>
         </Form>
       </Modal>

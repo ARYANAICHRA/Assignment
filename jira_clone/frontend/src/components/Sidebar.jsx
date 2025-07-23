@@ -11,7 +11,8 @@ import {
   PlusOutlined,
   FolderOpenOutlined,
   SearchOutlined,
-  GoldOutlined
+  GoldOutlined,
+  EyeOutlined
 } from '@ant-design/icons';
 import CreateProjectModal from './CreateProjectModal';
 import { ProjectContext } from '../context/ProjectContext'; // Import context
@@ -135,6 +136,7 @@ function Sidebar({ setIsAuthenticated }) {
                     marginBottom: 4,
                   }}
                   onClick={() => navigate(`/projects/${project.id}`)}
+                  actions={project.role === 'Project Visitor' ? [<EyeOutlined style={{ color: '#888' }} title="Visitor" key="visitor" />] : []}
                 >
                   <List.Item.Meta
                     avatar={

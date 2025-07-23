@@ -8,6 +8,7 @@ from models.project_member import ProjectMember
 from models.role import Role
 from controllers.rbac import is_admin
 from models.db import db
+from models.project_member import add_team_as_project_visitors, remove_all_project_visitors
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -139,4 +140,35 @@ def list_project_members(project_id):
             'email': user.email if user else None,
             'role': role.name if role else None
         })
-    return jsonify({'members': result}), 200 
+    return jsonify({'members': result}), 200
+
+# Add a team as visitors to a project
+@admin_bp.route('/admin/projects/<int:project_id>/visitor-team', methods=['POST'])
+@admin_required
+def add_visitor_team(project_id):
+    data = request.get_json()
+    team_id = data.get('team_id')
+    if not team_id:
+        return jsonify({'error': 'team_id required'}), 400
+    team = Team.query.get(team_id)
+    project = Project.query.get(project_id)
+    if not team or not project:
+        return jsonify({'error': 'Team or Project not found'}), 404
+    try:
+        added = add_team_as_project_visitors(project_id, team_id)
+        return jsonify({'message': f'Team added as visitors', 'members_added': added}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+# Remove all visitor members from a project
+@admin_bp.route('/admin/projects/<int:project_id>/remove-visitors', methods=['POST'])
+@admin_required
+def remove_visitors_from_project(project_id):
+    project = Project.query.get(project_id)
+    if not project:
+        return jsonify({'error': 'Project not found'}), 404
+    try:
+        removed = remove_all_project_visitors(project_id)
+        return jsonify({'message': f'All visitors removed', 'visitors_removed': removed}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400 

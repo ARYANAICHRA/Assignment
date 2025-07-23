@@ -69,6 +69,7 @@ def seed_data():
     roles['Team Member'] = Role(name='Team Member', scope='team')
     roles['Project Owner'] = Role(name='Project Owner', scope='project')
     roles['Project Contributor'] = Role(name='Project Contributor', scope='project')
+    roles['Project Visitor'] = Role(name='Project Visitor', scope='project')
     db.session.add_all(list(roles.values()))
     db.session.commit()
 
@@ -82,6 +83,9 @@ def seed_data():
         'view_project_settings', 'manage_project', 'view_tasks', 'assign_project_role', 'add_remove_members', 'delete_project']]
     roles['Project Contributor'].permissions = [perm_map[a] for a in [
         'view_project', 'create_task', 'edit_own_task', 'delete_own_task', 'comment_task', 'view_project_settings', 'view_tasks']]
+    # Assign permissions to Project Visitor
+    visitor_perms = [perm_map[a] for a in ['view_project', 'view_tasks', 'view_project_settings', 'view_reports'] if a in perm_map]
+    roles['Project Visitor'].permissions = visitor_perms
     db.session.commit()
 
     # --- Users ---

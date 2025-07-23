@@ -64,9 +64,16 @@ def get_projects():
     user = User.query.get(user_id)
     if not user:
         return jsonify({'error': 'User not found'}), 401
-    member_project_ids = db.session.query(ProjectMember.project_id).filter_by(user_id=user.id)
-    projects = Project.query.filter(Project.id.in_(member_project_ids)).all()
-    result = [{'id': p.id, 'name': p.name, 'description': p.description, 'owner_id': p.owner_id} for p in projects]
+    # Get all ProjectMember entries for this user (including visitors)
+    memberships = ProjectMember.query.filter_by(user_id=user.id).all()
+    project_ids = [m.project_id for m in memberships]
+    projects = Project.query.filter(Project.id.in_(project_ids)).all()
+    # For each project, get the user's role
+    result = []
+    for p in projects:
+        pm = next((m for m in memberships if m.project_id == p.id), None)
+        role_name = pm.role.name if pm and pm.role else None
+        result.append({'id': p.id, 'name': p.name, 'description': p.description, 'owner_id': p.owner_id, 'role': role_name})
     return jsonify({'projects': result}), 200
 
 def get_all_projects():
