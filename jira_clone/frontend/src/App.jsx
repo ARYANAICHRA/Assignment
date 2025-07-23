@@ -18,12 +18,15 @@ import ItemDetail from './pages/ItemDetail';
 import ProjectManagement from './pages/ProjectManagement';
 import Teams from './pages/Teams';
 import Reports from './pages/Reports';
+import { useAuth } from './context/AuthContext';
+import AdminPanel from './pages/AdminPanel';
 
 const { Sider, Content, Header: AntHeader, Footer: AntFooter } = Layout;
 
 function AppLayout({ isAuthenticated, setIsAuthenticated }) {
   const { selectedProject } = useContext(ProjectContext);
   const location = useLocation();
+  const { isAdmin } = useAuth();
   // Only show footer on dashboard, home, login, register, and profile
   const showFooter = [
     '/',
@@ -41,7 +44,9 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
         </div>
         <div style={{ flex: 1, minWidth: 0, padding: '32px 16px 0 16px', marginTop: 0 }}>
           <Routes>
-            <Route path="/" element={<Dashboard />} />
+            {/* Redirect admin away from dashboard and home */}
+            {isAdmin && <Route path="/dashboard" element={<Navigate to="/admin" replace />} />}
+            {isAdmin && <Route path="/" element={<Navigate to="/admin" replace />} />}
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/projects/:id" element={<ProjectPage />} />
@@ -49,7 +54,8 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
             <Route path="/project-management" element={<ProjectManagement />} />
             <Route path="/teams" element={<Teams />} />
             <Route path="/reports/project/:projectId" element={<Reports />} />
-            <Route path="*" element={<Navigate to="/" />} />
+            <Route path="/admin" element={<AdminPanel />} />
+            <Route path="*" element={<Navigate to={isAdmin ? "/admin" : "/"} />} />
           </Routes>
           {showFooter && (
             <div style={{ textAlign: 'center', background: '#fff', position: 'sticky', bottom: 0, zIndex: 99 }}>
@@ -63,8 +69,9 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
 }
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { currentUser, isAdmin } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');

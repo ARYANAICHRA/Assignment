@@ -31,19 +31,19 @@ function Home({ isAuthenticated }) {
         <Title level={2} style={{ textAlign: 'center', marginBottom: 32, color: '#222' }}>Why Choose Jira Clone?</Title>
         <Row gutter={[32, 32]} justify="center">
           <Col xs={24} sm={12} md={8}>
-            <Card bordered={false} style={{ textAlign: 'center', minHeight: 220 }}>
+            <Card variant="outlined" style={{ textAlign: 'center', minHeight: 220 }}>
               <Title level={4} style={{ color: '#1677ff' }}>Kanban Boards</Title>
               <Paragraph>Visualize your workflow and move tasks across columns with a drag-and-drop interface.</Paragraph>
             </Card>
           </Col>
           <Col xs={24} sm={12} md={8}>
-            <Card bordered={false} style={{ textAlign: 'center', minHeight: 220 }}>
+            <Card variant="outlined" style={{ textAlign: 'center', minHeight: 220 }}>
               <Title level={4} style={{ color: '#52c41a' }}>Team Collaboration</Title>
               <Paragraph>Invite team members, assign tasks, and collaborate in real time to get work done faster.</Paragraph>
             </Card>
           </Col>
           <Col xs={24} sm={12} md={8}>
-            <Card bordered={false} style={{ textAlign: 'center', minHeight: 220 }}>
+            <Card variant="outlined" style={{ textAlign: 'center', minHeight: 220 }}>
               <Title level={4} style={{ color: '#faad14' }}>Progress Tracking</Title>
               <Paragraph>Track project progress, see activity feeds, and stay on top of deadlines and deliverables.</Paragraph>
             </Card>

@@ -10,10 +10,12 @@ import {
   UpOutlined,
   PlusOutlined,
   FolderOpenOutlined,
-  SearchOutlined
+  SearchOutlined,
+  GoldOutlined
 } from '@ant-design/icons';
 import CreateProjectModal from './CreateProjectModal';
 import { ProjectContext } from '../context/ProjectContext'; // Import context
+import { useAuth } from '../context/AuthContext';
 
 const { Text } = Typography;
 
@@ -27,6 +29,7 @@ function Sidebar({ setIsAuthenticated }) {
   
   // --- FIX: Get the current user from the context ---
   const { currentUser } = useContext(ProjectContext);
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     // Only fetch projects if a user is logged in
@@ -37,16 +40,25 @@ function Sidebar({ setIsAuthenticated }) {
 
   const fetchProjects = async () => {
     const token = localStorage.getItem('token');
-    const res = await fetch('http://localhost:5000/projects', {
+    let url = isAdmin ? 'http://localhost:5000/projects/all' : 'http://localhost:5000/projects';
+    const res = await fetch(url, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const data = await res.json();
     if (res.ok) setProjects(data.projects);
   };
 
-  const filteredProjects = projects.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  // Filter projects for sidebar
+  let visibleProjects = projects;
+  // Remove frontend filtering for non-admins; backend already returns only the user's projects
+  // if (!isAdmin && currentUser) {
+  //   visibleProjects = projects.filter(p => {
+  //     if (p.owner_id === currentUser.id) return true;
+  //     if (Array.isArray(p.members) && p.members.some(m => m.id === currentUser.id)) return true;
+  //     if (Array.isArray(p.member_ids) && p.member_ids.includes(currentUser.id)) return true;
+  //     return false;
+  //   });
+  // }
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -64,7 +76,8 @@ function Sidebar({ setIsAuthenticated }) {
       flexDirection: 'column',
       position: 'relative',
       borderRight: '1px solid rgba(0, 0, 0, 0.05)',
-      boxShadow: '1px 0 4px rgba(0, 0, 0, 0.02)'
+      boxShadow: '1px 0 4px rgba(0, 0, 0, 0.02)',
+      marginTop: 15,
     }}>
       {/* Projects Section */}
       <div style={{ padding: '16px 16px 0', flex: 1 }}>
@@ -93,18 +106,9 @@ function Sidebar({ setIsAuthenticated }) {
 
         {projectsOpen && (
           <>
-            <Space direction="vertical" style={{ width: '100%', marginBottom: 12 }}>
-              <Input
-                placeholder="Search projects..."
-                prefix={<SearchOutlined style={{ color: '#9ca3af' }} />}
-                size="small"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                style={{ borderRadius: 6 }}
-                allowClear
-              />
-              {/* --- FIX: Removed 'user.role === admin' check --- */}
-              {/* Any authenticated user can now create a project. */}
+            {/* Removed project search input */}
+            {/* Show New Project button only for admin */}
+            {isAdmin && (
               <Button
                 type="primary"
                 icon={<PlusOutlined />}
@@ -114,11 +118,10 @@ function Sidebar({ setIsAuthenticated }) {
               >
                 New Project
               </Button>
-            </Space>
-
+            )}
             <List
               itemLayout="horizontal"
-              dataSource={filteredProjects}
+              dataSource={visibleProjects}
               locale={{ emptyText: <span style={{ color: '#9ca3af', fontSize: 13 }}>No projects found</span> }}
               style={{ marginBottom: 8 }}
               renderItem={project => (
@@ -162,18 +165,7 @@ function Sidebar({ setIsAuthenticated }) {
                 </List.Item>
               )}
             />
-
-            {/* --- FIX: Removed 'user.role === admin' check --- */}
-            {/* The management page enforces its own permissions. */}
-            <Button
-              type="text"
-              size="small"
-              style={{ color: '#4f46e5', fontWeight: 500, fontSize: 12, padding: '4px 8px', width: '100%', textAlign: 'left' }}
-              icon={<FolderOpenOutlined style={{ fontSize: 12 }} />}
-              onClick={() => navigate('/project-management')}
-            >
-              Manage projects
-            </Button>
+            {/* Removed Manage Projects button */}
           </>
         )}
       </div>
@@ -188,25 +180,32 @@ function Sidebar({ setIsAuthenticated }) {
           padding: '0 8px'
         }}
         items={[
-          {
+          // Only show Dashboard and Profile for non-admins
+          !isAdmin && {
             key: '/dashboard',
-            icon: <DashboardOutlined style={{ fontSize: 14 }} />,
+            icon: <DashboardOutlined style={{ fontSize: 14 }} />, 
             label: <Link to="/dashboard" style={{ fontSize: 13 }}>Dashboard</Link>,
             style: { borderRadius: 6, height: 36, marginBottom: 4 }
           },
           {
             key: '/teams',
-            icon: <TeamOutlined style={{ fontSize: 14 }} />,
+            icon: <TeamOutlined style={{ fontSize: 14 }} />, 
             label: <Link to="/teams" style={{ fontSize: 13 }}>Teams</Link>,
             style: { borderRadius: 6, height: 36, marginBottom: 4 }
           },
-          {
+          !isAdmin && {
             key: '/profile',
-            icon: <UserOutlined style={{ fontSize: 14 }} />,
+            icon: <UserOutlined style={{ fontSize: 14 }} />, 
             label: <Link to="/profile" style={{ fontSize: 13 }}>Profile</Link>,
             style: { borderRadius: 6, height: 36, marginBottom: 4 }
           },
-        ]}
+          isAdmin && ({
+            key: '/admin',
+            icon: <GoldOutlined style={{ fontSize: 14 }} />, 
+            label: <Link to="/admin" style={{ fontSize: 13 }}>Admin Panel</Link>,
+            style: { borderRadius: 6, height: 36, marginBottom: 4 }
+          })
+        ].filter(Boolean)}
       />
 
       <div style={{ 

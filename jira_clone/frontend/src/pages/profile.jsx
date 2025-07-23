@@ -4,6 +4,7 @@ import { ProjectOutlined, TeamOutlined, CheckCircleOutlined } from '@ant-design/
 import dayjs from 'dayjs';
 import { getTypeIcon, getStatusColor, getPriorityColor } from '../utils/itemUi.jsx';
 import { ProjectContext } from '../context/ProjectContext.jsx';
+import { apiFetch } from '../utils/api';
 
 function Profile() {
   // --- FIX: Use the central context to get the current user ---
@@ -20,13 +21,12 @@ function Profile() {
   useEffect(() => {
     const fetchProfileData = async () => {
       setLoading(true);
-      const token = localStorage.getItem('token');
       try {
         // Fetch all data concurrently for better performance
         const [tasksRes, projectsRes, teamsRes] = await Promise.all([
-          fetch('http://localhost:5000/items/my-tasks', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('http://localhost:5000/projects', { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch('http://localhost:5000/teams/my-teams', { headers: { 'Authorization': `Bearer ${token}` } })
+          apiFetch('http://localhost:5000/items/my-tasks'),
+          apiFetch('http://localhost:5000/projects'),
+          apiFetch('http://localhost:5000/teams/my-teams')
         ]);
 
         const tasksData = await tasksRes.json();
@@ -55,11 +55,8 @@ function Profile() {
 
   const fetchInvitations = async () => {
     setInvLoading(true);
-    const token = localStorage.getItem('token');
     try {
-      const res = await fetch('http://localhost:5000/my-invitations', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await apiFetch('http://localhost:5000/my-invitations');
       if (res.ok) {
         const data = await res.json();
         setInvitations(data.invitations || []);
@@ -72,12 +69,8 @@ function Profile() {
 
   const handleInvitationAction = async (inviteId, projectId, action) => {
     setInvActionLoading(l => ({ ...l, [inviteId]: true }));
-    const token = localStorage.getItem('token');
     try {
-      const res = await fetch(`http://localhost:5000/projects/${projectId}/invitation/${inviteId}/${action}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await apiFetch(`http://localhost:5000/projects/${projectId}/invitation/${inviteId}/${action}`, { method: 'POST' });
       if (res.ok) {
         setInvitations(inv => inv.filter(i => i.id !== inviteId));
         message.success(`Invitation ${action}ed successfully.`);

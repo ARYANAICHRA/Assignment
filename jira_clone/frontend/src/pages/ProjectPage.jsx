@@ -8,6 +8,7 @@ import { ProjectContext } from '../context/ProjectContext';
 import { Pie } from '@ant-design/plots';
 import { CheckCircleTwoTone, ClockCircleTwoTone, ExclamationCircleTwoTone, TeamOutlined, PieChartTwoTone, UserOutlined } from '@ant-design/icons';
 import Reports from './Reports';
+import { apiFetch } from '../utils/api';
 
 const { Title, Paragraph } = Typography;
 
@@ -18,15 +19,12 @@ function ProjectPage() {
   const [tasks, setTasks] = useState([]);
   const [tasksLoading, setTasksLoading] = useState(true);
 
-  const { setSelectedProject, hasPermission, myProjectRole } = useContext(ProjectContext);
+  const { setSelectedProject, hasProjectPermission } = useContext(ProjectContext);
 
   useEffect(() => {
     const fetchProject = async () => {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/projects/${id}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await apiFetch(`http://localhost:5000/projects/${id}`);
       if (res.ok) {
         const data = await res.json();
         setProject(data.project);
@@ -40,10 +38,7 @@ function ProjectPage() {
   useEffect(() => {
     const fetchTasks = async () => {
       setTasksLoading(true);
-      const token = localStorage.getItem('token');
-      const res = await fetch(`http://localhost:5000/items/projects/${id}/items`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await apiFetch(`http://localhost:5000/items/projects/${id}/items`);
       if (res.ok) {
         const data = await res.json();
         setTasks(data.items || []);
@@ -145,11 +140,12 @@ function ProjectPage() {
     },
   ];
 
-  if (myProjectRole === 'admin' || myProjectRole === 'manager') {
+  // Only show Reports tab if user has permission
+  if (hasProjectPermission('view_tasks')) {
     tabItems.push({
       key: 'reports',
       label: 'Reports',
-      children: <Reports projectId={id} />,
+      children: <Reports projectId={id} />, 
     });
   }
 

@@ -4,14 +4,17 @@ import { Form, Input, Button, Typography, Alert, Card } from 'antd';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { ProjectContext } from '../context/ProjectContext'; // Import context
+import { useAuth } from '../context/AuthContext'; // Use new AuthContext
 
 const { Title } = Typography;
 
-function Login({ setIsAuthenticated }) {
+function LoginPage({ setIsAuthenticated }) { // Accept setIsAuthenticated as prop
+  const navigate = useNavigate();
+  const { login, isAdmin } = useAuth(); // Get login function and isAdmin from AuthContext
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
   const { setCurrentUser } = useContext(ProjectContext); // Use context
+  const { currentUser } = useAuth();
 
   const onFinish = async (values) => {
     setError('');
@@ -23,16 +26,15 @@ function Login({ setIsAuthenticated }) {
         body: JSON.stringify(values)
       });
       const data = await res.json();
-      if (res.ok) {
-        setIsAuthenticated(true);
-        localStorage.setItem('token', data.token);
-        
-        // --- FIX: Save user to localStorage AND context ---
-        // The user object from the login endpoint no longer has the global role
-        localStorage.setItem('user', JSON.stringify(data.user)); 
-        setCurrentUser(data.user); // Set in context for immediate use
-
-        navigate('/dashboard');
+      if (res.ok && data.token) {
+        login(data.user, data.token); // Use data.token, not data.access_token
+        setIsAuthenticated(true); // Set authenticated state immediately
+        // Redirect based on admin status
+        if (data.user.email === 'admin@example.com') {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         setError(data.error || 'Login failed');
       }
@@ -47,7 +49,7 @@ function Login({ setIsAuthenticated }) {
     <>
       <Header />
       <div style={{ maxWidth: 400, margin: '48px auto', padding: '0 16px' }}>
-        <Card bordered style={{ borderRadius: 8, boxShadow: '0 2px 8px #f0f1f2' }}>
+        <Card variant="outlined" style={{ borderRadius: 8, boxShadow: '0 2px 8px #f0f1f2' }}>
           <Title level={3} style={{ textAlign: 'center', marginBottom: 24, color: '#1677ff' }}>Login to Jira Clone</Title>
           <Form layout="vertical" onFinish={onFinish} autoComplete="off">
             <Form.Item label="Email address" name="email" rules={[{ required: true, message: 'Please enter your email' }]}> 
@@ -71,4 +73,4 @@ function Login({ setIsAuthenticated }) {
   );
 }
 
-export default Login;
+export default LoginPage;

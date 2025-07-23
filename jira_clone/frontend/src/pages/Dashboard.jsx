@@ -5,6 +5,8 @@ import ProjectTasks from '../components/ProjectTasks';
 import { Row, Col, Card, Statistic, Progress, List, Spin, message } from 'antd';
 import { CheckCircleOutlined, ProjectOutlined, TeamOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button, Modal, Form, Input, Select, DatePicker, Alert, Space } from 'antd';
+import { useNavigate } from 'react-router-dom';
+import { apiFetch } from '../utils/api';
 
 function Dashboard() {
   const { selectedProject } = useContext(ProjectContext);
@@ -28,48 +30,75 @@ function Dashboard() {
   const [invLoading, setInvLoading] = useState(false);
   const [invActionLoading, setInvActionLoading] = useState({});
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       setLoading(true);
       const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        navigate('/login');
+        return;
+      }
       try {
         // Fetch stats
-        const statsRes = await fetch('http://localhost:5000/dashboard/stats', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const statsRes = await apiFetch('http://localhost:5000/dashboard/stats', {}, navigate);
+        if (statsRes.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/login');
+          return;
+        }
         if (statsRes.ok) {
           const data = await statsRes.json();
           setStats(data);
         }
         // Fetch activity log
-        const activityRes = await fetch('http://localhost:5000/items/activity', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const activityRes = await apiFetch('http://localhost:5000/items/activity', {}, navigate);
+        if (activityRes.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/login');
+          return;
+        }
         if (activityRes.ok) {
           const data = await activityRes.json();
           setActivity(data.activity || []);
         }
         // Fetch my tasks
-        const myTasksRes = await fetch('http://localhost:5000/items/my-tasks', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const myTasksRes = await apiFetch('http://localhost:5000/items/my-tasks', {}, navigate);
+        if (myTasksRes.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/login');
+          return;
+        }
         if (myTasksRes.ok) {
           const data = await myTasksRes.json();
           setMyTasks(data.tasks || []);
         }
         // Fetch all projects for Add Task modal
-        const projectsRes = await fetch('http://localhost:5000/projects', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const projectsRes = await apiFetch('http://localhost:5000/projects', {}, navigate);
+        if (projectsRes.status === 401) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/login');
+          return;
+        }
         if (projectsRes.ok) {
           const data = await projectsRes.json();
           setAllProjects(data.projects || []);
         }
         // Fetch project progress
         if (selectedProject) {
-          const progressRes = await fetch(`http://localhost:5000/projects/${selectedProject.id}/progress`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
+          const progressRes = await apiFetch(`http://localhost:5000/projects/${selectedProject.id}/progress`, {}, navigate);
+          if (progressRes.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            navigate('/login');
+            return;
+          }
           if (progressRes.ok) {
             const data = await progressRes.json();
             setProjectProgress({
@@ -100,10 +129,19 @@ function Dashboard() {
   const fetchInvitations = async () => {
     setInvLoading(true);
     const token = localStorage.getItem('token');
+    if (!token) {
+      setInvLoading(false);
+      navigate('/login');
+      return;
+    }
     try {
-      const res = await fetch('http://localhost:5000/my-invitations', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await apiFetch('http://localhost:5000/my-invitations', {}, navigate);
+      if (res.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
       if (res.ok) {
         const data = await res.json();
         setInvitations(data.invitations || []);
@@ -117,11 +155,19 @@ function Dashboard() {
   const handleInvitationAction = async (inviteId, projectId, action) => {
     setInvActionLoading(l => ({ ...l, [inviteId]: true }));
     const token = localStorage.getItem('token');
+    if (!token) {
+      setInvActionLoading(l => ({ ...l, [inviteId]: false }));
+      navigate('/login');
+      return;
+    }
     try {
-      const res = await fetch(`http://localhost:5000/projects/${projectId}/invitation/${inviteId}/${action}`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const res = await apiFetch(`http://localhost:5000/projects/${projectId}/invitation/${inviteId}/${action}`, { method: 'POST' }, navigate);
+      if (res.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
       if (res.ok) {
         setInvitations(inv => inv.filter(i => i.id !== inviteId));
         message.success(`Invitation ${action}ed successfully.`);
@@ -139,26 +185,42 @@ function Dashboard() {
     if (!selectedTaskProject) return;
     const fetchForProject = async () => {
       const token = localStorage.getItem('token');
+      if (!token) {
+        navigate('/login');
+        return;
+      }
       // Fetch columns
-      const colRes = await fetch(`http://localhost:5000/projects/${selectedTaskProject}/columns`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const colRes = await apiFetch(`http://localhost:5000/projects/${selectedTaskProject}/columns`, {}, navigate);
+      if (colRes.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
       if (colRes.ok) {
         const data = await colRes.json();
         setColumns(data.columns || []);
       }
       // Fetch users
-      const userRes = await fetch(`http://localhost:5000/projects/${selectedTaskProject}/members`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const userRes = await apiFetch(`http://localhost:5000/projects/${selectedTaskProject}/members`, {}, navigate);
+      if (userRes.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
       if (userRes.ok) {
         const data = await userRes.json();
         setUsers(data.members || []);
       }
       // Fetch epics
-      const epicsRes = await fetch(`http://localhost:5000/items/projects/${selectedTaskProject}/items`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const epicsRes = await apiFetch(`http://localhost:5000/items/projects/${selectedTaskProject}/items`, {}, navigate);
+      if (epicsRes.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login');
+        return;
+      }
       if (epicsRes.ok) {
         const data = await epicsRes.json();
         setEpics((data.items || []).filter(i => i.type && i.type.toLowerCase() === 'epic'));
@@ -169,18 +231,22 @@ function Dashboard() {
 
   const fetchUsers = async () => {
     const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/members`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    const res = await apiFetch(`http://localhost:5000/projects/${selectedProject.id}/members`, {}, navigate);
     const data = await res.json();
     if (res.ok) setUsers(data.members);
   };
 
   const fetchColumns = async () => {
     const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/columns`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    const res = await apiFetch(`http://localhost:5000/projects/${selectedProject.id}/columns`, {}, navigate);
     if (res.ok) {
       const data = await res.json();
       setColumns(data.columns);
@@ -189,9 +255,11 @@ function Dashboard() {
 
   const fetchProjectMembers = async () => {
     const token = localStorage.getItem('token');
-    const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/members`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    const res = await apiFetch(`http://localhost:5000/projects/${selectedProject.id}/members`, {}, navigate);
     if (res.ok) {
       const data = await res.json();
       setProjectMembers(data.members || []);
@@ -204,6 +272,10 @@ function Dashboard() {
   const handleTaskSubmit = async (values) => {
     setTaskError('');
     const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
     let columnId = undefined;
     if (columns && columns.length > 0) {
       const todoCol = columns.find(col => (col.status || col.name.toLowerCase().replace(/\s/g, '')) === 'todo');
@@ -217,18 +289,24 @@ function Dashboard() {
       setTaskError('Please select a project.');
       return;
     }
-    const payload = { ...values, type: taskType, column_id: columnId };
+    const payload = { ...values, type: taskType, column_id: columnId, status: values.status || 'todo' };
     if (payload.due_date && typeof payload.due_date === 'object' && payload.due_date.format) {
       payload.due_date = payload.due_date.format('YYYY-MM-DD');
     }
     if (taskType !== 'epic' && values.parent_id) {
       payload.parent_id = values.parent_id;
     }
-    const res = await fetch(`http://localhost:5000/items/projects/${selectedTaskProject}/items`, {
+    const res = await apiFetch(`http://localhost:5000/items/projects/${selectedTaskProject}/items`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
-    });
+    }, navigate);
+    if (res.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      navigate('/login');
+      return;
+    }
     if (res.ok) {
       setShowTaskModal(false);
       taskForm.resetFields();
@@ -292,17 +370,17 @@ function Dashboard() {
       )}
       <Row gutter={[24, 24]}>
         <Col xs={24} sm={8}>
-          <Card bordered={false} style={{ background: '#e6f4ff' }}>
+          <Card variant="outlined" style={{ background: '#e6f4ff' }}>
             <Statistic title="Projects" value={stats.projectCount} prefix={<ProjectOutlined />} valueStyle={{ color: '#1677ff' }} />
           </Card>
         </Col>
         <Col xs={24} sm={8}>
-          <Card bordered={false} style={{ background: '#f6ffed' }}>
+          <Card variant="outlined" style={{ background: '#f6ffed' }}>
             <Statistic title="Tasks" value={stats.taskCount} prefix={<CheckCircleOutlined />} valueStyle={{ color: '#52c41a' }} />
           </Card>
         </Col>
         <Col xs={24} sm={8}>
-          <Card bordered={false} style={{ background: '#fffbe6' }}>
+          <Card variant="outlined" style={{ background: '#fffbe6' }}>
             <Statistic title="Teams" value={stats.teamCount} prefix={<TeamOutlined />} valueStyle={{ color: '#faad14' }} />
           </Card>
         </Col>
@@ -312,7 +390,7 @@ function Dashboard() {
       `}</style>
       <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
         <Col xs={24} sm={12}>
-          <Card title="My Tasks" bordered={false} style={{ height: 340, display: 'flex', flexDirection: 'column' }}>
+          <Card title="My Tasks" variant="outlined" style={{ height: 340, display: 'flex', flexDirection: 'column' }}>
             <List
               dataSource={myTasks}
               renderItem={task => (
@@ -328,7 +406,7 @@ function Dashboard() {
           </Card>
         </Col>
         <Col xs={24} sm={12}>
-          <Card title="Activity Feed" bordered={false} style={{ height: 340, display: 'flex', flexDirection: 'column' }}>
+          <Card title="Activity Feed" variant="outlined" style={{ height: 340, display: 'flex', flexDirection: 'column' }}>
             <List
               dataSource={activity}
               renderItem={log => (
@@ -348,7 +426,7 @@ function Dashboard() {
         title="Add Task"
         onCancel={() => { setShowTaskModal(false); setSelectedTaskProject(null); }}
         onOk={() => taskForm.submit()}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={taskForm} layout="vertical" onFinish={handleTaskSubmit}>
           <Form.Item label="Project" name="project_id" rules={[{ required: true, message: 'Please select a project' }]}>

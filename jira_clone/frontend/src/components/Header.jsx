@@ -5,6 +5,7 @@ import { UserOutlined, DownOutlined, BellOutlined } from '@ant-design/icons';
 import NotificationModal from './NotificationModal';
 import ProjectSearchModal from './ProjectSearchModal';
 import { ProjectContext } from '../context/ProjectContext';
+import { useAuth } from '../context/AuthContext'; // Use new AuthContext
 
 function getBreadcrumbItems(location, selectedProject) {
     const path = location.pathname.split('/').filter(Boolean);
@@ -35,22 +36,34 @@ function getBreadcrumbItems(location, selectedProject) {
 }
 
 
-function Header({ setIsAuthenticated, isAuthenticated }) {
+function Header() {
+  const { currentUser, logout, isAdmin } = useAuth(); // Use AuthContext
   const navigate = useNavigate();
   const location = useLocation();
-  const { selectedProject, currentUser } = useContext(ProjectContext);
+  const { selectedProject } = useContext(ProjectContext);
   const [notifVisible, setNotifVisible] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [searchModalVisible, setSearchModalVisible] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (currentUser) {
       const fetchUnread = async () => {
         const token = localStorage.getItem('token');
+        if (!token) {
+          setUnreadCount(0);
+          return;
+        }
         try {
           const res = await fetch('http://localhost:5000/notifications', {
             headers: { 'Authorization': `Bearer ${token}` }
           });
+          if (res.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            logout();
+            navigate('/login');
+            return;
+          }
           if (res.ok) {
             const data = await res.json();
             setUnreadCount(Array.isArray(data) ? data.filter(n => !n.is_read).length : 0);
@@ -61,12 +74,10 @@ function Header({ setIsAuthenticated, isAuthenticated }) {
       };
       fetchUnread();
     }
-  }, [isAuthenticated, notifVisible]);
+  }, [currentUser, notifVisible]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setIsAuthenticated(false);
+    logout();
     navigate('/login');
   };
 
@@ -96,17 +107,17 @@ function Header({ setIsAuthenticated, isAuthenticated }) {
         <Breadcrumb items={breadcrumbItems} />
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-        {isAuthenticated && (
+        {currentUser && (
           <Button type="default" onClick={() => setSearchModalVisible(true)}>
             Search Projects
           </Button>
         )}
-        {isAuthenticated && (
+        {currentUser && (
             <Badge count={unreadCount}>
                 <Button shape="circle" icon={<BellOutlined />} onClick={() => setNotifVisible(true)} />
             </Badge>
         )}
-        {isAuthenticated && currentUser && (
+        {currentUser && (
           // --- FIX: Use the 'menu' prop for Dropdown ---
           <Dropdown menu={{ items: menuItems }} placement="bottomRight" trigger={["click"]}>
             <Button type="text" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

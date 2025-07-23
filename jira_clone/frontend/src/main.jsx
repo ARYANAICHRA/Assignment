@@ -1,13 +1,16 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
-import Modal from 'react-modal';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App.jsx';
+import './index.css';
+import { ProjectProvider } from './context/ProjectContext';
+import { AuthProvider } from './context/AuthContext';
 
-Modal.setAppElement('#root');
-
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <AuthProvider>
+      <ProjectProvider>
     <App />
-  </StrictMode>,
+      </ProjectProvider>
+    </AuthProvider>
+  </React.StrictMode>,
 )

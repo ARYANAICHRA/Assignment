@@ -1,26 +1,25 @@
 from flask import request, jsonify
 from models.notification import Notification
 from models.db import db
-from controllers.jwt_utils import jwt_required
+from flask_jwt_extended import get_jwt_identity
 
-@jwt_required
 def get_notifications():
-    user_id = request.user.id
+    user_id = get_jwt_identity()
     notifs = Notification.query.filter_by(user_id=user_id).order_by(Notification.created_at.desc()).all()
     return jsonify([{
         'id': n.id,
         'message': n.message,
         'is_read': n.is_read,
         'created_at': n.created_at.isoformat()
-    } for n in notifs])
+    } for n in notifs]), 200
 
-@jwt_required
 def mark_as_read(notif_id):
+    user_id = get_jwt_identity()
     notif = Notification.query.get(notif_id)
-    if notif and notif.user_id == request.user.id:
+    if notif and notif.user_id == user_id:
         notif.is_read = True
         db.session.commit()
-        return jsonify({'success': True})
+        return jsonify({'success': True}), 200
     return jsonify({'error': 'Not found'}), 404
 
 def create_notification(user_id, message):

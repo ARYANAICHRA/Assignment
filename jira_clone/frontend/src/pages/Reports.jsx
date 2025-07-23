@@ -31,7 +31,7 @@ function Reports({ projectId }) {
     // Only run this if the user has the correct permissions
     const myMemberInfo = members.find(m => m.user_id === user.id);
     const userRole = myMemberInfo?.role;
-    if (userRole !== 'admin' && userRole !== 'manager') {
+    if (user.email !== 'admin@example.com' && userRole !== 'Project Owner') {
       setLoading(false);
       return;
     }
@@ -76,6 +76,9 @@ function Reports({ projectId }) {
   const myMember = members.find(m => m.user_id === user.id);
   const myProjectRole = myMember?.role;
 
+  // Debug log for report data
+  console.log('Report data:', report);
+
   // Show loading or error for members fetch
   if (membersLoading) {
     return <Spin style={{ display: 'block', margin: '80px auto' }} tip="Loading members..." />;
@@ -83,10 +86,11 @@ function Reports({ projectId }) {
   if (membersError) {
     return <div style={{ padding: 32, color: '#ff4d4f' }}>{membersError}</div>;
   }
-  if (!myProjectRole) {
+  if (!myProjectRole && user.email !== 'admin@example.com') {
     return <div style={{ padding: 32, color: '#faad14', fontWeight: 500 }}>You are not a member of this project.</div>;
   }
-  if (myProjectRole !== 'admin' && myProjectRole !== 'manager') {
+  // Allow admin and project owner
+  if (user.email !== 'admin@example.com' && myProjectRole !== 'Project Owner') {
     return <div style={{ padding: 32, color: '#faad14', fontWeight: 500 }}>You do not have permission to view this report.<br/>Your role: <Tag>{myProjectRole}</Tag></div>;
   }
 

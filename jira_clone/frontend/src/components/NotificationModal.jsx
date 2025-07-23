@@ -10,6 +10,11 @@ const NotificationModal = ({ visible, onClose }) => {
   const fetchNotifications = async () => {
     setLoading(true);
     const token = localStorage.getItem('token');
+    if (!token) {
+      setNotifications([]);
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch('http://localhost:5000/notifications', {
         headers: { 'Authorization': `Bearer ${token}` }

@@ -24,7 +24,7 @@ const getStatusColor = (status) => {
 };
 
 export default function TaskDetailModal({ isOpen, onRequestClose, taskId }) {
-  const { hasPermission, currentUser, projectMembers } = useContext(ProjectContext);
+  const { hasProjectPermission, currentUser, projectMembers } = useContext(ProjectContext);
 
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -90,8 +90,8 @@ export default function TaskDetailModal({ isOpen, onRequestClose, taskId }) {
     }
   };
 
-  const canEdit = hasPermission('edit_any_task') || 
-                  (hasPermission('edit_own_task') && task && (currentUser?.id === task.reporter_id || currentUser?.id === task.assignee_id));
+  const canEdit = hasProjectPermission('edit_any_task') || 
+                  (hasProjectPermission('edit_own_task') && task && (currentUser?.id === task.reporter_id || currentUser?.id === task.assignee_id));
 
   const assigneeOptionList = projectMembers.map(m => ({ value: m.user_id, label: m.username || m.email || m.user_id }));
   console.log('Assignee dropdown options:', assigneeOptionList);
@@ -162,7 +162,7 @@ export default function TaskDetailModal({ isOpen, onRequestClose, taskId }) {
                                     </List.Item>
                                 )}
                             />
-                            {hasPermission('add_comment') && (
+                            {hasProjectPermission('add_comment') && (
                                 <div style={{ display: 'flex', marginTop: '16px' }}>
                                     <Avatar icon={<UserOutlined />} style={{ marginRight: '12px' }}/>
                                     <div style={{flex: 1}}>

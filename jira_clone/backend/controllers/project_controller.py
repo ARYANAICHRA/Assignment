@@ -6,26 +6,31 @@ from models.project_member import ProjectMember
 from models.team import Team
 from models.item import Item
 from models.board_column import BoardColumn
-from models.project_team import ProjectTeam
 from models.team_member import TeamMember
 from models.role import Role 
-from controllers.jwt_utils import jwt_required
-from controllers.rbac import require_project_permission
+from controllers.rbac import require_project_permission, require_permission
+from flask_jwt_extended import get_jwt_identity, jwt_required
 
 
-@jwt_required
+@require_permission('create_project', team_lookup=lambda *a, **k: request.get_json().get('owner_team_id'))
 def create_project():
     data = request.get_json()
     name = data.get('name')
     description = data.get('description')
-    user = getattr(request, 'user', None)
+    owner_team_id = data.get('owner_team_id')
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
     if not name:
         return jsonify({'error': 'Project name is required'}), 400
     if not user:
         return jsonify({'error': 'User not found'}), 401
-
-    
-    project = Project(name=name, description=description, admin_id=user.id)
+    if not owner_team_id:
+        return jsonify({'error': 'Owner team ID is required'}), 400
+    # Ensure the team exists
+    team = Team.query.get(owner_team_id)
+    if not team:
+        return jsonify({'error': 'Owner team not found'}), 404
+    project = Project(name=name, description=description, owner_id=team.manager_id, owner_team_id=owner_team_id)
     db.session.add(project)
     db.session.commit()
     # add default columns
@@ -34,38 +39,45 @@ def create_project():
         column = BoardColumn(name=col_name, project_id=project.id, order=idx)
         db.session.add(column)
     db.session.commit()
-    
-    # Add default project roles and permissions
-    from generate_demo_data import create_roles_and_permissions
-    create_roles_and_permissions(project)
-    
-    # Assign creator as project admin using the correct role_id
-    admin_role = Role.query.filter_by(name='admin', project_id=project.id).first()
-    if admin_role: 
-        member = ProjectMember(project_id=project.id, user_id=user.id, role_id=admin_role.id)
-        db.session.add(member)
-        db.session.commit()
 
-    return jsonify({'message': 'Project created', 'project': {'id': project.id, 'name': project.name, 'description': project.description, 'admin_id': project.admin_id}}), 201
+    # Assign project roles to team members
+    owner_role = Role.query.filter_by(name='Project Owner', scope='project').first()
+    contributor_role = Role.query.filter_by(name='Project Contributor', scope='project').first()
+    team_members = TeamMember.query.filter_by(team_id=owner_team_id).all()
+    for tm in team_members:
+        if tm.user_id == team.manager_id:
+            # Team manager becomes Project Owner
+            if owner_role:
+                pm = ProjectMember(project_id=project.id, user_id=tm.user_id, role_id=owner_role.id)
+                db.session.add(pm)
+        else:
+            # Other members become Project Contributor
+            if contributor_role:
+                pm = ProjectMember(project_id=project.id, user_id=tm.user_id, role_id=contributor_role.id)
+                db.session.add(pm)
+    db.session.commit()
+
+    return jsonify({'message': 'Project created', 'project_id': project.id}), 201
 
 def get_projects():
-    user = getattr(request, 'user', None)
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
     if not user:
         return jsonify({'error': 'User not found'}), 401
     member_project_ids = db.session.query(ProjectMember.project_id).filter_by(user_id=user.id)
     projects = Project.query.filter(Project.id.in_(member_project_ids)).all()
-    result = [{'id': p.id, 'name': p.name, 'description': p.description, 'admin_id': p.admin_id} for p in projects]
-    return jsonify({'projects': result})
+    result = [{'id': p.id, 'name': p.name, 'description': p.description, 'owner_id': p.owner_id} for p in projects]
+    return jsonify({'projects': result}), 200
 
-@jwt_required
 def get_all_projects():
     projects = Project.query.all()
-    result = [{'id': p.id, 'name': p.name, 'description': p.description, 'admin_id': p.admin_id} for p in projects]
-    return jsonify({'projects': result})
+    result = [{'id': p.id, 'name': p.name, 'description': p.description, 'owner_id': p.owner_id, 'owner_team_id': p.owner_team_id} for p in projects]
+    return jsonify({'projects': result}), 200
 
-@jwt_required
+@jwt_required()
 def get_dashboard_stats():
-    user = getattr(request, 'user', None)
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
     if not user:
         return jsonify({'error': 'User not found'}), 401
 
@@ -77,11 +89,12 @@ def get_dashboard_stats():
         'projectCount': project_count,
         'taskCount': task_count,
         'teamCount': team_count
-    })
+    }), 200
 
 @require_project_permission('view_tasks')
 def get_project_progress(project_id):
-    user = getattr(request, 'user', None)
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
     if not user:
         return jsonify({'error': 'User not found'}), 401
     total = Item.query.filter_by(project_id=project_id).count()
@@ -91,7 +104,7 @@ def get_project_progress(project_id):
         'completed': completed,
         'in_progress': Item.query.filter_by(project_id=project_id, status='inprogress').count(),
         'todo': Item.query.filter_by(project_id=project_id, status='todo').count()
-    })
+    }), 200
 
 @require_project_permission('manage_project')
 def update_project(project_id):
@@ -104,7 +117,7 @@ def update_project(project_id):
     if 'description' in data:
         project.description = data['description']
     db.session.commit()
-    return jsonify({'message': 'Project updated', 'project': {'id': project.id, 'name': project.name, 'description': project.description}})
+    return jsonify({'message': 'Project updated', 'project': {'id': project.id, 'name': project.name, 'description': project.description}}), 200
 
 @require_project_permission('delete_project')
 def delete_project(project_id):
@@ -114,22 +127,21 @@ def delete_project(project_id):
         return jsonify({'error': 'Project not found'}), 404
     db.session.delete(project)
     db.session.commit()
-    return jsonify({'message': 'Project deleted'})
+    return jsonify({'message': 'Project deleted'}), 200
 
-@require_project_permission('transfer_admin')
-def transfer_admin(project_id):
-
+@require_project_permission('transfer_ownership')
+def transfer_ownership(project_id):
     data = request.get_json()
-    new_admin_id = data.get('new_admin_id')
+    new_owner_id = data.get('new_owner_id')
     project = Project.query.get(project_id)
     if not project:
         return jsonify({'error': 'Project not found'}), 404
-    new_admin = User.query.get(new_admin_id)
-    if not new_admin:
-        return jsonify({'error': 'New admin not found'}), 404
-    project.admin_id = new_admin_id
+    new_owner = User.query.get(new_owner_id)
+    if not new_owner:
+        return jsonify({'error': 'New owner not found'}), 404
+    project.owner_id = new_owner_id
     db.session.commit()
-    return jsonify({'message': 'Adminship transferred', 'project': {'id': project.id, 'admin_id': project.admin_id}})
+    return jsonify({'message': 'Ownership transferred', 'project': {'id': project.id, 'owner_id': project.owner_id}}), 200
 
 @require_project_permission('view_project_settings')
 def get_project(project_id):
@@ -143,9 +155,9 @@ def get_project(project_id):
         'id': project.id,
         'name': project.name,
         'description': project.description,
-        'admin_id': project.admin_id,
+        'owner_id': project.owner_id,
         'owner_team': {
             'id': owner_team.id if owner_team else None,
             'name': owner_team.name if owner_team else None
         } if owner_team else None,
-    }})
+    }}), 200

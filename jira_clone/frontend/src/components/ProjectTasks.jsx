@@ -24,7 +24,7 @@ const SORT_OPTIONS = [
 ];
 
 function ProjectTasks() {
-  const { selectedProject } = useContext(ProjectContext);
+  const { selectedProject, hasProjectPermission } = useContext(ProjectContext);
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editTaskId, setEditTaskId] = useState(null);
@@ -419,7 +419,7 @@ function ProjectTasks() {
           <Tooltip title="View Details">
             <Button type="text" icon={<ExclamationCircleOutlined />} onClick={() => { setSelectedTaskId(record.id); setEditTaskId(null); }} />
           </Tooltip>
-          {canEditOrDelete(record) && (
+          {hasProjectPermission('delete_any_task') && (
             <Tooltip title="Delete">
               <Button type="text" icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} />
             </Tooltip>
@@ -474,11 +474,9 @@ function ProjectTasks() {
     }
   };
 
-  const myProjectRole = projectMembers.find(m => m.user_id === user.id)?.role;
-  const canAddTask = myProjectRole === 'admin' || myProjectRole === 'manager' || myProjectRole === 'member';
-  const canEditOrDelete = (item) => {
-    return myProjectRole === 'admin' || myProjectRole === 'manager' || myProjectRole === 'member' || item.assignee_id === user.id || item.reporter_id === user.id;
-  };
+  const canAddTask = hasProjectPermission('create_task');
+  const canEditTask = (item) => hasProjectPermission('edit_any_task') || (hasProjectPermission('edit_own_task') && (item.assignee_id === user.id || item.reporter_id === user.id));
+  const canDeleteTask = (item) => hasProjectPermission('delete_any_task') || (hasProjectPermission('delete_own_task') && (item.assignee_id === user.id || item.reporter_id === user.id));
 
   return (
     <div style={{ background: '#fff', borderRadius: 8, padding: 24, marginBottom: 32 }}>

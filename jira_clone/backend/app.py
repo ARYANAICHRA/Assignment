@@ -11,9 +11,13 @@ from routes.user import user_bp
 from routes.teams import teams_bp
 from routes.notification import notification_bp
 from routes.reports import reports_bp
+from routes.admin import admin_bp
 from flask_cors import CORS
 from flask import request
 from flask_jwt_extended import JWTManager
+import logging
+
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(name)s %(message)s')
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, allow_headers="*", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"])
@@ -34,6 +38,7 @@ app.register_blueprint(user_bp)
 app.register_blueprint(teams_bp)
 app.register_blueprint(notification_bp)
 app.register_blueprint(reports_bp)
+app.register_blueprint(admin_bp)
 
 db.init_app(app)
 migrate = Migrate(app, db)

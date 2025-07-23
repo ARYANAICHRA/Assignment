@@ -1,5 +1,5 @@
-import React, { useState, useContext } from 'react';
-import { Modal, Form, Input, Button, Alert, Typography } from 'antd';
+import React, { useState, useContext, useEffect } from 'react';
+import { Modal, Form, Input, Button, Alert, Typography, Select, Spin } from 'antd';
 import { ProjectContext } from '../context/ProjectContext';
 
 const { Title } = Typography;
@@ -8,7 +8,64 @@ function CreateProjectModal({ visible, onProjectCreated, onCancel }) {
   const [form] = Form.useForm();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { setSelectedProject } = useContext(ProjectContext);
+  const { setSelectedProject, currentUser } = useContext(ProjectContext);
+  const [userTeams, setUserTeams] = useState([]);
+  const [allowedTeams, setAllowedTeams] = useState([]);
+  const [teamsLoading, setTeamsLoading] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState(null);
+
+  // Fetch teams for the dropdown
+  useEffect(() => {
+    const fetchTeams = async () => {
+      setTeamsLoading(true);
+      const token = localStorage.getItem('token');
+      try {
+        let url = currentUser && currentUser.email === 'admin@example.com'
+          ? 'http://localhost:5000/teams/all'
+          : 'http://localhost:5000/teams/my-teams';
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setUserTeams(data.teams || []);
+        } else {
+          setUserTeams([]);
+        }
+      } catch {
+        setUserTeams([]);
+      }
+      setTeamsLoading(false);
+    };
+    if (visible && currentUser) fetchTeams();
+  }, [visible, currentUser]);
+
+  // Filter teams by create_project permission
+  useEffect(() => {
+    if (!userTeams.length) { setAllowedTeams([]); return; }
+    if (currentUser && currentUser.email === 'admin@example.com') {
+      setAllowedTeams(userTeams);
+      console.log('ADMIN: userTeams for dropdown:', userTeams);
+      return;
+    }
+    const filterTeams = async () => {
+      const token = localStorage.getItem('token');
+      const results = await Promise.all(userTeams.map(async (team) => {
+        const res = await fetch(`http://localhost:5000/teams/${team.id}/my-role`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (data.permissions && data.permissions.includes('create_project')) {
+          return team;
+        }
+        return null;
+      }));
+      setAllowedTeams(results.filter(Boolean));
+      console.log('NON-ADMIN: allowedTeams for dropdown:', results.filter(Boolean));
+    };
+    filterTeams();
+  }, [userTeams, currentUser]);
 
   const handleSubmit = async (values) => {
     setError('');
@@ -21,7 +78,7 @@ function CreateProjectModal({ visible, onProjectCreated, onCancel }) {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ name: values.name, description: values.description })
+        body: JSON.stringify({ name: values.name, description: values.description, owner_team_id: values.owner_team_id })
       });
       const data = await res.json();
       if (res.ok) {
@@ -46,7 +103,6 @@ function CreateProjectModal({ visible, onProjectCreated, onCancel }) {
       onOk={() => form.submit()}
       okText="Create"
       confirmLoading={loading}
-      // --- FIX: Replaced deprecated prop 'destroyOnClose' ---
       destroyOnHidden
     >
       <Form form={form} layout="vertical" onFinish={handleSubmit}>
@@ -55,6 +111,15 @@ function CreateProjectModal({ visible, onProjectCreated, onCancel }) {
         </Form.Item>
         <Form.Item label="Description" name="description">
           <Input.TextArea placeholder="Description (optional)" autoSize={{ minRows: 2, maxRows: 4 }} />
+        </Form.Item>
+        <Form.Item label="Team" name="owner_team_id" rules={[{ required: true, message: 'Please select a team' }]}> 
+          {teamsLoading ? <Spin /> : (
+            <Select placeholder="Select a team" onChange={setSelectedTeam}>
+              {allowedTeams.map(team => (
+                <Select.Option key={team.id} value={team.id}>{team.name}</Select.Option>
+              ))}
+            </Select>
+          )}
         </Form.Item>
         {error && <Alert message={error} type="error" showIcon style={{ marginBottom: 12 }} />}
       </Form>

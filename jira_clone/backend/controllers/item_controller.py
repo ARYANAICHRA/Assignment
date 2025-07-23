@@ -10,6 +10,7 @@ from controllers.rbac import require_project_permission
 from models.comment import Comment
 from sqlalchemy.orm import joinedload
 from controllers.notification_controller import create_notification
+from flask_jwt_extended import get_jwt_identity
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -23,10 +24,10 @@ def log_activity(item_id, user_id, action, details=None):
     db.session.commit()
 
 def get_recent_activity():
-    user = getattr(request, 'user', None)
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
     if not user:
         return jsonify({'error': 'User not found'}), 401
-    user_id = user.id
     logs = ActivityLog.query.join(Item, ActivityLog.item_id == Item.id)
     logs = logs.filter((Item.reporter_id == user_id) | (Item.assignee_id == user_id))
     logs = logs.order_by(ActivityLog.created_at.desc()).limit(20).all()
@@ -40,7 +41,7 @@ def get_recent_activity():
             'details': log.details,
             'created_at': log.created_at.isoformat()
         })
-    return jsonify({'activity': result})
+    return jsonify({'activity': result}), 200
 
 @require_project_permission('create_task')
 def create_item(project_id):
@@ -50,7 +51,7 @@ def create_item(project_id):
     type = data.get('type', 'task')
     status = data.get('status', 'todo')
     column_id = data.get('column_id')
-    reporter_id = getattr(request.user, 'id', None)
+    reporter_id = get_jwt_identity()
     assignee_id = data.get('assignee_id')
     due_date = data.get('due_date')
     priority = data.get('priority')
@@ -114,7 +115,7 @@ def get_items(project_id=None, **kwargs):
         'parent_id': i.parent_id,
         'type': i.type
     } for i in items]
-    return jsonify({'items': result, 'total': total, 'limit': limit, 'offset': offset})
+    return jsonify({'items': result, 'total': total, 'limit': limit, 'offset': offset}), 200
 
 @require_project_permission('view_tasks')
 def get_item(item_id):
@@ -179,7 +180,7 @@ def get_item(item_id):
         'comments': comments,
         'subtasks': subtasks,
         'parent_epic': parent_epic
-    }})
+    }}), 200
 
 @require_project_permission('edit_any_task', allow_own='edit_own_task')
 def update_item(item_id):
@@ -214,7 +215,7 @@ def update_item(item_id):
         item.due_date = datetime.strptime(data['due_date'], '%Y-%m-%d').date() if data['due_date'] else None
     db.session.commit()
     if changes:
-        log_activity(item.id, getattr(request.user, 'id', None), 'updated', '; '.join(changes))
+        log_activity(item.id, get_jwt_identity(), 'updated', '; '.join(changes))
     old_assignee = item.assignee_id
     for field in ['title', 'description', 'status', 'assignee_id', 'column_id', 'priority', 'parent_id', 'type', 'severity']:
         if field in data:
@@ -224,19 +225,19 @@ def update_item(item_id):
                     assignee_user = User.query.get(new_assignee)
                     if assignee_user:
                         create_notification(new_assignee, f"You have been assigned to task '{item.title}'")
-    return jsonify({'message': 'Item updated'})
+    return jsonify({'message': 'Item updated'}), 200
 
 @require_project_permission('delete_any_task', allow_own='delete_own_task')
 def delete_item(item_id):
     item = Item.query.get(item_id)
     if not item:
         return jsonify({'error': f'Item not found: {item_id}'}), 404
-    log_activity(item_id, getattr(request.user, 'id', None), 'deleted', 'Task deleted')
+    log_activity(item_id, get_jwt_identity(), 'deleted', 'Task deleted')
     for log in item.activity_logs.all():
         db.session.delete(log)
     db.session.delete(item)
     db.session.commit()
-    return jsonify({'message': 'Item deleted'})
+    return jsonify({'message': 'Item deleted'}), 200
 
 @require_project_permission('view_tasks')
 def get_subtasks(item_id):
@@ -254,7 +255,7 @@ def get_subtasks(item_id):
         'due_date': s.due_date.isoformat() if s.due_date else None
     } for s in subtasks_query]
     total = parent.subtasks.count()
-    return jsonify({'subtasks': result, 'total': total, 'limit': limit, 'offset': offset})
+    return jsonify({'subtasks': result, 'total': total, 'limit': limit, 'offset': offset}), 200
 
 @require_project_permission('create_task')
 def create_subtask(item_id):
@@ -272,7 +273,7 @@ def create_subtask(item_id):
         status=data.get('status', 'todo'),
         column_id=parent.column_id,
         project_id=parent.project_id,
-        reporter_id=getattr(request.user, 'id', None),
+        reporter_id=get_jwt_identity(),
         assignee_id=data.get('assignee_id'),
         due_date=datetime.strptime(data['due_date'], '%Y-%m-%d').date() if data.get('due_date') else None,
         priority=data.get('priority'),
@@ -280,7 +281,7 @@ def create_subtask(item_id):
     )
     db.session.add(subtask)
     db.session.commit()
-    log_activity(subtask.id, getattr(request.user, 'id', None), 'created', f'Subtask created: {title}')
+    log_activity(subtask.id, get_jwt_identity(), 'created', f'Subtask created: {title}')
     if data.get('assignee_id'):
         assignee = User.query.get(data.get('assignee_id'))
         if assignee:
@@ -315,8 +316,8 @@ def update_subtask(subtask_id):
         subtask.due_date = datetime.strptime(data['due_date'], '%Y-%m-%d').date() if data['due_date'] else None
     db.session.commit()
     if changes:
-        log_activity(subtask.id, getattr(request.user, 'id', None), 'updated', '; '.join(changes))
-    return jsonify({'message': 'Subtask updated'})
+        log_activity(subtask.id, get_jwt_identity(), 'updated', '; '.join(changes))
+    return jsonify({'message': 'Subtask updated'}), 200
 
 @require_project_permission('delete_any_task')
 def delete_subtask(subtask_id):
@@ -325,8 +326,8 @@ def delete_subtask(subtask_id):
         return jsonify({'error': 'Subtask not found'}), 404
     db.session.delete(subtask)
     db.session.commit()
-    log_activity(subtask_id, getattr(request.user, 'id', None), 'deleted', 'Subtask deleted')
-    return jsonify({'message': 'Subtask deleted'})
+    log_activity(subtask_id, get_jwt_identity(), 'deleted', 'Subtask deleted')
+    return jsonify({'message': 'Subtask deleted'}), 200
 
 @require_project_permission('view_tasks')
 def get_activity_logs(item_id):
@@ -338,15 +339,13 @@ def get_activity_logs(item_id):
         'details': log.details,
         'created_at': log.created_at.isoformat()
     } for log in logs]
-    return jsonify({'activity_logs': result})
+    return jsonify({'activity_logs': result}), 200
 
 def get_my_tasks():
-    print('[get_my_tasks] Called')
-    user = getattr(request, 'user', None)
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
     if not user:
-        print('[get_my_tasks] No user found')
         return jsonify({'error': 'User not found'}), 401
-    user_id = user.id
     try:
         tasks = Item.query.filter(
             (Item.assignee_id == user_id) | (Item.reporter_id == user_id)
@@ -367,14 +366,14 @@ def get_my_tasks():
                 'created_at': task.created_at.isoformat(),
                 'updated_at': task.updated_at.isoformat() if task.updated_at else None,
             })
-        print(f'[get_my_tasks] Returning {len(result)} tasks')
-        return jsonify({'tasks': result})
+        return jsonify({'tasks': result}), 200
     except Exception as e:
-        print(f'[get_my_tasks] Exception: {e}')
+        logger.error(f'[get_my_tasks] Exception: {e}')
         return jsonify({'error': 'Internal server error'}), 500
 
 def add_comment(item_id):
-    user = getattr(request, 'user', None)
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
     if not user:
         return jsonify({'error': 'User not found'}), 401
     data = request.get_json()
@@ -396,21 +395,17 @@ def add_comment(item_id):
 
 @require_project_permission('edit_any_comment', allow_own='edit_own_comment')
 def edit_comment(item_id, comment_id): 
-    user = getattr(request, 'user', None)
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
     if not user:
         return jsonify({'error': 'User not found'}), 401
-        
     comment = Comment.query.get(comment_id)
     if not comment:
         return jsonify({'error': 'Comment not found'}), 404
-        
-
-    
     data = request.get_json()
     content = data.get('content')
     if not content:
         return jsonify({'error': 'Content required'}), 400
-        
     comment.content = content
     db.session.commit()
     return jsonify({'message': 'Comment updated', 'comment': {'id': comment.id, 'content': comment.content, 'user_id': comment.user_id, 'created_at': comment.created_at.isoformat()}})

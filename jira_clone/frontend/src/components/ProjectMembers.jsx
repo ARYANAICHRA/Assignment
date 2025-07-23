@@ -2,18 +2,21 @@ import React, { useState, useContext, useEffect } from 'react';
 import { ProjectContext } from '../context/ProjectContext';
 import { List, Form, Input, Select, Button, Alert, Typography, Tag, Space, Avatar, Popconfirm, message, Spin } from 'antd';
 import { UserOutlined, DeleteOutlined } from '@ant-design/icons';
+import { useAuth } from '../context/AuthContext';
+import { ExclamationCircleOutlined } from '@ant-design/icons';
+import { Modal } from 'antd';
 
 const { Title, Text } = Typography;
+const { confirm } = Modal;
 
 function ProjectMembers() {
-  // --- FIX: Use the central context for all project data and permission logic ---
   const { 
     selectedProject, 
     projectMembers, 
     membersLoading, 
-    hasPermission,
-    myProjectRole
+    hasProjectPermission
   } = useContext(ProjectContext);
+  const { isAdmin } = useAuth();
 
   const [form] = Form.useForm();
   // State for form feedback is kept local
@@ -28,7 +31,7 @@ function ProjectMembers() {
   // The context now handles this, making the component much simpler.
 
   useEffect(() => {
-    if (canModifyMembers && selectedProject) fetchJoinRequests();
+    if (hasProjectPermission('add_remove_members') && selectedProject) fetchJoinRequests();
     // eslint-disable-next-line
   }, [selectedProject]);
 
@@ -115,20 +118,19 @@ function ProjectMembers() {
   };
 
   const getRoleTag = (role) => {
-    if (role === 'admin') return <Tag color="volcano">Admin</Tag>;
-    if (role === 'manager') return <Tag color="blue">Manager</Tag>;
-    if (role === 'visitor') return <Tag color="default">Visitor</Tag>;
-    return <Tag color="cyan">Member</Tag>;
+    if (role === 'Project Owner') return <Tag color="volcano">Owner</Tag>;
+    if (role === 'Project Contributor') return <Tag color="cyan">Contributor</Tag>;
+    if (role === 'Project Visitor') return <Tag color="default">Visitor</Tag>;
+    return <Tag color="default">Unknown</Tag>;
   };
 
-  // Only admin or manager can add/remove/change roles
-  const canModifyMembers = myProjectRole === 'admin' || myProjectRole === 'manager';
+  // Only show add/remove/change role UI if hasProjectPermission('add_remove_members')
+  const canModifyMembers = hasProjectPermission('add_remove_members');
 
-  // Role options for dropdown
+  // Role options for dropdown (user-facing)
   const roleOptions = [
-    { value: 'manager', label: 'Manager' },
-    { value: 'member', label: 'Member' },
-    { value: 'visitor', label: 'Visitor' }
+    { value: 'Project Owner', label: 'Owner' },
+    { value: 'Project Contributor', label: 'Contributor' }
   ];
 
   const handleRoleChange = async (userId, newRole) => {
@@ -136,22 +138,36 @@ function ProjectMembers() {
     setSuccess('');
     setRoleUpdating(prev => ({ ...prev, [userId]: true }));
     const token = localStorage.getItem('token');
-    try {
-      const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/members/${userId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ role: newRole })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setSuccess('Role updated successfully.');
-      } else {
-        setError(data.error || 'Failed to update role');
+    const doChange = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/projects/${selectedProject.id}/members/${userId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ role: newRole })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setSuccess('Role updated successfully.');
+        } else {
+          setError(data.error || 'Failed to update role');
+        }
+      } catch {
+        setError('A network error occurred.');
+      } finally {
+        setRoleUpdating(prev => ({ ...prev, [userId]: false }));
       }
-    } catch {
-      setError('A network error occurred.');
-    } finally {
-      setRoleUpdating(prev => ({ ...prev, [userId]: false }));
+    };
+    if (newRole === 'Project Owner') {
+      confirm({
+        title: 'Transfer Project Ownership',
+        icon: <ExclamationCircleOutlined />,
+        content: 'Are you sure you want to make this user the Project Owner? The current owner will be demoted to Contributor.',
+        okText: 'Yes, Transfer',
+        cancelText: 'Cancel',
+        onOk: doChange
+      });
+    } else {
+      doChange();
     }
   };
 
@@ -201,19 +217,18 @@ function ProjectMembers() {
 
       {/* --- Only admin/manager can see the add member form --- */}
       {canModifyMembers && (
-        <Form form={form} layout="inline" onFinish={handleAdd} style={{ marginBottom: 16, flexWrap: 'wrap' }}>
-          <Form.Item name="email" rules={[{ required: true, message: 'Enter user email' }]}> 
-            <Input placeholder="User Email" style={{ width: 180 }} />
+        <Form form={form} layout="inline" onFinish={handleAdd} style={{ marginBottom: 8, flexWrap: 'nowrap', gap: 8 }}>
+          <Form.Item name="email" rules={[{ required: true, message: 'Enter user email' }]} style={{ marginBottom: 0, flex: 1 }}> 
+            <Input placeholder="User Email" style={{ width: 160 }} />
           </Form.Item>
-          <Form.Item name="role" initialValue="member" rules={[{ required: true }]}> 
+          <Form.Item name="role" initialValue="Project Contributor" rules={[{ required: true }]} style={{ marginBottom: 0 }}>
             <Select style={{ width: 120 }}>
-              <Select.Option value="manager">Manager</Select.Option>
-              <Select.Option value="member">Member</Select.Option>
-              <Select.Option value="visitor">Visitor</Select.Option>
+              <Select.Option value="Project Owner">Owner</Select.Option>
+              <Select.Option value="Project Contributor">Contributor</Select.Option>
             </Select>
           </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">Add Member</Button>
+          <Form.Item style={{ marginBottom: 0 }}>
+            <Button type="primary" htmlType="submit" size="small">Add Member</Button>
           </Form.Item>
         </Form>
       )}
@@ -228,8 +243,8 @@ function ProjectMembers() {
         renderItem={member => (
           <List.Item
             actions={
-              // Only admin/manager can remove, and not for admin
-              canModifyMembers && member.role !== 'admin' ? [
+              // Only admin/owner can remove, and not for owner unless admin
+              (canModifyMembers && (isAdmin || member.role !== 'Project Owner')) ? [
                 <Popconfirm title="Remove this member?" onConfirm={() => handleRemove(member.user_id)} okText="Remove" cancelText="Cancel">
                   <Button type="link" icon={<DeleteOutlined />} danger size="small">Remove</Button>
                 </Popconfirm>
@@ -240,22 +255,21 @@ function ProjectMembers() {
               avatar={<Avatar icon={<UserOutlined />} />}
               title={<Text strong>{member.username || member.email}</Text>}
               description={
-                member.role === 'admin' ? getRoleTag(member.role) : (
-                  canModifyMembers ? (
-                    <Space>
-                      <Select
-                        size="small"
-                        value={member.role}
-                        style={{ width: 110 }}
-                        onChange={val => handleRoleChange(member.user_id, val)}
-                        disabled={roleUpdating[member.user_id]}
-                        options={roleOptions}
-                      />
-                      {roleUpdating[member.user_id] && <Spin size="small" />}
-                      {getRoleTag(member.role)}
-                    </Space>
-                  ) : getRoleTag(member.role)
-                )
+                // Only show dropdown for contributors (not for owner), or for admin
+                (isAdmin || (canModifyMembers && member.role === 'Project Contributor')) ? (
+                  <Space>
+                    <Select
+                      size="small"
+                      value={member.role}
+                      style={{ width: 110 }}
+                      onChange={val => handleRoleChange(member.user_id, val)}
+                      disabled={roleUpdating[member.user_id]}
+                      options={roleOptions}
+                    />
+                    {roleUpdating[member.user_id] && <Spin size="small" />}
+                    {getRoleTag(member.role)}
+                  </Space>
+                ) : getRoleTag(member.role)
               }
             />
           </List.Item>
