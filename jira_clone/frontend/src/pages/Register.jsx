@@ -24,7 +24,6 @@ function Register() {
       const res = await fetch('http://localhost:5000/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // --- FIX: Do not send a role to the backend ---
         body: JSON.stringify({ username: values.username, email: values.email, password: values.password })
       });
       const data = await res.json();
@@ -43,12 +42,21 @@ function Register() {
   return (
     <>
       <Header />
-      <div style={{ maxWidth: 400, margin: '48px auto', padding: '0 16px' }}>
-        <Card bordered style={{ borderRadius: 8, boxShadow: '0 2px 8px #f0f1f2' }}>
+      <div style={{
+        minHeight: 'calc(100vh - 44px - 48px)', // header + footer height
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '32px 0 32px 0',
+        background: '#f7f9fb',
+        marginTop: '32px', // Add margin to separate from header
+      }}>
+        <Card bordered style={{ borderRadius: 8, boxShadow: '0 2px 8px #f0f1f2', width: 400, maxWidth: '90vw' }}>
           <Title level={3} style={{ textAlign: 'center', marginBottom: 24, color: '#1677ff' }}>Register for Jira Clone</Title>
-          <Form layout="vertical" onFinish={onFinish} autoComplete="off">
-            <Form.Item label="Username" name="username" rules={[{ required: true, message: 'Please enter your username' }]}>
-              <Input autoFocus />
+          <Form layout="vertical" onFinish={onFinish} autoComplete="off" style={{ marginTop: 8 }}>
+            <Form.Item label="Full Name" name="username" rules={[{ required: true, message: 'Please enter your full name' }]}> 
+              <Input autoFocus placeholder="Your full name" />
             </Form.Item>
             <Form.Item label="Email address" name="email" rules={[{ required: true, message: 'Please enter your email' }]}>
               <Input type="email" />
@@ -59,9 +67,6 @@ function Register() {
             <Form.Item label="Confirm Password" name="confirmPassword" rules={[{ required: true, message: 'Please confirm your password' }]}>
               <Input.Password />
             </Form.Item>
-            
-            {/* --- FIX: The entire Role selection Form.Item has been REMOVED --- */}
-            
             {error && <Alert message={error} type="error" showIcon style={{ marginBottom: 12 }} />}
             {success && <Alert message={success} type="success" showIcon style={{ marginBottom: 12 }} />}
             <Form.Item>

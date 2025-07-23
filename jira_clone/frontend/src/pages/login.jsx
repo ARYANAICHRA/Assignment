@@ -8,7 +8,7 @@ import { useAuth } from '../context/AuthContext'; // Use new AuthContext
 
 const { Title } = Typography;
 
-function LoginPage({ setIsAuthenticated }) { // Accept setIsAuthenticated as prop
+function LoginPage() { // Accept setIsAuthenticated as prop
   const navigate = useNavigate();
   const { login, isAdmin } = useAuth(); // Get login function and isAdmin from AuthContext
   const [error, setError] = useState('');
@@ -28,7 +28,6 @@ function LoginPage({ setIsAuthenticated }) { // Accept setIsAuthenticated as pro
       const data = await res.json();
       if (res.ok && data.token) {
         login(data.user, data.token); // Use data.token, not data.access_token
-        setIsAuthenticated(true); // Set authenticated state immediately
         // Redirect based on admin status
         if (data.user.email === 'admin@example.com') {
           navigate('/admin');
@@ -48,8 +47,16 @@ function LoginPage({ setIsAuthenticated }) { // Accept setIsAuthenticated as pro
     // The JSX for this component remains the same
     <>
       <Header />
-      <div style={{ maxWidth: 400, margin: '48px auto', padding: '0 16px' }}>
-        <Card variant="outlined" style={{ borderRadius: 8, boxShadow: '0 2px 8px #f0f1f2' }}>
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: '32px 0 64px 0', // Extra bottom padding for footer
+        background: '#f7f9fb',
+      }}>
+        <Card variant="outlined" style={{ borderRadius: 8, boxShadow: '0 2px 8px #f0f1f2', width: 400, maxWidth: '90vw' }}>
           <Title level={3} style={{ textAlign: 'center', marginBottom: 24, color: '#1677ff' }}>Login to Jira Clone</Title>
           <Form layout="vertical" onFinish={onFinish} autoComplete="off">
             <Form.Item label="Email address" name="email" rules={[{ required: true, message: 'Please enter your email' }]}> 

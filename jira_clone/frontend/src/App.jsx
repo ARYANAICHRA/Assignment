@@ -23,7 +23,7 @@ import AdminPanel from './pages/AdminPanel';
 
 const { Sider, Content, Header: AntHeader, Footer: AntFooter } = Layout;
 
-function AppLayout({ isAuthenticated, setIsAuthenticated }) {
+function AppLayout() {
   const { selectedProject } = useContext(ProjectContext);
   const location = useLocation();
   const { isAdmin } = useAuth();
@@ -37,12 +37,10 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
   ].some(path => location.pathname === path);
   return (
     <div style={{ minHeight: '100vh', background: '#f7f9fb' }}>
-      <Header setIsAuthenticated={setIsAuthenticated} isAuthenticated={isAuthenticated} selectedProject={selectedProject} />
-      <div style={{ display: 'flex', flexDirection: 'row', minHeight: 'calc(100vh - 44px)' }}>
-        <div style={{ width: 220, flexShrink: 0 }}>
-          <Sidebar setIsAuthenticated={setIsAuthenticated} />
-        </div>
-        <div style={{ flex: 1, minWidth: 0, padding: '32px 16px 0 16px', marginTop: 0 }}>
+      <Header selectedProject={selectedProject} />
+      <div style={{ minHeight: 'calc(100vh - 44px)', display: 'flex', flexDirection: 'row' }}>
+        <Sidebar />
+        <div style={{ flex: 1, minWidth: 0, padding: '32px 24px 0 24px', marginTop: 0, marginLeft: 240, transition: 'margin-left 0.2s', paddingTop: 44 }}>
           <Routes>
             {/* Redirect admin away from dashboard and home */}
             {isAdmin && <Route path="/dashboard" element={<Navigate to="/admin" replace />} />}
@@ -70,47 +68,11 @@ function AppLayout({ isAuthenticated, setIsAuthenticated }) {
 }
 
 function App() {
-  const { currentUser, isAdmin } = useAuth();
+  const { currentUser } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      fetch('http://localhost:5000/me', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-        .then(res => res.ok ? res.json() : null)
-        .then(data => {
-          if (data) localStorage.setItem('user', JSON.stringify(data));
-        });
-    }
-  }, []);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      setIsAuthenticated(false);
-      setLoading(false);
-      return;
-    }
-    // Verify token with backend
-    fetch('http://localhost:5000/me', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    })
-      .then(res => {
-        if (res.ok) setIsAuthenticated(true);
-        else {
-          setIsAuthenticated(false);
-          localStorage.removeItem('token');
-        }
-        setLoading(false);
-      })
-      .catch(() => {
-        setIsAuthenticated(false);
-        localStorage.removeItem('token');
-        setLoading(false);
-      });
+    setLoading(false);
   }, []);
 
   if (loading) {
@@ -120,12 +82,12 @@ function App() {
   return (
     <ProjectProvider>
       <Router>
-        {isAuthenticated ? (
-          <AppLayout isAuthenticated={isAuthenticated} setIsAuthenticated={setIsAuthenticated} />
+        {currentUser ? (
+          <AppLayout />
         ) : (
           <Routes>
-            <Route path="/" element={<Home isAuthenticated={isAuthenticated} />} />
-            <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="*" element={<Navigate to="/login" />} />
           </Routes>

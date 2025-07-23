@@ -20,7 +20,7 @@ import { useAuth } from '../context/AuthContext';
 
 const { Text } = Typography;
 
-function Sidebar({ setIsAuthenticated }) {
+function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
@@ -30,7 +30,7 @@ function Sidebar({ setIsAuthenticated }) {
   
   // --- FIX: Get the current user from the context ---
   const { currentUser } = useContext(ProjectContext);
-  const { isAdmin } = useAuth();
+  const { isAdmin, logout } = useAuth();
 
   useEffect(() => {
     // Only fetch projects if a user is logged in
@@ -62,9 +62,7 @@ function Sidebar({ setIsAuthenticated }) {
   // }
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setIsAuthenticated(false);
+    logout();
     navigate('/login');
   };
 
@@ -75,13 +73,18 @@ function Sidebar({ setIsAuthenticated }) {
       width: 240,
       display: 'flex',
       flexDirection: 'column',
-      position: 'relative',
-      borderRight: '1px solid rgba(0, 0, 0, 0.05)',
-      boxShadow: '1px 0 4px rgba(0, 0, 0, 0.02)',
-      marginTop: 15,
+      position: 'fixed',
+      top: 44, // below header
+      left: 0,
+      bottom: 0,
+      zIndex: 100,
+      borderRight: '1px solid rgba(0, 0, 0, 0.07)',
+      boxShadow: '2px 0 8px rgba(0,0,0,0.04)',
+      overflow: 'hidden',
+      transition: 'box-shadow 0.2s',
     }}>
       {/* Projects Section */}
-      <div style={{ padding: '16px 16px 0', flex: 1 }}>
+      <div style={{ padding: '16px 16px 0', flex: 1, overflowY: 'auto', minHeight: 0 }}>
         <div style={{ 
           display: 'flex', 
           alignItems: 'center', 

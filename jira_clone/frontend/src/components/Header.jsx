@@ -1,40 +1,13 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Breadcrumb, Avatar, Dropdown, Button, Badge } from 'antd';
+import { Avatar, Dropdown, Button, Badge, Typography } from 'antd';
 import { UserOutlined, DownOutlined, BellOutlined } from '@ant-design/icons';
 import NotificationModal from './NotificationModal';
 import ProjectSearchModal from './ProjectSearchModal';
 import { ProjectContext } from '../context/ProjectContext';
 import { useAuth } from '../context/AuthContext'; // Use new AuthContext
 
-function getBreadcrumbItems(location, selectedProject) {
-    const path = location.pathname.split('/').filter(Boolean);
-    const items = [{ title: <Link to="/dashboard">Dashboard</Link> }];
-
-    if (path[0] === 'projects' && path.length === 1) {
-        items.push({ title: 'Projects' });
-    }
-    if (path[0] === 'projects' && selectedProject) {
-        items[0] = { title: <Link to="/projects">Projects</Link> }; // Change base to Projects
-        items.push({ title: selectedProject.name });
-    }
-    if (path[0] === 'teams') {
-        items.push({ title: 'Teams' });
-    }
-    if (path[0] === 'profile') {
-        items.push({ title: 'Profile' });
-    }
-     if (path[0] === 'project-management') {
-        items.push({ title: 'Project Management' });
-    }
-    // If on dashboard, only show dashboard link
-    if (path[0] === 'dashboard') {
-        return [{ title: 'Dashboard' }];
-    }
-    
-    return items;
-}
-
+const { Title } = Typography;
 
 function Header() {
   const { currentUser, logout, isAdmin } = useAuth(); // Use AuthContext
@@ -92,19 +65,17 @@ function Header() {
     },
     {
       key: 'logout',
-      label: 'Logout',
+      label: <span style={{ color: '#ef4444' }}>Logout</span>,
       danger: true,
-      onClick: handleLogout,
     },
   ];
 
-  const breadcrumbItems = getBreadcrumbItems(location, selectedProject);
-
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 44, padding: '0 32px', background: '#fff', boxShadow: '0 1px 4px #f0f1f2', position: 'fixed', top: 5, left: 0, right: 0, zIndex: 200 }}>
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 44, padding: '0 32px', background: '#fff', boxShadow: '0 1px 4px #f0f1f2', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200 }}>
       <div>
-        {/* --- FIX: Use the 'items' prop for Breadcrumb --- */}
-        <Breadcrumb items={breadcrumbItems} />
+        <Link to="/" style={{ textDecoration: 'none' }}>
+          <Title level={3} style={{ margin: 0, color: '#1677ff', fontWeight: 700, letterSpacing: 1 }}>Jira Clone</Title>
+        </Link>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
         {currentUser && (
@@ -118,8 +89,7 @@ function Header() {
             </Badge>
         )}
         {currentUser && (
-          // --- FIX: Use the 'menu' prop for Dropdown ---
-          <Dropdown menu={{ items: menuItems }} placement="bottomRight" trigger={["click"]}>
+          <Dropdown menu={{ items: menuItems, onClick: (info) => { if (info.key === 'logout') handleLogout(); } }} placement="bottomRight" trigger={["click"]}>
             <Button type="text" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <Avatar size="small" style={{ backgroundColor: '#1677ff' }} icon={<UserOutlined />}>
                 {currentUser.username ? currentUser.username[0].toUpperCase() : '?'}
